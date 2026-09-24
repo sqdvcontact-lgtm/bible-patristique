@@ -882,7 +882,7 @@ function CelluleAbsente({ deutero }: { deutero?: boolean }) {
   if (!deutero) return <span style={STYLE_MENTION}>{MENTION_ABSENT}</span>;
   return (
     <span
-      title="Ce passage nous est parvenu en grec, non en hébreu. Les Bibles catholique et orthodoxe le reçoivent ; la Bible protestante et la Bible hébraïque ne le comptent pas parmi les livres canoniques. La case est donc vide pour cette traduction, et non par oubli."
+      title="Ce passage nous est parvenu en grec, non en hébreu. Les Bibles catholique et orthodoxe le reçoivent&#8239;; la Bible protestante et la Bible hébraïque ne le comptent pas parmi les livres canoniques. La case est donc vide pour cette traduction, et non par oubli."
       style={{ ...STYLE_MENTION, cursor: "help" }}>
       {MENTION_DEUTERO}
     </span>
@@ -936,7 +936,7 @@ function RefOrigine({ ligne, note }: { ligne: V2Row; note: string | null }) {
           14 septembre 2026) : le crayon disait « modifier », qui est le geste de
           l'administrateur, posé juste à côté. Sa mesure vit dans la feuille. */}
       {note ? (
-        <span className="poly-note-marque" role="img" aria-label={`Note éditoriale : ${noteEnTexteBrut(note)}`} title={noteEnTexteBrut(note)}>
+        <span className="poly-note-marque" role="img" aria-label={`Note éditoriale\u00A0: ${noteEnTexteBrut(note)}`} title={noteEnTexteBrut(note)}>
           <IconeSignalement />
         </span>
       ) : null}
@@ -1142,7 +1142,7 @@ const STYLE_LIGNE_A_REMPLACER: React.CSSProperties = { background: "var(--cs-dan
 function MentionRemplacer() {
   return (
     <span style={{ marginLeft: "auto", flexShrink: 0, fontFamily: SANS, fontSize: "0.6875rem", fontWeight: 600, fontStyle: "italic", letterSpacing: "0.01em", color: "var(--cs-danger-fonce)" }}>
-      Remplacer ?
+      Remplacer&#8239;?
     </span>
   );
 }
@@ -2654,7 +2654,7 @@ export default function PolyglottePage() {
     const noms = touchees.map(slot => trads.find(t => t.trad_id === slotsDisponibles[slot])?.nom ?? `colonne ${slot + 1}`);
     return {
       titre: "Une seule traduction à la fois",
-      detail: `Le lasso tient plusieurs traductions ensemble : ${enumererNoms(noms)}. Reprenez le geste dans une seule colonne.`,
+      detail: `Le lasso tient plusieurs traductions ensemble\u00A0: ${enumererNoms(noms)}. Reprenez le geste dans une seule colonne.`,
     };
   };
   // ⛔ Les gestes refusent eux aussi une sélection qui mêle deux colonnes.
@@ -2918,7 +2918,7 @@ export default function PolyglottePage() {
       <div className="poly-mobile" style={{ maxWidth: '32.5rem', margin: "0 auto", padding: "56px 22px 48px", fontFamily: SANS, textAlign: "center", color: 'var(--cs-texte-second)' }}>
         <h1 style={{ fontFamily: SERIF, fontSize: TITRE_CARTE, fontWeight: GRAISSE_TITRE, color: ENCRE_TITRE_CARTE, margin: "0 0 16px" }}>Polyglotte</h1>
         <p style={{ fontSize: '0.875rem', lineHeight: 1.6, margin: 0 }}>
-          Cette page compare plusieurs traductions côte à côte : elle demande un écran large, et ne tient pas sur un téléphone.
+          Cette page compare plusieurs traductions côte à côte&nbsp;: elle demande un écran large, et ne tient pas sur un téléphone.
           <br /><br />
           <strong>Ouvrez-la sur un écran plus large.</strong>
         </p>
@@ -3212,7 +3212,7 @@ export default function PolyglottePage() {
                   d'un clic. */}
               {(sensiblesOnly || surnumOnly) && (
                 <div role="status" style={{ display: "flex", flexWrap: "wrap", alignItems: "baseline", justifyContent: "center", gap: "4px 14px", padding: "10px 12px", fontFamily: SERIF, fontStyle: "italic", fontSize: "0.8125rem", letterSpacing: "0.02em", color: "var(--cs-mention)" }}>
-                  <span>{sensiblesOnly ? "Filtre de relecture : seules les lignes problématiques sont affichées." : "Filtre de relecture : seuls les versets surnuméraires sont affichés."}</span>
+                  <span>{sensiblesOnly ? "Filtre de relecture\u00A0: seules les lignes problématiques sont affichées." : "Filtre de relecture\u00A0: seuls les versets surnuméraires sont affichés."}</span>
                   <button type="button" className="cs-bouton-lien" onClick={() => { setSensiblesOnly(false); setSurnumOnly(false); }}>Tout afficher</button>
                 </div>
               )}
@@ -3237,7 +3237,7 @@ export default function PolyglottePage() {
               ? `Glose du témoin, après le verset ${g.ch}, ${g.v}`
               : editions > 1
                 ? `Verset hors ossature canonique, porté par ${editions} éditions au même numéro (${g.ch}, ${g.v})`
-                : `Verset propre à cette édition, hors de l'ossature canonique (${g.ch}, ${g.v})`;
+                : `Verset propre à cette édition, hors de l’ossature canonique (${g.ch}, ${g.v})`;
             return (
               <div key={cle} className="poly-surnum-row poly-grille" style={{ display: "grid", gridTemplateColumns: tmpl, background: SURNUM_FOND, borderTop: "1px solid var(--cs-surnum-bord)", fontSize: '0.875rem' }}>
                 {/* « ✦ » plutôt que « ＋ » : le plus disait « on a ajouté quelque chose », ce qui

@@ -18,7 +18,7 @@ export default function ParcoursDecouverte(etat: EtatLecteur) {
       {/* ⚠️ Le motif de l'avance se DIT. Nunes et Drèze : l'effet des cases déjà
           cochées disparaît quand on ne justifie pas pourquoi elles le sont. */}
       <p style={{ fontSize: '0.71875rem', color: 'var(--cs-texte-gris)', margin: '0 0 18px', lineHeight: 1.6, fontStyle: 'italic' }}>
-        Les trois premiers sont acquis : vous les avez faits en vous inscrivant.
+        Les trois premiers sont acquis&nbsp;: vous les avez faits en vous inscrivant.
       </p>
 
       <ol style={{ listStyle: 'none', margin: 0, padding: 0, display: 'flex', flexDirection: 'column', gap: '12px' }}>

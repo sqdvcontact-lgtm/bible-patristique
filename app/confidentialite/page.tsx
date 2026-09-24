@@ -20,7 +20,7 @@ export default function ConfidentialitePage() {
         </h1>
 
         <p style={{ fontSize: "0.75rem", color: "var(--cs-texte-doux)", marginBottom: "40px", fontStyle: "italic" }}>
-          Dernière mise à jour : septembre 2026
+          Dernière mise à jour&nbsp;: septembre 2026
         </p>
 
         {/* ⛔ Même composition que les conditions d'utilisation, et pour la même raison
@@ -48,7 +48,7 @@ export default function ConfidentialitePage() {
           </Section>
 
           <Section titre="2. Données collectées">
-            <p>Le site collecte les données suivantes, selon votre usage :</p>
+            <p>Le site collecte les données suivantes, selon votre usage&nbsp;:</p>
             <ul style={{ paddingLeft: "20px", margin: "8px 0", textAlign: "left" }}>
               <li>
                 <strong>Adresse e-mail</strong> – lors de la création d&rsquo;un compte, via le service
@@ -81,7 +81,7 @@ export default function ConfidentialitePage() {
               </li>
               <li>
                 <strong>Adresse de contact</strong> – facultative, indiquée dans Mon compte. Elle ne paraît
-                pas sur votre page publique : vous seul la voyez, et l&rsquo;administration peut s&rsquo;en servir
+                pas sur votre page publique&nbsp;: vous seul la voyez, et l&rsquo;administration peut s&rsquo;en servir
                 pour vous répondre.
               </li>
               <li>
@@ -91,7 +91,7 @@ export default function ConfidentialitePage() {
               <li>
                 <strong>Messages du formulaire de contact</strong> – votre message et, si vous les indiquez,
                 votre nom, un sujet et une adresse de réponse. Ils sont lus par l&rsquo;éditeur seul. Votre
-                adresse IP n&rsquo;y est pas enregistrée : une empreinte chiffrée, qui change chaque jour,
+                adresse IP n&rsquo;y est pas enregistrée&nbsp;: une empreinte chiffrée, qui change chaque jour,
                 sert seulement à limiter les envois abusifs.
               </li>
               <li>
@@ -109,7 +109,7 @@ export default function ConfidentialitePage() {
               </li>
             </ul>
             <p>
-              Le site ne collecte aucune donnée de paiement : les dons sont traités directement par un
+              Le site ne collecte aucune donnée de paiement&nbsp;: les dons sont traités directement par un
               prestataire de paiement tiers (PayPal), sans transit ni conservation des coordonnées bancaires
               par le site lui-même. Suivre le bouton de don vous conduit sur le site de ce prestataire, qui
               applique alors sa propre politique de confidentialité.
@@ -118,7 +118,7 @@ export default function ConfidentialitePage() {
               Si vous avez oublié votre mot de passe, la page «&nbsp;Mot de passe oublié&nbsp;» envoie à
               l&rsquo;adresse de votre compte un courriel qui contient un lien pour en choisir un nouveau. Ce
               courriel est envoyé par le service d&rsquo;authentification Supabase. La page répond de la même
-              façon qu&rsquo;un compte existe ou non à l&rsquo;adresse saisie : elle ne permet donc pas de savoir
+              façon qu&rsquo;un compte existe ou non à l&rsquo;adresse saisie&nbsp;: elle ne permet donc pas de savoir
               si quelqu&rsquo;un est inscrit.
             </p>
           </Section>
@@ -127,7 +127,7 @@ export default function ConfidentialitePage() {
             <p>
               Les membres peuvent s&rsquo;écrire par la messagerie du site. Un message y est conservé avec son
               texte, son expéditeur, son destinataire, sa date et l&rsquo;indication qu&rsquo;il a été lu. Il
-              n&rsquo;est lisible que par ses deux correspondants : les règles de la base réservent chaque
+              n&rsquo;est lisible que par ses deux correspondants&nbsp;: les règles de la base réservent chaque
               conversation à l&rsquo;expéditeur et au destinataire, et le site n&rsquo;offre à l&rsquo;administration
               aucun écran pour la consulter. Les messages restent néanmoins enregistrés dans la base du
               site, que l&rsquo;éditeur administre, comme toutes les données décrites ici.
@@ -136,13 +136,13 @@ export default function ConfidentialitePage() {
               Quand vous ouvrez une conversation, les messages que vous avez reçus sont marqués comme lus.
               Par défaut, chacun voit ainsi, sous ses propres messages, que son correspondant les a lus.
               Vous pouvez désactiver ces accusés de lecture dans Mon compte, à la section Messagerie. Le
-              réglage est réciproque : vos correspondants ne voient plus quand vous avez lu leurs messages,
+              réglage est réciproque&nbsp;: vos correspondants ne voient plus quand vous avez lu leurs messages,
               et vous ne voyez plus quand ils ont lu les vôtres. L&rsquo;indication reste enregistrée, parce
               qu&rsquo;elle sert à compter vos messages non lus, mais elle n&rsquo;est plus montrée à personne.
             </p>
             <p>
               Le prénom et le nom que vous pouvez indiquer dans Mon compte ne paraissent nulle part par
-              défaut : vous seul les voyez dans votre espace, et l&rsquo;administration peut les consulter. Ils
+              défaut&nbsp;: vous seul les voyez dans votre espace, et l&rsquo;administration peut les consulter. Ils
               deviennent publics dans un seul cas, quand vous choisissez de signer une publication de votre
               nom réel. Ils paraissent alors en signature de cette publication, dans la page Communauté
               comme sur la page de la publication, et votre page publique les affiche à côté de votre
@@ -151,14 +151,14 @@ export default function ConfidentialitePage() {
           </Section>
 
           <Section titre="4. Finalités du traitement">
-            <p>Vos données sont utilisées exclusivement pour :</p>
+            <p>Vos données sont utilisées exclusivement pour&nbsp;:</p>
             <ul style={{ paddingLeft: "20px", margin: "8px 0", textAlign: "left" }}>
-              <li>permettre la création et la gestion de votre compte utilisateur ;</li>
-              <li>acheminer les messages que vous échangez avec d&rsquo;autres membres ;</li>
-              <li>sauvegarder vos prélèvements bibliques et patristiques d&rsquo;une session à l&rsquo;autre ;</li>
-              <li>afficher, après modération, les commentaires et essais que vous publiez ;</li>
-              <li>traiter les signalements d&rsquo;erreurs que vous transmettez ;</li>
-              <li>alimenter des statistiques de consultation internes (compteurs agrégés) ;</li>
+              <li>permettre la création et la gestion de votre compte utilisateur&#8239;;</li>
+              <li>acheminer les messages que vous échangez avec d&rsquo;autres membres&#8239;;</li>
+              <li>sauvegarder vos prélèvements bibliques et patristiques d&rsquo;une session à l&rsquo;autre&#8239;;</li>
+              <li>afficher, après modération, les commentaires et essais que vous publiez&#8239;;</li>
+              <li>traiter les signalements d&rsquo;erreurs que vous transmettez&#8239;;</li>
+              <li>alimenter des statistiques de consultation internes (compteurs agrégés)&#8239;;</li>
               <li>assurer la sécurité et le bon fonctionnement technique du site.</li>
             </ul>
             <p>
@@ -269,14 +269,14 @@ export default function ConfidentialitePage() {
 
           <Section titre="10. Vos droits">
             <p>
-              Conformément au RGPD et à la loi Informatique et Libertés, vous disposez des droits suivants :
+              Conformément au RGPD et à la loi Informatique et Libertés, vous disposez des droits suivants&nbsp;:
             </p>
             <ul style={{ paddingLeft: "20px", margin: "8px 0", textAlign: "left" }}>
-              <li><strong>Droit d&rsquo;accès</strong> – obtenir la confirmation que vos données sont traitées et en obtenir une copie ;</li>
-              <li><strong>Droit de rectification</strong> – corriger des données inexactes ou incomplètes ;</li>
-              <li><strong>Droit à l&rsquo;effacement</strong> – demander la suppression de vos données ;</li>
-              <li><strong>Droit à la limitation</strong> – restreindre temporairement le traitement ;</li>
-              <li><strong>Droit d&rsquo;opposition</strong> – vous opposer à un traitement fondé sur l&rsquo;intérêt légitime ;</li>
+              <li><strong>Droit d&rsquo;accès</strong> – obtenir la confirmation que vos données sont traitées et en obtenir une copie&#8239;;</li>
+              <li><strong>Droit de rectification</strong> – corriger des données inexactes ou incomplètes&#8239;;</li>
+              <li><strong>Droit à l&rsquo;effacement</strong> – demander la suppression de vos données&#8239;;</li>
+              <li><strong>Droit à la limitation</strong> – restreindre temporairement le traitement&#8239;;</li>
+              <li><strong>Droit d&rsquo;opposition</strong> – vous opposer à un traitement fondé sur l&rsquo;intérêt légitime&#8239;;</li>
               <li><strong>Droit à la portabilité</strong> – recevoir vos données dans un format structuré et lisible par machine.</li>
             </ul>
             <p>
@@ -286,7 +286,7 @@ export default function ConfidentialitePage() {
             </p>
             <p>
               Si vous estimez, après nous avoir contactés, que vos droits ne sont pas respectés, vous pouvez
-              introduire une réclamation auprès de la CNIL :{' '}
+              introduire une réclamation auprès de la CNIL&nbsp;:{' '}
               <a href="https://www.cnil.fr/fr/plaintes" target="_blank" rel="noopener noreferrer"
                 style={{ color: "var(--cs-vert)", textDecoration: "underline" }}>
                 www.cnil.fr/fr/plaintes
@@ -298,7 +298,7 @@ export default function ConfidentialitePage() {
           <Section titre="11. Sécurité">
             <p>
               Des mesures techniques raisonnables sont mises en œuvre pour protéger vos données contre
-              l&rsquo;accès non autorisé, la perte ou l&rsquo;altération : chiffrement des échanges en HTTPS, contrôle
+              l&rsquo;accès non autorisé, la perte ou l&rsquo;altération&nbsp;: chiffrement des échanges en HTTPS, contrôle
               d&rsquo;accès aux données via des règles de sécurité au niveau des lignes (Row Level Security -
               RLS), et séparation des accès entre rôles utilisateur et rôle administrateur.
             </p>

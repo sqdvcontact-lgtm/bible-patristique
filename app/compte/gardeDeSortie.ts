@@ -9,7 +9,7 @@
 
 import { useEffect } from 'react'
 
-export const MESSAGE_SORTIE = 'Certaines modifications ne sont pas enregistrées. Quitter la page quand même ?'
+export const MESSAGE_SORTIE = 'Certaines modifications ne sont pas enregistrées. Quitter la page quand même\u202F?'
 
 export function useGardeDeSortie(enAttente: boolean) {
   useEffect(() => {

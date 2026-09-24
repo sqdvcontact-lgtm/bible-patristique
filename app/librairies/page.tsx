@@ -13,7 +13,7 @@ type Librairie = { nom: string; description: string; url: string; couleur: strin
 const LIBRAIRIES: Librairie[] = [
   {
     nom: 'La Procure',
-    description: 'Éditions contemporaines, annotées ou liturgiques — livres neufs.',
+    description: 'Livres neufs\u00A0: éditions contemporaines, annotées ou liturgiques.',
     url: 'https://www.laprocure.com/',
     logo: '/icons/librairies/procure-eventail.png',
     couleur: '#153f78',
@@ -21,7 +21,7 @@ const LIBRAIRIES: Librairie[] = [
   },
   {
     nom: 'Librairie Pierre Brunet',
-    description: "Éditions anciennes et épuisées — livres d'occasion et anciens.",
+    description: "Livres d’occasion et anciens\u00A0: éditions anciennes et épuisées.",
     url: 'https://www.librairie-pierre-brunet.fr/librairie-en-ligne.html',
     logo: '/icons/librairies/pierre-brunet-livre.png',
     couleur: '#5e3a1c',

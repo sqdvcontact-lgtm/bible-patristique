@@ -462,7 +462,7 @@ function ProposerLienBiblique({ segId }: { segId: number }) {
             </div>
             <div className="cs-defilement-discret" style={{ flex: '1 1 auto', minHeight: 0, overflowY: 'auto', padding: '0 22px' }}>
             {statut === 'ok' ? (
-              <p style={{ fontSize: '0.71875rem', color: 'var(--cs-vert)', fontStyle: 'italic', textAlign: 'center', padding: '8px 0 16px' }}>Proposition envoyée, merci !</p>
+              <p style={{ fontSize: '0.71875rem', color: 'var(--cs-vert)', fontStyle: 'italic', textAlign: 'center', padding: '8px 0 16px' }}>Proposition envoyée, merci&#8239;!</p>
             ) : (
               <>
                 <p style={{ fontSize: '0.6875rem', color: 'var(--cs-texte-gris)', fontStyle: 'italic', margin: '0 0 10px', lineHeight: 1.45 }}>
@@ -3324,7 +3324,7 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
     if (colonnes.length < 2) return null
     return {
       titre: 'Une seule colonne à la fois',
-      detail: 'Le lasso tient la traduction et le texte original ensemble ; reprenez le geste dans une seule colonne.',
+      detail: 'Le lasso tient la traduction et le texte original ensemble\u202F; reprenez le geste dans une seule colonne.',
     }
   }
 
@@ -5407,10 +5407,10 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
             et ne peut jamais dépasser la place disponible. */
         <div style={{ position: 'fixed', top: HAUTEUR_NAVBAR, left: 0, right: 0, bottom: 0, background: 'var(--cs-calque-modale)', zIndex: Z_MODALE, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1.25rem' }}
           onClick={() => setConfigOuverte(false)}>
-          <div ref={boiteConfig} role="dialog" aria-modal="true" aria-label="Niveaux d'affichage"
+          <div ref={boiteConfig} role="dialog" aria-modal="true" aria-label="Niveaux d’affichage"
             onClick={e => e.stopPropagation()} style={{ background: 'var(--cs-surface)', borderRadius: '12px', width: 'min(25rem, 100%)', maxHeight: `calc(100dvh - ${HAUTEUR_NAVBAR} - 2.5rem)`, display: 'flex', flexDirection: 'column', boxShadow: 'var(--cs-ombre-modale)' }}>
             <div style={{ flexShrink: 0, display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '20px 22px 12px' }}>
-              <p style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--cs-vert)', margin: 0 }}>Niveaux d'affichage</p>
+              <p style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--cs-vert)', margin: 0 }}>Niveaux d’affichage</p>
               <button onClick={() => setConfigOuverte(false)} aria-label="Fermer" className="cs-croix-fermer"><IconeCroix /></button>
             </div>
             {/* `minHeight: 0` est ce qui autorise un enfant de flexbox à devenir plus court

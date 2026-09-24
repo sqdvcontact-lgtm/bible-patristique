@@ -575,7 +575,7 @@ export const MENTION_ABSENT_TITRE = 'Cette traduction ne porte pas ce verset.'
  * il se lit, et la référence est celle de l'ÉDITION, jamais le numéro du canon.
  */
 export const mentionEmpan = (referenceNative: string) => `Compris dans le verset ${referenceNative}`
-export const MENTION_EMPAN_TITRE = 'Cette édition réunit en un seul verset ce que le canon compte en plusieurs : le texte se lit au verset indiqué.'
+export const MENTION_EMPAN_TITRE = 'Cette édition réunit en un seul verset ce que le canon compte en plusieurs\u00A0: le texte se lit au verset indiqué.'
 /** Le texte d'une colonne qu'on vient de choisir, et qui arrive. ⛔ Jamais « Absent de
  *  cette traduction » pendant ce temps-là : ce serait un mensonge d'une seconde. */
 export const MENTION_ATTENTE = 'Chargement…'

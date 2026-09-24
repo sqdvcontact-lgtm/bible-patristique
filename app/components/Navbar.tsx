@@ -419,7 +419,7 @@ function OngletPatristique({ href, label, style, actif }: { href: string; label:
           </Link>
         );
       }) : (
-        <p className="cs-plus-vide">Aucune encore : les œuvres ouvertes viendront se ranger ici.</p>
+        <p className="cs-plus-vide">Aucune encore&nbsp;: les œuvres ouvertes viendront se ranger ici.</p>
       )}
     </OngletMenu>
   );
@@ -1399,7 +1399,7 @@ export default function Navbar() {
           {rechercheRapideLoading && pericopes.length === 0 && !pericopesLoading && auteursTrouves.length === 0 && oeuvresTrouvees.length === 0 && segmentsTrouves.length === 0 && essaisTrouves.length === 0 && livresTrouves.length === 0 && traductionsTrouvees.length === 0 && evenementsTrouves.length === 0 ? (
             <p style={{ fontSize: "0.78125rem", color: "var(--cs-texte-doux)", textAlign: "center", padding: "11px 12px", margin: 0 }}>…</p>
           ) : aucunResultat ? (
-            <div style={{ textAlign: "center", padding: "11px 12px" }}><MentionVide>Aucun résultat — Entrée pour une recherche complète.</MentionVide></div>
+            <div style={{ textAlign: "center", padding: "11px 12px" }}><MentionVide>Aucun résultat. Entrée lance une recherche complète.</MentionVide></div>
           ) : (
             <>
               {/* ── EN TÊTE, et au premier plan : les TITRES, c'est-à-dire ce qu'on ouvre
@@ -1495,7 +1495,7 @@ export default function Navbar() {
                             {ref && p.categorie ? <span style={{ color: "var(--cs-texte-faible)" }}> · </span> : null}
                             {p.categorie ? <span style={{ color: "var(--cs-texte-doux)" }}>{libelleCategoriePericope(p.categorie)}</span> : null}
                           </span>
-                          {corr && <span style={{ display: "block", fontSize: "0.6875rem", color: "var(--cs-texte-gris)", fontStyle: "italic", lineHeight: 1.2 }}>Correspond à : {corr}</span>}
+                          {corr && <span style={{ display: "block", fontSize: "0.6875rem", color: "var(--cs-texte-gris)", fontStyle: "italic", lineHeight: 1.2 }}>Correspond à&nbsp;: {corr}</span>}
                         </Link>
                       );
                     })
@@ -1723,7 +1723,7 @@ export default function Navbar() {
           label: "Affichage administrateur",
           actif: !modeUtilisateurStandard,
           basculer: () => setModeUtilisateurStandard(!modeUtilisateurStandard),
-          titre: "Affichage seulement — vos droits réels ne changent pas",
+          titre: "Affichage seulement\u00A0: vos droits réels ne changent pas",
         })}
         {/* Mode sombre — un réglage de LECTURE, rangé avec le compte parce que c'est là
             que le lecteur vient chercher ce qui le concerne lui, et non le corpus. */}

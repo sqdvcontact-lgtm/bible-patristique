@@ -664,7 +664,7 @@ export default function LassoLecture(props: LassoLectureProps) {
                 disabled={enCours !== null} onClick={() => setEviction(v => !v)}
                 title={eviction
                   ? 'Cesser de désélectionner (Échap)'
-                  : 'Désélectionner : cliquer ensuite chaque ' + unite[0] + ' à ôter de la sélection'}>
+                  : 'Désélectionner\u00A0: cliquer ensuite chaque ' + unite[0] + ' à ôter de la sélection'}>
                 Désélectionner
               </button>
             )}

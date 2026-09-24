@@ -52,7 +52,7 @@ export default function ContactPage() {
             qui ne vise que les paragraphes. Seul l'interligne rentre dans le barème du
             site — 1,70 était le troisième plus ouvert (audit du 2026-09-05). */}
         <p style={{ fontSize: "0.84375rem", color: "var(--cs-texte-second)", lineHeight: 1.52, marginBottom: "28px" }}>
-          Une question, un signalement d’erreur, l’exercice de vos droits sur vos données&#8239;: écrivez-nous
+          Une question, un signalement d’erreur, l’exercice de vos droits sur vos données&nbsp;: écrivez-nous
           par ce formulaire. Laissez votre adresse si vous souhaitez une réponse.
         </p>
 

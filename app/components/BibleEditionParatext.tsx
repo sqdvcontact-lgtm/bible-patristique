@@ -874,7 +874,7 @@ export function BlocEditorialBible({
           d'elle-même le jour où la donnée déclarera le parent. */}
       {bloc.defautDeDonnee === 'orphelin' && (
         <p className="cs-bible-defaut-donnee">
-          Donnée incomplète : ce bloc ne déclare aucun parent. Il est rattaché ici
+          Donnée incomplète&nbsp;: ce bloc ne déclare aucun parent. Il est rattaché ici
           pour l’affichage seulement.
         </p>
       )}

@@ -119,7 +119,7 @@ function Tableau({ score, series, enVue }: { score: Score; series: SerieEtat[]; 
         {libelleCollection(score)}
         {enAvant && reste && (
           <>
-            {' '}Le plus près : <em>{enAvant.prochain?.nom}</em>, dans « {enAvant.nom} ». {reste}
+            {' '}Le plus près&nbsp;: <em>{enAvant.prochain?.nom}</em>, dans « {enAvant.nom} ». {reste}
           </>
         )}
         {!enAvant && ' Le tableau s’élargira avec la bibliothèque.'}

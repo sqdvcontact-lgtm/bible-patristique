@@ -103,12 +103,12 @@ export default function StatistiquesClient() {
       <div style={{ maxWidth: '40rem', margin: '0 auto', padding: `4px ${GOUTTIERE_PAGE} 80px` }}>
         <EnteteStat
           titre="Les plus cités et commentés par les Pères"
-          intro="Classement établi à partir des liens patristiques, comptés par œuvre (un même texte ne pèse qu'une fois, même s'il revient longuement sur un verset) : un commentaire pèse davantage qu'une citation, une citation davantage qu'une simple allusion. Le score grandira à mesure que les liens sont constitués." />
+          intro="Classement établi à partir des liens patristiques, comptés par œuvre (un même texte ne pèse qu’une fois, même s’il revient longuement sur un verset)&nbsp;: un commentaire pèse davantage qu’une citation, une citation davantage qu’une simple allusion. Le score grandira à mesure que les liens sont constitués." />
         {cites === null ? (
           <MotAttente centre />
         ) : erreur ? (
           <p role="alert" style={{ textAlign: 'center', fontSize: '0.8125rem', color: 'var(--cs-danger-fonce)' }}>
-            Le classement n&apos;a pas pu être chargé.
+            Le classement n’a pas pu être chargé.
           </p>
         ) : cites.length === 0 ? (
           <div style={{ textAlign: 'center', margin: '0.8125rem 0' }}><MentionVide>Aucun lien pour l’instant.</MentionVide></div>

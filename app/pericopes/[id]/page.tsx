@@ -508,7 +508,7 @@ export default function PericopePage() {
 
       {erreurPrelevements && (
         <p role="status" style={{ fontFamily: SANS, fontSize: '0.75rem', color: 'var(--cs-texte-second)', margin: '0 0 10px' }}>
-          Vos prélèvements n’ont pas pu être lus : les versets déjà prélevés ne sont pas marqués.
+          Vos prélèvements n’ont pas pu être lus&nbsp;: les versets déjà prélevés ne sont pas marqués.
         </p>
       )}
       <div style={{ display: 'flex', flexDirection: 'column', gap: '18px' }}>

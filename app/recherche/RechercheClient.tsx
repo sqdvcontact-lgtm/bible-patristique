@@ -736,7 +736,7 @@ export default function RechercheClient() {
               <p style={piste}>Un filtre restreint les résultats. <button className="pag-btn" onClick={() => setFiltres({ livre: null, oeuvre: null, essai: null })}>Retirer le filtre</button></p>
             )}
             {ailleurs.length > 0 && (
-              <p style={piste}>Le mot se trouve ailleurs :{' '}
+              <p style={piste}>Le mot se trouve ailleurs&nbsp;:{' '}
                 {ailleurs.map(a => <button key={a.cle} className="pag-btn" style={{ marginRight:'6px' }} onClick={() => setOnglet(a.cle)}>{a.libelle}</button>)}
               </p>
             )}
@@ -747,12 +747,12 @@ export default function RechercheClient() {
               <p style={piste}>Le mode exact ne prend que le mot entier. <button className="pag-btn" onClick={() => relancerAvec(q, 'prefixe')}>Chercher en début de mot</button></p>
             )}
             {mode !== 'famille' && (
-              <p style={piste}>Pour trouver aussi les formes voisines (aimer, aime, aimé) : <button className="pag-btn" onClick={() => relancerAvec(q, 'famille')}>Chercher la famille du mot</button></p>
+              <p style={piste}>Pour trouver aussi les formes voisines (aimer, aime, aimé)&nbsp;: <button className="pag-btn" onClick={() => relancerAvec(q, 'famille')}>Chercher la famille du mot</button></p>
             )}
-            <p style={piste}>Vérifiez l’orthographe : les accents et les majuscules sont facultatifs, mais chaque lettre compte.</p>
+            <p style={piste}>Vérifiez l’orthographe&nbsp;: les accents et les majuscules sont facultatifs, mais chaque lettre compte.</p>
           </div>
         )}
-        <p style={{ margin:'12px 0 0' }}>Exemples :{' '}
+        <p style={{ margin:'12px 0 0' }}>Exemples&nbsp;:{' '}
           {EXEMPLES_REQUETES.map(x => <button key={x} className="pag-btn" style={{ marginRight:'6px' }} onClick={() => relancerAvec(x)}>{x}</button>)}
         </p>
       </div>
@@ -1208,20 +1208,20 @@ export default function RechercheClient() {
 
                       <span style={{ display:'block', marginBottom:'8px' }}>
                         <span style={{ display:'block', fontWeight:700, color:'var(--cs-vert-fonce)', marginBottom:'1px' }}>Début de mot</span>
-                        <span style={{ display:'block' }}>Trouve les mots qui commencent par ce que vous tapez ; plusieurs termes à la fois sont admis.</span>
-                        <span style={{ display:'block', fontStyle:'italic', color:'var(--cs-texte-gris)', marginTop:'2px' }}>« glo » ramène gloire, glorieux, glorifier ; « glo mis » ramène les passages où figurent ensemble un mot en glo- et un mot en mis-.</span>
+                        <span style={{ display:'block' }}>Trouve les mots qui commencent par ce que vous tapez&#8239;; plusieurs termes à la fois sont admis.</span>
+                        <span style={{ display:'block', fontStyle:'italic', color:'var(--cs-texte-gris)', marginTop:'2px' }}>« glo » ramène gloire, glorieux, glorifier&#8239;; « glo mis » ramène les passages où figurent ensemble un mot en glo- et un mot en mis-.</span>
                       </span>
 
                       <span style={{ display:'block', marginBottom:'8px' }}>
                         <span style={{ display:'block', fontWeight:700, color:'var(--cs-vert-fonce)', marginBottom:'1px' }}>Mot exact</span>
-                        <span style={{ display:'block' }}>Ne trouve que le mot entier ; plusieurs mots entiers, non consécutifs, sont admis.</span>
-                        <span style={{ display:'block', fontStyle:'italic', color:'var(--cs-texte-gris)', marginTop:'2px' }}>« gloire » ne ramène ni glorieux ni gloires ; « gloire Dieu » ramène les passages contenant l’un et l’autre.</span>
+                        <span style={{ display:'block' }}>Ne trouve que le mot entier&#8239;; plusieurs mots entiers, non consécutifs, sont admis.</span>
+                        <span style={{ display:'block', fontStyle:'italic', color:'var(--cs-texte-gris)', marginTop:'2px' }}>« gloire » ne ramène ni glorieux ni gloires&#8239;; « gloire Dieu » ramène les passages contenant l’un et l’autre.</span>
                       </span>
 
                       <span style={{ display:'block' }}>
                         <span style={{ display:'block', fontWeight:700, color:'var(--cs-vert-fonce)', marginBottom:'1px' }}>Famille de mots</span>
                         <span style={{ display:'block' }}>Trouve le mot sous toutes ses formes, conjugué ou dérivé, en français seulement.</span>
-                        <span style={{ display:'block', fontStyle:'italic', color:'var(--cs-texte-gris)', marginTop:'2px' }}>« aimer » ramène aime, aimait, aimé ; « espérance » ramène aussi espérer et espéré.</span>
+                        <span style={{ display:'block', fontStyle:'italic', color:'var(--cs-texte-gris)', marginTop:'2px' }}>« aimer » ramène aime, aimait, aimé&#8239;; « espérance » ramène aussi espérer et espéré.</span>
                       </span>
                     </span>
                   </span>
@@ -1330,7 +1330,7 @@ export default function RechercheClient() {
                           return (
                             <button key={code} className={`brk-row${sel ? ' brk-row--actif' : ''}`}
                               onClick={() => { setFiltres(f => ({ ...f, livre: f.livre === code ? null : code })); setPageV(0) }}
-                              title={sel ? 'Retirer le filtre' : `N'afficher que ${NOMS_LIVRES[code] ?? code}`}>
+                              title={sel ? 'Retirer le filtre' : `N’afficher que ${NOMS_LIVRES[code] ?? code}`}>
                               <span style={{ minWidth:0, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{NOMS_LIVRES[code] ?? code}</span>
                               <span className="brk-count">{n}</span>
                             </button>
@@ -1345,7 +1345,7 @@ export default function RechercheClient() {
                           return (
                             <button key={cle} className={`brk-row${sel ? ' brk-row--actif' : ''}`}
                               onClick={() => { setFiltres(f => ({ ...f, oeuvre: f.oeuvre === cle ? null : cle })); setPageS(0) }}
-                              title={sel ? 'Retirer le filtre' : `N'afficher que ${r.auteur_nom}${r.oeuvre_titre ? ' — ' + r.oeuvre_titre : ''}`}>
+                              title={sel ? 'Retirer le filtre' : `N’afficher que ${r.auteur_nom}${r.oeuvre_titre ? ' — ' + r.oeuvre_titre : ''}`}>
                               <span style={{ minWidth:0 }}>
                                 <span style={{ color: sel ? 'inherit' : 'var(--cs-texte)' }}>{r.auteur_nom}</span>
                                 {r.oeuvre_titre && <span style={{ color: sel ? 'inherit' : 'var(--cs-texte-doux)', fontStyle:'italic' }}> — {r.oeuvre_titre}</span>}
@@ -1359,7 +1359,7 @@ export default function RechercheClient() {
                           return (
                             <button key={r.id} className={`brk-row${sel ? ' brk-row--actif' : ''}`}
                               onClick={() => { setFiltres(f => ({ ...f, essai: f.essai === r.id ? null : r.id })); setPageE(0) }}
-                              title={sel ? 'Retirer le filtre' : `N'afficher que « ${r.titre} »`}>
+                              title={sel ? 'Retirer le filtre' : `N’afficher que « ${r.titre} »`}>
                               <span style={{ minWidth:0, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{r.titre}</span>
                               <span className="brk-count">{r.n}</span>
                             </button>
@@ -1747,7 +1747,7 @@ export default function RechercheClient() {
           style={{ position:'fixed', top: HAUTEUR_NAVBAR, left:0, right:0, bottom:0, background:'var(--cs-calque-modale)', display:'flex', alignItems:'center', justifyContent:'center', zIndex: Z_MODALE, padding:'20px', overflow:'hidden' }}>
           <div onClick={e => e.stopPropagation()}
             style={{ background:'var(--cs-fond-clair)', border:'1px solid var(--cs-bord)', borderRadius:'12px', boxShadow:'var(--cs-ombre-modale)', padding:'20px 22px', maxWidth:'21.25rem', width:'100%', maxHeight:'100%', overflowY:'auto' }}>
-            <p style={{ fontFamily:SERIF, fontSize:'0.875rem', fontWeight:600, color:'var(--cs-encre)', margin:'0 0 8px' }}>Écraser la recherche précédente ?</p>
+            <p style={{ fontFamily:SERIF, fontSize:'0.875rem', fontWeight:600, color:'var(--cs-encre)', margin:'0 0 8px' }}>Écraser la recherche précédente&#8239;?</p>
             <p style={{ fontSize:'0.75rem', color:'var(--cs-texte-second)', lineHeight:1.5, margin:'0 0 16px' }}>
               Une recherche est déjà enregistrée (« {rechercheSauvee.query} », {formatDateCourt(rechercheSauvee.ts)}).
               L’enregistrer maintenant remplacera cette sauvegarde par « {lastQuery} ».

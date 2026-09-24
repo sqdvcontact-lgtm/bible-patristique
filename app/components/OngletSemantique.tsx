@@ -102,11 +102,11 @@ function LigneAnnotation({ a, inspection }: { a: AnnotationSemantique; inspectio
       </div>
       {porteeEtendue(a.portee) && (
         <div style={{ ...STYLE_DISCRET, marginTop: '2px' }}>
-          Portée : {formaterPlageCanonique(a.portee.debut, a.portee.fin)}        </div>
+          Portée&nbsp;: {formaterPlageCanonique(a.portee.debut, a.portee.fin)}        </div>
       )}
       {a.autorite && a.autorite.formes.length > 0 && (
         <div style={{ ...STYLE_DISCRET, marginTop: '2px' }}>
-          Formes : {a.autorite.formes.map(f => `${f.forme} (${f.langue})`).join(', ')}
+          Formes&nbsp;: {a.autorite.formes.map(f => `${f.forme} (${f.langue})`).join(', ')}
         </div>
       )}
       {a.justification && <p style={{ ...STYLE_TEXTE, margin: '4px 0 0' }}>{a.justification}</p>}
@@ -143,7 +143,7 @@ function LigneArbitrage({ a }: { a: ArbitrageOuvert }) {
         {a.portee && <span style={STYLE_DISCRET}>{formaterPlageCanonique(a.portee.debut, a.portee.fin)}</span>}
       </div>
       <p style={{ ...STYLE_TEXTE, margin: '4px 0 0' }}>{a.formulationProposee}</p>
-      <p style={{ ...STYLE_DISCRET, margin: '4px 0 0' }}>Besoin documentaire : {a.besoinDocumentaire}</p>
+      <p style={{ ...STYLE_DISCRET, margin: '4px 0 0' }}>Besoin documentaire&nbsp;: {a.besoinDocumentaire}</p>
       <Inspection champs={[
         ['portée', a.portee ? `#${a.portee.id}` : null],
         ['voisins', a.identifiantsVoisins.length > 0 ? JSON.stringify(a.identifiantsVoisins) : null],

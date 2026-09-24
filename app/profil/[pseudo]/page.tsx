@@ -287,7 +287,7 @@ export default function ProfilPublicPage() {
                 ) : (
                   <button onClick={() => setEmailVisible(true)}
                     className="cs-lien-phrase cs-lien-phrase--sur-aplat">
-                    Afficher l&apos;adresse mail
+                    Afficher l’adresse mail
                   </button>
                 )}
                 {/* Cette adresse n'est injectée que pour le titulaire du profil. */}
@@ -401,7 +401,7 @@ export default function ProfilPublicPage() {
         {/* Rien de public */}
         {rienDePublic && (
           <p style={{ fontSize: '0.78125rem', color: 'var(--cs-texte-doux)', fontStyle: 'italic', textAlign: 'center', paddingTop: '32px', fontFamily: SERIF }}>
-            Ce profil ne partage pas encore d&apos;informations publiques.
+            Ce profil ne partage pas encore d’informations publiques.
           </p>
         )}
 

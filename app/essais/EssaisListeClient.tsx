@@ -165,11 +165,11 @@ export default function EssaisListeClient({ essais }: { essais: EssaiResume[] })
   }
 
   const supprimer = async (id: number) => {
-    if (!confirm('Supprimer définitivement cet écrit ?')) return
+    if (!confirm('Supprimer définitivement cet écrit\u202F?')) return
     // ⚠️ Lire l'erreur : la RLS refuse en SILENCE, et « supprimé » sans rien de
     // supprimé s'est vu (aucune politique DELETE jusqu'au 2026-09-03).
     const { error } = await supabase.from('essais').delete().eq('id', id)
-    if (error) { alert(`La suppression a échoué : ${error.message}`); return }
+    if (error) { alert(`La suppression a échoué\u00A0: ${error.message}`); return }
     await chargerMesEcrits()
   }
 
@@ -920,7 +920,7 @@ function OngletMesEcrits({
     // updated_at avance à chaque édition, ce qui désactivait à tort la republication. Le
     // serveur (trigger forcer_statut_essai) reste seul juge : contenu modifié → en_attente.
     const dejaValide = e.statut === 'publie' || (e.statut === 'brouillon' && !!e.publie_at)
-    if (!dejaValide) { alert("Cet écrit doit d'abord être validé par l'administration."); return }
+    if (!dejaValide) { alert("Cet écrit doit d’abord être validé par l’administration."); return }
     const restant = 60 * 60 * 1000 - (Date.now() - dernier)
     if (restant > 0) {
       const minutes = Math.ceil(restant / 60000)
@@ -1014,14 +1014,14 @@ function OngletMesEcrits({
                 </div>
                 {(e.statut === 'a_reviser' || e.statut === 'refuse') && e.note_admin && (
                   <p style={{ margin: '4px 0 0', fontSize: '0.6875rem', color: 'var(--cs-texte-second)' }}>
-                    Motif de la modération : {e.note_admin}
+                    Motif de la modération&nbsp;: {e.note_admin}
                   </p>
                 )}
               </div>
               <div className="ecrit-actions">
                 <button type="button" role="switch" aria-checked={e.statut === 'publie'} aria-label={timer ? `Publication de l’écrit, ${timer}` : "Publication de l’écrit"}
                   onClick={() => basculerPublication(e)} disabled={!peutBasculer || verrouille}
-                  title={!dejaValide ? "Publication possible après validation par l'administration." : verrouille ? 'Interrupteur disponible une heure après le dernier changement.' : e.statut === 'publie' ? 'Dépublier' : 'Publier'}
+                  title={!dejaValide ? "Publication possible après validation par l’administration." : verrouille ? 'Interrupteur disponible une heure après le dernier changement.' : e.statut === 'publie' ? 'Dépublier' : 'Publier'}
                   style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', fontSize: '0.6875rem', color: e.statut === 'publie' ? 'var(--cs-vert)' : 'var(--cs-texte-gris)', background: 'transparent', border: 'none', padding: 0, cursor: !peutBasculer || verrouille ? 'default' : 'pointer', opacity: !peutBasculer ? 'var(--cs-opacite-desactive)' : 1, fontWeight: 600 }}>
                   {timer && <span style={{ fontSize: '0.6875rem', color: 'var(--cs-texte-gris)', fontWeight: 600 }}>{timer}</span>}
                   <PisteInterrupteur actif={e.statut === 'publie'} />
@@ -1143,7 +1143,7 @@ function OngletSuggestion({ connecte }: { connecte: boolean | null }) {
               onClick={() => charger(versets)}
               disabled={!peutRelancer || chargement}
               style={{ fontSize: '0.71875rem', color: peutRelancer ? 'var(--cs-vert)' : 'var(--cs-texte-gris)', background: 'none', border: 'none', cursor: peutRelancer ? 'pointer' : 'default', padding: 0, textDecoration: peutRelancer && !chargement ? 'underline' : 'none', fontStyle: 'italic' }}>
-              {chargement ? 'Chargement…' : peutRelancer ? 'Autre suggestion' : 'Limite atteinte pour aujourd\'hui'}
+              {chargement ? 'Chargement…' : peutRelancer ? 'Autre suggestion' : 'Limite atteinte pour aujourd’hui'}
             </button>
             <span style={{ fontSize: '0.6875rem', color: 'var(--cs-bord)' }}>({versets.length}/{MAX_SUGGESTIONS_JOUR})</span>
           </div>

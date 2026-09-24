@@ -48,7 +48,7 @@ export default function Erreur({ error, reset, retry }: { error: Error & { diges
         </div>
         {error.digest && (
           <p style={{ fontSize: '0.6875rem', letterSpacing: '0.08em', color: 'var(--cs-texte-gris)', marginTop: '2rem' }}>
-            Repère de la panne : {error.digest}
+            Repère de la panne&nbsp;: {error.digest}
           </p>
         )}
       </div>

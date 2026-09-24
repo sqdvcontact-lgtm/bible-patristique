@@ -203,8 +203,8 @@ export default function OngletCommentaires({ verset, userId, isAdmin, onCount }:
   const supprimerCommentaire = async (c: Commentaire): Promise<boolean> => {
     const nbReponses = commentaires.filter(x => x.reponse_a === c.id).length
     const question = nbReponses === 0
-      ? 'Supprimer définitivement ce commentaire ?'
-      : `Supprimer définitivement ce commentaire ? ${nbReponses === 1 ? 'Sa réponse part' : `Ses ${nbReponses} réponses partent`} avec lui.`
+      ? 'Supprimer définitivement ce commentaire\u202F?'
+      : `Supprimer définitivement ce commentaire\u202F? ${nbReponses === 1 ? 'Sa réponse part' : `Ses ${nbReponses} réponses partent`} avec lui.`
     if (!confirm(question)) return true
     const { data: session } = await supabase.auth.getSession()
     const token = session.session?.access_token
@@ -231,7 +231,7 @@ export default function OngletCommentaires({ verset, userId, isAdmin, onCount }:
     const sortDesReponses = nbReponses === 0 ? ''
       : nbReponses === 1 ? ' Sa réponse restera.'
       : ` Ses ${nbReponses} réponses resteront.`
-    if (!confirm(`Supprimer ce commentaire ? À sa place, on lira « ${nom} a supprimé un commentaire ».${sortDesReponses}`)) return true
+    if (!confirm(`Supprimer ce commentaire\u202F? À sa place, on lira « ${nom} a supprimé un commentaire ».${sortDesReponses}`)) return true
     const { error } = await supabase.from('commentaires').update({ supprime: true }).eq('id', c.id)
     if (!error) { setCommentaires(prev => prev.map(x => x.id === c.id ? { ...x, supprime: true } : x)); return true }
     console.error('[discussion] suppression refusée :', error)
@@ -251,7 +251,7 @@ export default function OngletCommentaires({ verset, userId, isAdmin, onCount }:
     }
     // ⚠️ Le `window.confirm` reste : le remplacer par une fenêtre du site demanderait un
     // composant de plus pour un geste rare, et la question n'y gagnerait rien.
-    if (userId && demandeValidation && !window.confirm('Ce commentaire sera soumis à la modération pour certification : s’il est retenu, il sera marqué « certifié » et placé en tête des commentaires validés. Continuer ?')) {
+    if (userId && demandeValidation && !window.confirm('Ce commentaire sera soumis à la modération pour certification\u00A0: s’il est retenu, il sera marqué « certifié » et placé en tête des commentaires validés. Continuer\u202F?')) {
       return
     }
     setEnvoi(true)

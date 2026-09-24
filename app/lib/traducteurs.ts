@@ -214,12 +214,12 @@ export function libelleTrad(trad: string | null | undefined): string {
 
   if (noms.length > 1) {
     // Uniformité : préfixe « : » dès qu'un titre (abbé, dom…) est en tête.
-    const prefixe = TITRES_RE.test(noms[0]) ? 'Traduction : ' : 'Traduction par '
+    const prefixe = TITRES_RE.test(noms[0]) ? 'Traduction\u00A0: ' : 'Traduction par '
     return `${prefixe}${composerNoms(noms)}`
   }
   const t = noms[0]
   if (t.toLowerCase() === 'anonyme') return 'Traduction anonyme'
-  if (TITRES_RE.test(t)) return `Traduction : ${t}`
+  if (TITRES_RE.test(t)) return `Traduction\u00A0: ${t}`
   if (t.includes(' ')) return `Traduction par ${t}`
   return `Traduction de ${t}`
 }

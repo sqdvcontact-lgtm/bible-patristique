@@ -416,7 +416,7 @@ export default function BibliographieClient({ entrees: servies, nomsPericopes }:
             {/* Le chapeau : ce que la liste contient, et rien d'autre. Deux lignes,
                 resserrées comme celles du catalogue des péricopes. */}
             <p style={{ margin: '6px 0 0', fontFamily: SERIF, fontSize: '0.71875rem', lineHeight: 1.4, color: 'var(--cs-texte-second)' }}>
-              Les ouvrages sur lesquels s’appuient les notices du site :{' '}
+              Les ouvrages sur lesquels s’appuient les notices du site&nbsp;:{' '}
               <span style={{ fontStyle: 'italic', color: 'var(--cs-texte-gris)' }}>commentaires, éditions, études</span>.
             </p>
           </div>

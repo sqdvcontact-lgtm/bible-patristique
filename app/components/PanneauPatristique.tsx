@@ -424,7 +424,7 @@ function SegmentCard({ s, texteAffichage, notes, notesEnAttente, info, edition, 
               d'œuvre un lien de retour. */}
           <a href={`/oeuvre/${s.id_oeuvre}?${[parametreTexte(edition), `segment=${s.id}`, retour ? `depuis=${encodeURIComponent(retour)}` : ''].filter(Boolean).join('&')}#segment-${s.id}`}
             className="cs-fiche-lien"
-            title={niveaux ? `Accéder au passage exact dans l’œuvre : ${niveaux}` : 'Accéder au passage exact dans l’œuvre'}
+            title={niveaux ? `Accéder au passage exact dans l’œuvre\u00A0: ${niveaux}` : 'Accéder au passage exact dans l’œuvre'}
             style={{ display:'block', fontSize:'0.75rem', fontStyle:'italic', margin:0, lineHeight:1.2, letterSpacing:'0.02em' }}>
             {info?.titre || ''}
           </a>

@@ -251,7 +251,7 @@ export default function SelecteurCitation({ onChoisir, onFermer }: Props) {
   // Fermeture protégée : un clic à côté ne ferme PAS l'outil ; la croix demande d'abord
   // confirmation, pour ne pas perdre par mégarde une sélection en cours.
   const demanderFermeture = () => {
-    if (window.confirm('Fermer l’outil de citation ? Votre sélection en cours sera perdue.')) onFermer()
+    if (window.confirm('Fermer l’outil de citation\u202F? Votre sélection en cours sera perdue.')) onFermer()
   }
   // Échap passe par la même confirmation que la croix.
   useFermerAEchap(true, demanderFermeture)

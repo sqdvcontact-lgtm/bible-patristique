@@ -330,7 +330,7 @@ export default function EssaiClient({ essai }: { essai: Essai }) {
               </p>
               {essai.motif_moderation ? (
                 <>
-                  <p style={{ margin: '8px 0 2px', fontWeight: 600 }}>Motif de la modération :</p>
+                  <p style={{ margin: '8px 0 2px', fontWeight: 600 }}>Motif de la modération&nbsp;:</p>
                   <p style={{ margin: 0, color: 'var(--cs-texte)', whiteSpace: 'pre-line' }}>{essai.motif_moderation}</p>
                 </>
               ) : (
@@ -457,7 +457,7 @@ export default function EssaiClient({ essai }: { essai: Essai }) {
       )}
 
       {signalerOuvert && (
-        <ModalSignalement titre={`Publication : ${essai.titre}`} avecNiveauImportance
+        <ModalSignalement titre={`Publication\u00A0: ${essai.titre}`} avecNiveauImportance
           onClose={() => setSignalerOuvert(false)} onEnvoyer={envoyerSignalement} />
       )}
 

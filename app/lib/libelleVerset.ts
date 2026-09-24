@@ -15,7 +15,7 @@ export function libelleNumeroVerset(
 ): string {
   let libelle = `Verset ${v.verset}`
   if (v.chapitre_alternatif != null) {
-    libelle += ` (autre numérotation : ${v.chapitre_alternatif}${v.verset_alternatif != null ? `, ${v.verset_alternatif}` : ''})`
+    libelle += ` (autre numérotation\u00A0: ${v.chapitre_alternatif}${v.verset_alternatif != null ? `, ${v.verset_alternatif}` : ''})`
   }
   return preleve ? `${libelle}, prélevé` : libelle
 }

@@ -79,7 +79,7 @@ export function etapesParcours({ marques, aUnPortrait, aUneBio }: EtatLecteur): 
     {
       cle: 'verset', fait: marques.versets > 0,
       libelle: 'Retenir un verset',
-      glose: 'Un passage vous arrête : gardez-le. Vous le retrouverez dans vos citations.',
+      glose: 'Un passage vous arrête\u00A0: gardez-le. Vous le retrouverez dans vos citations.',
       href: '/?livre=GEN&chapitre=1',
     },
     {

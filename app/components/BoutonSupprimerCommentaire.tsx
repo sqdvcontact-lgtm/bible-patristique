@@ -34,9 +34,9 @@ export default function BoutonSupprimerCommentaire({ libelle, titre, couleur, ma
         setEnCours(false)
         if (!ok) signaler('La suppression a échoué.')
       }}
-      title={echec ? 'La suppression a échoué : réessayer' : titre}
+      title={echec ? 'La suppression a échoué\u00A0: réessayer' : titre}
       style={{ ...ACTION_COMMENTAIRE, color: echec ? 'var(--cs-danger)' : couleur, marginLeft: marge, ...(echec ? STYLE_HOTE_ECHEC : null) }}>
-      {enCours ? '…' : echec ? 'Échec : réessayer' : libelle}
+      {enCours ? '…' : echec ? 'Échec\u00A0: réessayer' : libelle}
       <EclatEchec echec={echec} />
     </button>
   )

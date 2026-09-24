@@ -20,7 +20,7 @@ import { HAUTEUR_SOUS_NAVBAR } from '@/app/lib/mesures'
 export default function ChapitreIndisponible({
   adresse,
   titre = 'Le chapitre n’a pas pu se charger',
-  explication = 'Le texte n’a pas répondu à temps. Il est bien là : réessayez dans un instant.',
+  explication = 'Le texte n’a pas répondu à temps. Il est bien là\u00A0: réessayez dans un instant.',
 }: {
   /** L'adresse de la page, à redemander telle quelle. */
   adresse: string

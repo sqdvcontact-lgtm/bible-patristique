@@ -51,7 +51,7 @@ export async function POST(req: Request) {
 
     if ((count ?? 0) >= LIMITE_JOUR) {
       return NextResponse.json(
-        { error: `Limite atteinte : ${LIMITE_JOUR} propositions par jour maximum. Revenez demain.`, limite: true },
+        { error: `Limite atteinte\u00A0: ${LIMITE_JOUR} propositions par jour maximum. Revenez demain.`, limite: true },
         { status: 429 }
       )
     }

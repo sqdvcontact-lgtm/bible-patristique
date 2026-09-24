@@ -490,7 +490,7 @@ export default function PericopesCatalogueClient({ items }: { items: PericopeCat
                 ⚠️ La définition se resserre : 1,55 → 1,4 d'interligne, six pixels de blanc
                 au lieu de huit. */}
             <p style={{ margin: '6px 0 0', fontFamily: SERIF, fontSize: '0.71875rem', lineHeight: 1.4, color: 'var(--cs-texte-second)' }}>
-              Une péricope est un passage biblique formant une unité de sens :{' '}
+              Une péricope est un passage biblique formant une unité de sens&nbsp;:{' '}
               <span style={{ fontStyle: 'italic', color: 'var(--cs-texte-gris)' }}>récit, parabole, discours ou psaume</span>.
             </p>
           </div>

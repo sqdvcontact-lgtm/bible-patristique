@@ -818,24 +818,24 @@ export default async function AccueilPage() {
           <ColophonSection titre="Les textes">
             <p style={paraStyle}>Chaque source proposée dans <em>Corpus Scriptura</em> appartient au domaine public.</p>
             <p style={paraStyle}>Le corpus s’appuie notamment sur des éditions anciennes qui ont fait date, sur des ressources numériques librement accessibles et sur des ouvrages ou reproductions qu’il faut parfois acquérir pour retrouver des textes rares ou difficilement disponibles. Certaines de ces éditions restent précieuses par leur histoire et leur diffusion, même lorsque leurs traductions paraissent datées ou maladroites.</p>
-            <p style={paraStyle}>Il existe, pour nombre de ces œuvres, d’excellentes éditions critiques contemporaines, fondées sur un travail philologique, historique et documentaire que <em>Corpus Scriptura</em> n’a pas vocation à remplacer dans l’immédiat. Le lecteur qui souhaite approfondir l’étude d’un texte est vivement encouragé à les consulter ou à se les procurer : leurs introductions, apparats critiques, notes et bibliographies demeurent des instruments essentiels.</p>
+            <p style={paraStyle}>Il existe, pour nombre de ces œuvres, d’excellentes éditions critiques contemporaines, fondées sur un travail philologique, historique et documentaire que <em>Corpus Scriptura</em> n’a pas vocation à remplacer dans l’immédiat. Le lecteur qui souhaite approfondir l’étude d’un texte est vivement encouragé à les consulter ou à se les procurer&nbsp;: leurs introductions, apparats critiques, notes et bibliographies demeurent des instruments essentiels.</p>
             <p style={paraStyle}>Le caractère public des sources ne s’étend pas nécessairement au travail éditorial réalisé pour <em>Corpus Scriptura</em>. L’océrisation et la transcription des ouvrages, la correction des erreurs de reconnaissance, la relecture et la confrontation aux sources, l’établissement et la préparation des textes, les choix de découpage et de structuration, les normalisations ou transformations éditoriales originales, les notices, notes, appareils, métadonnées, alignements et rapprochements entre textes bibliques et patristiques constituent un travail propre au projet. La base de données elle-même résulte d’un important travail de constitution, de vérification, d’organisation et de présentation.</p>
             <p style={paraStyle}>Dans un souci de partage et de circulation des textes, une œuvre océrisée par <em>Corpus Scriptura</em> peut, sur demande écrite, être mise à disposition au format Word lorsque les conditions de sa diffusion le permettent. Cette communication est examinée au cas par cas et n’emporte pas cession des droits attachés au travail éditorial propre au projet.</p>
           </ColophonSection>
 
           <ColophonSection titre="Méthode">
-            <p style={paraStyle}>Chaque texte est rattaché à une édition ou à une source précisément identifiée. Sa préparation suit une charte éditoriale commune : fidélité au texte transmis, contrôle des corrections, respect de la structure de l’œuvre, conservation des particularités significatives et traçabilité des interventions. Les outils automatiques facilitent ce travail, mais ne dispensent jamais de revenir aux sources lorsqu’une difficulté subsiste.</p>
+            <p style={paraStyle}>Chaque texte est rattaché à une édition ou à une source précisément identifiée. Sa préparation suit une charte éditoriale commune&nbsp;: fidélité au texte transmis, contrôle des corrections, respect de la structure de l’œuvre, conservation des particularités significatives et traçabilité des interventions. Les outils automatiques facilitent ce travail, mais ne dispensent jamais de revenir aux sources lorsqu’une difficulté subsiste.</p>
           </ColophonSection>
 
           <ColophonSection titre="L’intelligence artificielle">
             <p style={paraStyle}>L’intelligence artificielle occupe une place importante dans la constitution de <em>Corpus Scriptura</em>. Elle est employée pour transcrire et océriser des documents, repérer des erreurs, préparer et structurer les textes, assister leur découpage, effectuer des contrôles de cohérence et proposer des rapprochements entre les textes bibliques et patristiques.</p>
             <p style={paraStyle}>Son usage est encadré par une charte éditoriale et technique stricte, qui fixe les règles de fidélité aux sources, de transcription, de correction, de structuration, de citation et de vérification. L’IA ne peut notamment ni combler une lacune par conjecture, ni moderniser arbitrairement un texte, ni présenter comme certaine une lecture qui demeure douteuse.</p>
-            <p style={paraStyle}>Ses résultats sont contrôlés selon la nature du travail : confrontation aux sources, vérifications automatiques, relectures ciblées, sondages et examen humain lorsque la décision l’exige. Les incertitudes sont conservées comme telles et les corrections importantes doivent pouvoir être justifiées et retracées.</p>
+            <p style={paraStyle}>Ses résultats sont contrôlés selon la nature du travail&nbsp;: confrontation aux sources, vérifications automatiques, relectures ciblées, sondages et examen humain lorsque la décision l’exige. Les incertitudes sont conservées comme telles et les corrections importantes doivent pouvoir être justifiées et retracées.</p>
             <p style={paraStyle}>L’IA permet ainsi d’accomplir à grande échelle un travail qui serait difficilement réalisable par une seule personne, sans supprimer l’intervention humaine. La méthode, les choix éditoriaux, les critères de qualité et les décisions de publication restent sous responsabilité humaine.</p>
           </ColophonSection>
 
           <ColophonSection titre="Les rapprochements bibliques">
-            <p style={paraStyle}>L’un des principaux objets de <em>Corpus Scriptura</em> est de mettre en relation les textes des Pères avec les passages bibliques qu’ils citent, commentent ou auxquels ils font écho. Ces liens ne reposent pas sur la seule ressemblance des mots : ils sont établis en tenant compte du contexte, de l’argumentation et des différentes traditions de numérotation biblique. Le degré de certitude d’un rapprochement est conservé lorsqu’il ne peut être établi avec assurance.</p>
+            <p style={paraStyle}>L’un des principaux objets de <em>Corpus Scriptura</em> est de mettre en relation les textes des Pères avec les passages bibliques qu’ils citent, commentent ou auxquels ils font écho. Ces liens ne reposent pas sur la seule ressemblance des mots&nbsp;: ils sont établis en tenant compte du contexte, de l’argumentation et des différentes traditions de numérotation biblique. Le degré de certitude d’un rapprochement est conservé lorsqu’il ne peut être établi avec assurance.</p>
           </ColophonSection>
 
           <ColophonSection titre="Contributions">
@@ -849,7 +849,7 @@ export default async function AccueilPage() {
           </ColophonSection>
 
           <ColophonSection titre="Un projet indépendant">
-            <p style={paraStyle}><em>Corpus Scriptura</em> est un projet indépendant, développé sans rattachement institutionnel et sans publicité. Sa constitution demande du temps, mais aussi des moyens matériels : acquisition ou reproduction d’ouvrages rares, numérisation, hébergement, outils de traitement et conservation des données. Le projet est principalement financé sur fonds propres ; les soutiens reçus permettent d’en poursuivre et d’en accélérer le développement.</p>
+            <p style={paraStyle}><em>Corpus Scriptura</em> est un projet indépendant, développé sans rattachement institutionnel et sans publicité. Sa constitution demande du temps, mais aussi des moyens matériels&nbsp;: acquisition ou reproduction d’ouvrages rares, numérisation, hébergement, outils de traitement et conservation des données. Le projet est principalement financé sur fonds propres&#8239;; les soutiens reçus permettent d’en poursuivre et d’en accélérer le développement.</p>
           </ColophonSection>
 
           <ColophonSection titre="Pérennité">
@@ -1006,7 +1006,7 @@ function VoletUnMot() {
       <OrnementsTriple serre />
       <div className="accueil-mot-prose">
         <p style={motStyle}><em>Corpus Scriptura</em> est un chantier mené seul, lentement, texte après texte. Mon intention est de rendre accessibles les Écritures et les écrits des Pères de l’Église, anciens ou difficiles d’accès, en les établissant, en les contrôlant et en les reliant entre eux.</p>
-        <p style={motStyle}>L’accès au site restera gratuit. Si ce travail vous paraît utile, tout soutien, même modeste, est bienvenu : il permet de consacrer davantage de temps à la lecture, à l’édition des textes, à leur vérification et à leur mise en ordre.</p>
+        <p style={motStyle}>L’accès au site restera gratuit. Si ce travail vous paraît utile, tout soutien, même modeste, est bienvenu&nbsp;: il permet de consacrer davantage de temps à la lecture, à l’édition des textes, à leur vérification et à leur mise en ordre.</p>
       </div>
       <p className="accueil-mot-merci" style={{ fontFamily: SERIF, fontSize: "0.875rem", color: "var(--cs-texte)" }}>Merci.</p>
       <p className="accueil-mot-sqdv" style={{ fontFamily: SERIF, fontSize: "0.875rem", color: "var(--cs-or-lisible)", letterSpacing: "0.14em" }}>SQDV</p>

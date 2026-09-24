@@ -262,7 +262,7 @@ export default function PageTitre({ auteur, oeuvre, versionActive, versionEnRega
           {rendreIntitule(sansPointFinal(titreAffiche))}
         </h1>
         {estAdmin && (
-          <button onClick={() => onModifier('titre', titre)} title="Modifier le titre de l'œuvre"
+          <button onClick={() => onModifier('titre', titre)} title="Modifier le titre de l’œuvre"
             style={{ ...BTN, right: crayonDroite, top: 0 }}><IconeCrayon size={12} /></button>
         )}
       </div>

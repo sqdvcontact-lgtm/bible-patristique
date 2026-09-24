@@ -29,7 +29,7 @@ describe('libelleVersionComplet', () => {
 
   it('emploie la formule au deux-points quand le nom porte un titre', () => {
     expect(libelleVersionComplet(version({ traducteur: 'abbé Joyeux', anneeEdition: 1866 })))
-      .toBe('Traduction : abbé Joyeux, 1866')
+      .toBe('Traduction\u00A0: abbé Joyeux, 1866')
   })
 
   // Une version en langue originale n'a pas de traducteur : c'est son titre qui la nomme.

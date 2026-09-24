@@ -79,7 +79,7 @@ describe('libelleTrad — queues de liste (« et al. », « et collaborateurs »
   it('ne joint pas une queue par « et », sinon « et et al. »', () => {
     // Forme réelle du catalogue (Grégoire le Grand, Sources chrétiennes).
     expect(libelleTrad('Sœur Irène Binont ; Joël Courreau ; Vincent Desprez ; Jean-Baptiste de Salvert ; et al.'))
-      .toBe('Traduction : sœur Irène Binont, Joël Courreau, Vincent Desprez, Jean-Baptiste de Salvert et al.')
+      .toBe('Traduction\u00A0: sœur Irène Binont, Joël Courreau, Vincent Desprez, Jean-Baptiste de Salvert et al.')
     expect(mentionTraducteurs('Irène Binont ; Joël Courreau ; et al.'))
       .toBe('trad. Irène Binont, Joël Courreau et al.')
   })
@@ -111,12 +111,12 @@ describe('libelleTrad — cas ordinaires inchangés', () => {
     expect(libelleTrad('H. Barreau ; M. Charpentier')).toBe('Traduction par H. Barreau et M. Charpentier')
     expect(libelleTrad('Henri Barreau ; Marcel Charpentier')).toBe('Traduction par Henri Barreau et Marcel Charpentier')
     // Un titre en tête appelle le deux-points.
-    expect(libelleTrad('M. Jeannin ; Bareille')).toBe('Traduction : M. Jeannin et Bareille')
+    expect(libelleTrad('M. Jeannin ; Bareille')).toBe('Traduction\u00A0: M. Jeannin et Bareille')
   })
   it('met en minuscule un titre accentué, que `\\b` ne savait pas borner', () => {
-    expect(libelleTrad('Abbé Martin')).toBe('Traduction : abbé Martin')
-    expect(libelleTrad('Père Martin')).toBe('Traduction : père Martin')
-    expect(libelleTrad('Dom Martin')).toBe('Traduction : dom Martin')
+    expect(libelleTrad('Abbé Martin')).toBe('Traduction\u00A0: abbé Martin')
+    expect(libelleTrad('Père Martin')).toBe('Traduction\u00A0: père Martin')
+    expect(libelleTrad('Dom Martin')).toBe('Traduction\u00A0: dom Martin')
     // Le titre reste borné : un nom propre qui commence pareil n'est pas touché.
     expect(libelleTrad('Domitien')).toBe('Traduction de Domitien')
   })

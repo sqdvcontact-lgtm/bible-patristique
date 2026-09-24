@@ -733,7 +733,7 @@ export default function EditeurEssai({ essaiExistant, modeAdmin, metadonneesInit
         <div style={{ maxWidth: '32.5rem', textAlign: 'center', color: 'var(--cs-texte-second)', fontFamily: SANS }}>
           <h1 style={{ fontFamily: SERIF, fontSize: TITRE_CARTE, fontWeight: GRAISSE_TITRE, color: ENCRE_TITRE_CARTE, margin: '0 0 14px' }}>Écrire</h1>
           <p style={{ fontSize: '0.9375rem', lineHeight: 1.6, margin: 0 }}>
-            L’éditeur demande un écran large : il réunit la mise en forme, les notes et les citations.
+            L’éditeur demande un écran large&nbsp;: il réunit la mise en forme, les notes et les citations.
             <br /><br />
             <strong>Ouvrez cette page depuis un ordinateur ou une tablette.</strong>
           </p>
@@ -974,7 +974,7 @@ export default function EditeurEssai({ essaiExistant, modeAdmin, metadonneesInit
                           return (
                             <button key={categorie} type="button"
                               onClick={() => setEmbleme(categorie)}
-                              title={categorie} aria-label={`Catégorie principale : ${categorie}`} aria-pressed={actif}
+                              title={categorie} aria-label={`Catégorie principale\u00A0: ${categorie}`} aria-pressed={actif}
                               style={{
                                 height: '2.5rem', borderRadius: '4px', cursor: 'pointer', gap: '6px',
                                 display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '4px 10px 4px 6px',
@@ -1088,11 +1088,11 @@ export default function EditeurEssai({ essaiExistant, modeAdmin, metadonneesInit
             {statutEnr === 'enregistrement' ? 'Enregistrement…'
               : statutEnr === 'enregistre' ? 'Enregistré ✓'
               : statutEnr === 'erreur' ? 'Erreur d’enregistrement'
-              : nbErreursAffichees > 0 ? (erreursAffichees.session ?? (nbErreursAffichees > 1 ? 'Des champs sont à compléter avant la soumission : ils sont signalés en rouge.' : 'Un champ est à compléter avant la soumission : il est signalé en rouge.'))
+              : nbErreursAffichees > 0 ? (erreursAffichees.session ?? (nbErreursAffichees > 1 ? 'Des champs sont à compléter avant la soumission\u00A0: ils sont signalés en rouge.' : 'Un champ est à compléter avant la soumission\u00A0: il est signalé en rouge.'))
               : nbCar > MAX_CARACTERES ? `Limite dépassée (${nbCar.toLocaleString('fr')} / ${MAX_CARACTERES.toLocaleString('fr')} caractères)`
-              : nonEnregistre && !contenuTexte.trim() ? 'Pas encore enregistré : commencez le texte pour qu’il s’enregistre.'
+              : nonEnregistre && !contenuTexte.trim() ? 'Pas encore enregistré\u00A0: commencez le texte pour qu’il s’enregistre.'
               : nonEnregistre ? 'Modifications non enregistrées'
-              : titreProvisoire ? `Enregistré sous le titre provisoire « ${TITRE_PROVISOIRE} » : donnez-lui un titre.`
+              : titreProvisoire ? `Enregistré sous le titre provisoire « ${TITRE_PROVISOIRE} »\u00A0: donnez-lui un titre.`
               : derniereSauvegardeAt ? `Enregistré à ${derniereSauvegardeAt.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })} ✓`
               : ' '}
           </span>
@@ -1125,10 +1125,10 @@ export default function EditeurEssai({ essaiExistant, modeAdmin, metadonneesInit
         <div onClick={() => setConfirmPublier(false)} style={{ position: 'fixed', top: HAUTEUR_NAVBAR, left: 0, right: 0, bottom: 0, background: 'var(--cs-calque-modale)', zIndex: Z_MODALE, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px' }}>
           <div ref={boiteConfirmPublier} role="dialog" aria-modal="true" onClick={e => e.stopPropagation()} style={{ background: 'var(--cs-surface)', borderRadius: '12px', padding: '20px 22px', maxWidth: '27.5rem', width: '100%', boxShadow: 'var(--cs-ombre-modale)' }}>
             <h3 style={{ fontFamily: SERIF, fontSize: '1rem', fontWeight: 'normal', color: 'var(--cs-encre-fonce)', margin: '0 0 8px' }}>
-              Soumettre cette publication ?
+              Soumettre cette publication&#8239;?
             </h3>
             <p style={{ fontSize: '0.75rem', color: 'var(--cs-texte)', lineHeight: 1.5, margin: '0 0 4px' }}>
-              Votre texte «&nbsp;<em style={{ color: 'var(--cs-texte)', fontStyle: 'italic' }}>{meta.titre}</em>&nbsp;» part en modération ; il reste figé tant qu&apos;il est en attente.
+              Votre texte «&nbsp;<em style={{ color: 'var(--cs-texte)', fontStyle: 'italic' }}>{meta.titre}</em>&nbsp;» part en modération&#8239;; il reste figé tant qu’il est en attente.
               {' '}{signature === 'anonyme' ? 'Il paraîtra sans nom d’auteur.' : `Il paraîtra signé ${nomAffiche}.`}
             </p>
             <div style={{ maxHeight: '170px', overflowY: 'auto', fontSize: '0.6875rem', color: 'var(--cs-texte-second)', lineHeight: 1.5, whiteSpace: 'pre-line', background: 'var(--cs-fond-clair)', border: '1px solid var(--cs-fond-doux)', borderRadius: '4px', padding: '9px 11px', margin: '10px 0' }}>
@@ -1175,9 +1175,9 @@ export default function EditeurEssai({ essaiExistant, modeAdmin, metadonneesInit
         <div onClick={fermerAvertissement} style={{ position: 'fixed', top: HAUTEUR_NAVBAR, left: 0, right: 0, bottom: 0, background: 'var(--cs-calque-modale)', zIndex: Z_MODALE, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px' }}>
           <div ref={boiteAvertissement} role="dialog" aria-modal="true" aria-labelledby="titre-avertissement-essai" onClick={e => e.stopPropagation()} style={{ background: 'var(--cs-surface)', borderRadius: '12px', padding: '20px 22px', maxWidth: '27.5rem', width: '100%', boxShadow: 'var(--cs-ombre-modale)' }}>
             <h3 id="titre-avertissement-essai" style={{ fontFamily: SERIF, fontSize: '1rem', fontWeight: 'normal', color: 'var(--cs-encre-fonce)', margin: '0 0 8px' }}>
-              {avertissement === 'retouche' ? 'Modifier un essai en ligne ?'
-                : avertissement === 'brouillon' ? 'Remettre cet essai en brouillon ?'
-                : 'Quitter sans enregistrer ?'}
+              {avertissement === 'retouche' ? 'Modifier un essai en ligne\u202F?'
+                : avertissement === 'brouillon' ? 'Remettre cet essai en brouillon\u202F?'
+                : 'Quitter sans enregistrer\u202F?'}
             </h3>
             <p style={{ fontSize: '0.75rem', color: 'var(--cs-texte)', lineHeight: 1.55, margin: 0 }}>
               {avertissement === 'retouche'
@@ -1222,7 +1222,7 @@ export default function EditeurEssai({ essaiExistant, modeAdmin, metadonneesInit
               )}
               {signature === 'anonyme' && (
                 <p style={{ fontSize: '0.6875rem', color: 'var(--cs-importance-mineur-encre)', background: 'var(--cs-fond-clair)', border: '1px solid #e8d5a0', borderRadius: '4px', padding: '6px 9px', margin: 0, lineHeight: 1.55 }}>
-                  Rien ne reliera cette publication à votre compte : ni la liste, ni la page, ni votre page publique ne porteront votre nom. Seule l’administration sait qui écrit, pour la modération.
+                  Rien ne reliera cette publication à votre compte&nbsp;: ni la liste, ni la page, ni votre page publique ne porteront votre nom. Seule l’administration sait qui écrit, pour la modération.
                 </p>
               )}
             </div>

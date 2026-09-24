@@ -971,7 +971,7 @@ function PanneauCatalogue({ nomAuteur, groupes, votes, mesVotes, userId, onVoter
                 <div style={{ display: 'flex', alignItems: 'center', gap: '2px', flexShrink: 0 }}>
                   <button
                     onClick={() => onProposer(nomAuteur, groupe.titreStable)}
-                    title="Proposer cette œuvre à l'équipe éditoriale"
+                    title="Proposer cette œuvre à l’équipe éditoriale"
                     className="cs-survol-encre"
                     style={{ ...BOUTON_ICONE, '--repos-encre': 'var(--cs-or-doux)', '--survol-encre': 'var(--cs-lacune)' } as React.CSSProperties}>
                     <svg width="14" height="14" viewBox="0 0 16 16" fill="none" aria-hidden="true">
@@ -1050,7 +1050,7 @@ function ModaleProposerOeuvre({ auteur, titre, onClose }: {
           style={{ position: 'fixed', top: HAUTEUR_NAVBAR, left: 0, right: 0, bottom: 0, zIndex: 110, background: 'var(--cs-calque-modale)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px' }}>
           <div onMouseDown={e => e.stopPropagation()}
             style={{ background: 'var(--cs-surface)', borderRadius: '12px', border: '1px solid var(--cs-bord-clair)', width: '100%', maxWidth: '23.75rem', padding: '20px 22px', boxShadow: 'var(--cs-ombre-modale)' }}>
-            <h4 style={{ fontFamily: SERIF, fontSize: '0.9375rem', color: 'var(--cs-texte)', margin: '0 0 8px' }}>Fermer sans enregistrer ?</h4>
+            <h4 style={{ fontFamily: SERIF, fontSize: '0.9375rem', color: 'var(--cs-texte)', margin: '0 0 8px' }}>Fermer sans enregistrer&#8239;?</h4>
             <p style={{ fontSize: '0.78125rem', color: 'var(--cs-texte-second)', lineHeight: 1.55, margin: '0 0 18px' }}>
               Les informations que vous avez saisies seront perdues.
             </p>
@@ -1364,7 +1364,7 @@ function ComboAuteur({ value, onChange, onAuteurId }: {
   if (libre) return (
     <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
       <input aria-label="Nom de l’auteur" autoFocus value={saisie} onChange={e => { setSaisie(e.target.value); onChange(e.target.value) }}
-        placeholder="Nom de l'auteur" style={CHAMP_STYLE} />
+        placeholder="Nom de l’auteur" style={CHAMP_STYLE} />
       <button type="button" onClick={() => { setLibre(false); setSaisie(''); onChange(''); onAuteurId?.(null) }}
         style={{ fontSize: '0.6875rem', padding: '6px 10px', border: '1px solid var(--cs-bord)', borderRadius: '4px', background: 'var(--cs-fond-clair)', color: 'var(--cs-texte-gris)', cursor: 'pointer', whiteSpace: 'nowrap' }}>
         ← Catalogue
@@ -1440,7 +1440,7 @@ function ComboTitre({ value, onChange, auteurNom }: {
   if (libre) return (
     <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
       <input aria-label="Titre de l’œuvre" autoFocus value={saisie} onChange={e => { setSaisie(e.target.value); onChange(e.target.value) }}
-        placeholder="Titre de l'œuvre" style={CHAMP_STYLE} />
+        placeholder="Titre de l’œuvre" style={CHAMP_STYLE} />
       <button type="button" onClick={() => { setLibre(false); setSaisie(''); onChange('') }}
         style={{ fontSize: '0.6875rem', padding: '6px 10px', border: '1px solid var(--cs-bord)', borderRadius: '4px', background: 'var(--cs-fond-clair)', color: 'var(--cs-texte-gris)', cursor: 'pointer', whiteSpace: 'nowrap' }}>
         ← Catalogue
@@ -1581,7 +1581,7 @@ function OngletProposer({ valeursInitiales, onDirtyChange }: {
     <div style={{ maxWidth: '32.5rem', margin: '0 auto', textAlign: 'center', padding: '60px 24px' }}>
       <p style={{ fontFamily: SERIF, fontSize: '1rem', color: 'var(--cs-attente)', marginBottom: '8px' }}>Limite journalière atteinte</p>
       <p style={{ fontSize: '0.78125rem', color: 'var(--cs-texte-gris)', lineHeight: 1.65, marginBottom: '24px' }}>
-        {messageErreur ?? 'Vous avez atteint le nombre maximum de propositions pour aujourd\'hui. Revenez demain.'}
+        {messageErreur ?? 'Vous avez atteint le nombre maximum de propositions pour aujourd’hui. Revenez demain.'}
       </p>
     </div>
   )
@@ -1607,14 +1607,14 @@ function OngletProposer({ valeursInitiales, onDirtyChange }: {
         {/* Trois à quatre lignes pleines sur la mesure de lecture : c'est un
             paragraphe, il prend la composition dense (audit du 2026-09-05). */}
         <p style={{ fontSize: '0.78125rem', color: 'var(--cs-vert-fonce)', lineHeight: 1.52, margin: 0, textAlign: 'justify', textJustify: 'inter-word', hyphens: 'auto', WebkitHyphens: 'auto', wordSpacing: '-0.03em', letterSpacing: 0 } as React.CSSProperties}>
-          Vous souhaitez enrichir la bibliothèque patristique ? Proposez un texte <strong>libre de droits</strong> (auteur décédé depuis plus de 70 ans, ou traduction ancienne dans le domaine public).
+          Vous souhaitez enrichir la bibliothèque patristique&#8239;? Proposez un texte <strong>libre de droits</strong> (auteur décédé depuis plus de 70 ans, ou traduction ancienne dans le domaine public).
           Fournissez de préférence un texte propre, déjà structuré. L’équipe éditoriale vous contactera si nécessaire.
         </p>
         {quotaRestant !== null && (
           <p style={{ fontSize: '0.6875rem', color: quotaRestant === 0 ? 'var(--cs-danger)' : 'var(--cs-vert)', margin: '10px 0 0', borderTop: '1px solid rgba(var(--cs-vert-rgb),0.15)', paddingTop: '10px' }}>
             {quotaRestant === 0
-              ? 'Vous avez atteint votre limite de propositions pour aujourd\'hui.'
-              : `${quotaRestant} proposition${quotaRestant > 1 ? 's' : ''} restante${quotaRestant > 1 ? 's' : ''} aujourd'hui.`}
+              ? 'Vous avez atteint votre limite de propositions pour aujourd’hui.'
+              : `${quotaRestant} proposition${quotaRestant > 1 ? 's' : ''} restante${quotaRestant > 1 ? 's' : ''} aujourd’hui.`}
           </p>
         )}
       </div>
@@ -1700,7 +1700,7 @@ function OngletProposer({ valeursInitiales, onDirtyChange }: {
             Note (source, droits, contexte)
           </label>
           <textarea aria-label="Remarques pour l’équipe éditoriale" value={form.note} onChange={set('note')} rows={3}
-            placeholder="Précisez la source du texte, confirmez qu'il est dans le domaine public, ou toute remarque utile à l'équipe éditoriale."
+            placeholder="Précisez la source du texte, confirmez qu’il est dans le domaine public, ou toute remarque utile à l’équipe éditoriale."
             style={{ ...CHAMP_STYLE, resize: 'vertical', lineHeight: 1.6 }} />
         </div>
 
@@ -1710,7 +1710,7 @@ function OngletProposer({ valeursInitiales, onDirtyChange }: {
             Texte complet
           </label>
           <textarea aria-label="Texte intégral de l’œuvre" value={form.texte} onChange={set('texte')} rows={18}
-            placeholder="Collez ici le texte intégral de l'œuvre. Un texte structuré avec des titres de chapitres est préférable."
+            placeholder="Collez ici le texte intégral de l’œuvre. Un texte structuré avec des titres de chapitres est préférable."
             style={{ ...CHAMP_STYLE, fontFamily: 'ui-monospace, Consolas, monospace', fontSize: '0.75rem', resize: 'vertical', lineHeight: 1.65 }} />
           {form.texte && (
             <p style={{ fontSize: '0.6875rem', color: 'var(--cs-texte-gris)', marginTop: '4px' }}>

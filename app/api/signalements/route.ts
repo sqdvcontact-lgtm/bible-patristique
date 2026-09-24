@@ -169,7 +169,7 @@ export async function POST(request: Request) {
 
     const { error } = await supabaseAdmin.from('signalements').insert(insertPayload)
 
-    if (error) return erreur500(error, 'Erreur lors de l\'envoi du signalement.')
+    if (error) return erreur500(error, 'Erreur lors de l’envoi du signalement.')
 
     return NextResponse.json({ ok: true })
   } catch (error) {

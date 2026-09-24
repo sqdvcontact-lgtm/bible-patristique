@@ -220,7 +220,7 @@ export default function NavLivres({
   // ⚠️ Le rail nomme l'ACTION : « Ouvrir les livres ». Un parent qui donne à son
   // volet un autre nom (la Polyglotte : « Livres à comparer ») le voit repris tel
   // quel, précédé du verbe.
-  const libelleDuRail = libelleRail ?? (titre ? `Ouvrir : ${titre}` : 'Ouvrir les livres')
+  const libelleDuRail = libelleRail ?? (titre ? `Ouvrir\u00A0: ${titre}` : 'Ouvrir les livres')
   // Le volet se replie partout, SAUF en onglets sur un téléphone (les onglets font
   // office de navigation) et sauf quand le parent gère lui-même son repli
   // (`sansReduire` : la Polyglotte, qui rabat le volet entier).

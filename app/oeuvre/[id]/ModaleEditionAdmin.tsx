@@ -291,7 +291,7 @@ export default function ModaleEditionAdmin({ cible, idOeuvre, onClose, onEnregis
             </p>
           )}
         </> : etape === 'confirmation' ? <>
-          <p style={{ fontSize: '0.6875rem', color: 'var(--cs-texte-second)', marginBottom: '10px' }}>Confirmer cette modification ?</p>
+          <p style={{ fontSize: '0.6875rem', color: 'var(--cs-texte-second)', marginBottom: '10px' }}>Confirmer cette modification&#8239;?</p>
           <div style={{ background: 'var(--cs-fond-clair)', border: '1px solid var(--cs-fond-doux)', borderRadius: '4px', padding: '8px 10px', fontSize: '0.71875rem', color: 'var(--cs-texte-fort)', marginBottom: '12px', maxHeight: '160px', overflowY: 'auto', whiteSpace: 'pre-wrap' }}>
             {valeur}
           </div>
@@ -302,7 +302,7 @@ export default function ModaleEditionAdmin({ cible, idOeuvre, onClose, onEnregis
             </button>
           </div>
         </> : <>
-          <p style={{ ...TEXTE_ERREUR, marginBottom: '10px' }}>Supprimer définitivement ce segment ? La numérotation des segments suivants sera décalée automatiquement.</p>
+          <p style={{ ...TEXTE_ERREUR, marginBottom: '10px' }}>Supprimer définitivement ce segment&#8239;? La numérotation des segments suivants sera décalée automatiquement.</p>
           <div style={{ background: 'var(--cs-fond-clair)', border: '1px solid var(--cs-fond-doux)', borderRadius: '4px', padding: '8px 10px', fontSize: '0.71875rem', color: 'var(--cs-texte-fort)', marginBottom: '12px', maxHeight: '160px', overflowY: 'auto', whiteSpace: 'pre-wrap' }}>
             {valeur}
           </div>

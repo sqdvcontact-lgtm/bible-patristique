@@ -107,7 +107,7 @@ export const LIVRES: LivreBible[] = [
   // Le nombre de versets reste à 0 tant qu'aucune édition n'est chargée — la navigation
   // les grisera d'elle-même, comme tout livre sans texte.
   { code: '2ES', nom: '2 Esdras (4 Esdras)',      testament: 'AUTRES', nbVersets: 0, canonique: false },
-  { code: 'EZA', nom: "Apocalypse d'Esdras",      testament: 'AUTRES', nbVersets: 0, canonique: false },
+  { code: 'EZA', nom: "Apocalypse d’Esdras",      testament: 'AUTRES', nbVersets: 0, canonique: false },
   { code: 'MAN', nom: 'Prière de Manassé',        testament: 'AUTRES', nbVersets: 0, canonique: false },
   { code: 'ENO', nom: 'Hénoch',                   testament: 'AUTRES', nbVersets: 0, canonique: false },
   { code: 'JUB', nom: 'Jubilés',                  testament: 'AUTRES', nbVersets: 0, canonique: false },

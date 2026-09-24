@@ -192,10 +192,10 @@ const PRINCIPES: { ico: React.ReactNode; titre: string; texte: React.ReactNode }
   // le renvoi aux Pères et sa vérification disaient une même chose en deux temps.
   { ico: <IcoLien />, titre: "Chaque verset et ses commentaires",
     texte: <>En regard du texte biblique s’affichent les passages des Pères qui le citent ou le
-      commentent : c’est le cœur du site. Chaque rapprochement est établi puis relu ; les passages
+      commentent&nbsp;: c’est le cœur du site. Chaque rapprochement est établi puis relu&#8239;; les passages
       incertains sont signalés comme tels, et vos signalements servent à corriger le site.</> },
   { ico: <IcoPlume />, titre: "Somme collaborative",
-    texte: <>Les lecteurs inscrits publient leurs propres essais, dans le registre qu’ils veulent :
+    texte: <>Les lecteurs inscrits publient leurs propres essais, dans le registre qu’ils veulent&nbsp;:
       exégétique, théologique, spirituel ou littéraire. Chacun peut les lire, les commenter et en
       discuter.</> },
   { ico: <IcoLibre />, titre: "Gratuit, sans publicité",
@@ -341,7 +341,7 @@ function Prevenir() {
   return (
     <form onSubmit={envoyer}>
       <p style={{ fontSize: "0.78125rem", color: "var(--cs-texte-second)", margin: "0 0 0.75rem", lineHeight: 1.6 }}>
-        Les travaux avancent, la date reste incertaine. Laissez votre adresse : elle ne servira
+        Les travaux avancent, la date reste incertaine. Laissez votre adresse&nbsp;: elle ne servira
         qu’à vous prévenir, une fois.
       </p>
       {erreur && (
@@ -581,7 +581,7 @@ function ConnexionInscription({ router }: { router: ReturnType<typeof useRouter>
             appartient à l'ensemble. Le mordoré le distingue sans le détacher. */}
         <div style={{ marginTop: "1rem" }}>
           <Colophon couleur={MORDORE} taille="0.8125rem" lignes={[
-            ["Le site est en travaux. Rien n’est encore ouvert :", "26.875rem"],
+            ["Le site est en travaux. Rien n’est encore ouvert\u00A0:", "26.875rem"],
             ["ni la lecture, ni la recherche, ni les comptes.", "21.875rem"],
             ["Cette page est une annonce, pas une porte.", "18.125rem"],
           ]} />
@@ -637,7 +637,7 @@ function ConnexionInscription({ router }: { router: ReturnType<typeof useRouter>
           <div className="cs-carte" style={{ padding: "1.75rem 1.875rem", display: "flex", flexDirection: "column" }}>
             <h2 className="cs-bloc-titre">Soutenir le projet</h2>
             <p style={{ fontSize: "0.78125rem", color: "var(--cs-texte-second)", margin: "0 0 0.875rem", lineHeight: 1.6, flex: 1 }}>
-              Le travail est bénévole, les frais ne le sont pas : hébergement, achat des
+              Le travail est bénévole, les frais ne le sont pas&nbsp;: hébergement, achat des
               éditions, numérisation. Un don avance le chantier.
             </p>
             <a href={LIEN_PAYPAL} target="_blank" rel="noopener noreferrer"
@@ -684,7 +684,7 @@ function ConnexionInscription({ router }: { router: ReturnType<typeof useRouter>
             {mode === "connexion" && (
               <a href="/auth/mot-de-passe-oublie" className="cs-lien-phrase cs-lien-phrase--discret"
                 style={{ display: "inline-block", marginTop: "0.4375rem", fontSize: "0.75rem" }}>
-                Mot de passe oublié ?
+                Mot de passe oublié&#8239;?
               </a>
             )}
           </div>
@@ -702,7 +702,7 @@ function ConnexionInscription({ router }: { router: ReturnType<typeof useRouter>
         {process.env.NEXT_PUBLIC_INSCRIPTIONS_OUVERTES === "1" ? (
           <div style={{ marginTop: "1.25rem", textAlign: "center", borderTop: "1px solid var(--cs-fond-doux)", paddingTop: "1.125rem" }}>
             <p style={{ fontSize: "0.78125rem", color: "var(--cs-texte-second)", margin: 0 }}>
-              {mode === "connexion" ? "Pas encore de compte ?" : "Déjà un compte ?"}
+              {mode === "connexion" ? "Pas encore de compte\u202F?" : "Déjà un compte\u202F?"}
               {" "}
               <button onClick={() => { setMode(mode === "connexion" ? "inscription" : "connexion"); setErreur(null); setMdp(""); setPseudo(""); }}
                 className="cs-lien-phrase">

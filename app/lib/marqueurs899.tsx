@@ -249,7 +249,7 @@ const REPERE_INCERTAINE = {
   signe: <IconeSignalement />,
   icone: true,
   intitule: 'Lecture incertaine',
-  nomAccessible: 'Lecture incertaine du manuscrit : explication',
+  nomAccessible: 'Lecture incertaine du manuscrit\u00A0: explication',
 }
 const BLOC_EXPLICATION_INCERTAINE = {
   id: 'explication-lecture-incertaine',

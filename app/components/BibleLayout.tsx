@@ -431,7 +431,7 @@ function PageBible({ livres, versets, traductions, livreActif, chapitreActif, no
   //  mémoïsation écrite plus bas (`preparerScene`), et toute la page cesse d’être
   //  compilée — « Existing memoization could not be preserved ». Mesuré le 2026-09-20.
   const direCommentaires = useMemo(() => (oeuvresDuVersetChoisi != null && oeuvresDuVersetChoisi > 0 && densiteDuVersetChoisi
-    ? `Pères : ${libelleDensiteVerset(densiteDuVersetChoisi)}`
+    ? `Pères\u00A0: ${libelleDensiteVerset(densiteDuVersetChoisi)}`
     : undefined), [oeuvresDuVersetChoisi, densiteDuVersetChoisi])
   const ONGLETS_MOBILE: { cle: 'livres' | 'commentaires' | null; label: string; compte?: number | null; dire?: string }[] = [
     { cle: 'livres', label: 'Livres' },

@@ -19,7 +19,7 @@ export default function ConditionsUtilisationPage() {
         </h1>
 
         <p style={{ fontSize: "0.75rem", color: "var(--cs-texte-doux)", marginBottom: "40px", fontStyle: "italic" }}>
-          Dernière mise à jour : septembre 2026
+          Dernière mise à jour&nbsp;: septembre 2026
         </p>
 
         {/* ⛔ LA PROSE LA PLUS LONGUE DU SITE APRÈS LES ESSAIS, et elle portait
@@ -91,11 +91,11 @@ export default function ConditionsUtilisationPage() {
               signalements d&rsquo;erreurs, ainsi que des essais de réflexion thématique ou exégétique. Ces
               contenus sont systématiquement soumis à une modération avant toute publication.
             </p>
-            <p>L&rsquo;utilisateur s&rsquo;engage à ne pas déposer de contenu :</p>
+            <p>L&rsquo;utilisateur s&rsquo;engage à ne pas déposer de contenu&nbsp;:</p>
             <ul style={{ paddingLeft: "20px", margin: "8px 0", textAlign: "left" }}>
-              <li>contraire aux lois et règlements en vigueur ;</li>
-              <li>à caractère injurieux, diffamatoire, discriminatoire ou outrageant ;</li>
-              <li>portant atteinte aux droits de tiers, notamment aux droits d&rsquo;auteur ;</li>
+              <li>contraire aux lois et règlements en vigueur&#8239;;</li>
+              <li>à caractère injurieux, diffamatoire, discriminatoire ou outrageant&#8239;;</li>
+              <li>portant atteinte aux droits de tiers, notamment aux droits d&rsquo;auteur&#8239;;</li>
               <li>sans rapport avec l&rsquo;objet du site (lecture de la Bible et tradition patristique).</li>
             </ul>
             <p>
@@ -140,7 +140,7 @@ export default function ConditionsUtilisationPage() {
             <p>
               La fouille de textes et de données à des fins d&rsquo;entraînement de modèles est
               expressément réservée, au sens de l&rsquo;article L122-5-3 du Code de la propriété
-              intellectuelle. Cette réserve s&rsquo;exprime aussi par des moyens lisibles par machine :
+              intellectuelle. Cette réserve s&rsquo;exprime aussi par des moyens lisibles par machine&nbsp;:
               le fichier robots.txt, la déclaration /.well-known/tdmrep.json et une licence au format
               RSL publiée à l&rsquo;adresse /license.xml.
             </p>

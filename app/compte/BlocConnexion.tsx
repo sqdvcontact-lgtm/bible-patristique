@@ -86,7 +86,7 @@ export default function BlocConnexion({ ouvrirSuppression, onSuppressionOuverte,
     setSuppressionEnCours(true); setErreurSuppression(null)
     const { data } = await supabase.auth.getSession()
     const token = data.session?.access_token
-    if (!token) { setErreurSuppression('Session expirée — reconnectez-vous puis réessayez.'); setSuppressionEnCours(false); return }
+    if (!token) { setErreurSuppression('Session expirée. Reconnectez-vous puis réessayez.'); setSuppressionEnCours(false); return }
     const res = await fetch('/api/compte/supprimer', { method: 'POST', headers: { Authorization: `Bearer ${token}` } })
     if (!res.ok) {
       setErreurSuppression('Le compte n’a pas pu être supprimé. Réessayez.')
@@ -132,7 +132,7 @@ export default function BlocConnexion({ ouvrirSuppression, onSuppressionOuverte,
             style={{ background: 'var(--cs-surface)', borderRadius: '12px', padding: '32px', width: '30rem', maxWidth: '100%', boxShadow: 'var(--cs-ombre-modale)' }}>
             <h2 id="titre-suppression" style={{ fontFamily: SERIF, fontSize: TITRE_CARTE, fontWeight: GRAISSE_TITRE, color: ENCRE_TITRE_CARTE, margin: '0 0 16px' }}>Suppression du compte</h2>
             <p style={{ fontSize: '0.78125rem', color: 'var(--cs-texte)', lineHeight: 1.65, margin: '0 0 14px' }}>
-              Cette action est <strong>irrémédiable</strong>. Elle entraînera la suppression immédiate et définitive de :
+              Cette action est <strong>irrémédiable</strong>. Elle entraînera la suppression immédiate et définitive de&nbsp;:
             </p>
             <ul style={{ fontSize: '0.75rem', color: 'var(--cs-texte-second)', lineHeight: 1.8, margin: '0 0 20px', paddingLeft: '18px' }}>
               <li>Votre profil et toutes vos informations personnelles</li>

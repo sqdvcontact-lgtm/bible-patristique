@@ -75,7 +75,7 @@ export function GravureAgrandissable({
       {/* ⚠️ Un BOUTON, non un lien : il n'y a pas d'adresse à ouvrir, et le
           clavier doit pouvoir agrandir comme la souris. */}
       <button type="button" style={cadre} onClick={ouvrir}
-        aria-label={`Agrandir : ${alt}`} title="Agrandir">
+        aria-label={`Agrandir\u00A0: ${alt}`} title="Agrandir">
         {enfant}
       </button>
       {ouvert && typeof document !== 'undefined' && createPortal(

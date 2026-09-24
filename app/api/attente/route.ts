@@ -59,7 +59,7 @@ export async function POST(request: Request) {
   // 23505 = doublon sur l'index unique. Une personne qui s'inscrit deux fois
   // n'a pas commis d'erreur : on lui répond comme si c'était la première.
   if (error && error.code !== '23505') {
-    return NextResponse.json({ error: "L'enregistrement a échoué. Réessayez plus tard." }, { status: 500 })
+    return NextResponse.json({ error: "L’enregistrement a échoué. Réessayez plus tard." }, { status: 500 })
   }
 
   return NextResponse.json({ ok: true })

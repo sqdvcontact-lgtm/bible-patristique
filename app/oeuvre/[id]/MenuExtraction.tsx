@@ -149,7 +149,7 @@ export default function MenuExtraction({ donnees, onFermer }: {
       onFermer()
     } catch (e) {
       console.error('[extraction] échec', e)
-      setErreur(e instanceof Error ? e.message : "L'extraction a échoué.")
+      setErreur(e instanceof Error ? e.message : "L’extraction a échoué.")
     } finally {
       setEnCours(false)
     }
@@ -173,11 +173,11 @@ export default function MenuExtraction({ donnees, onFermer }: {
           Extraire cette œuvre
         </h2>
         <p style={{ fontSize: '0.71875rem', lineHeight: 1.5, color: 'var(--cs-texte-second)', margin: '0 0 2px' }}>
-          Un document Word (<code style={{ fontFamily: 'inherit' }}>.docx</code>) à styles nommés : titres, notes de bas de page et sommaire s’y composent d’eux-mêmes.
+          Un document Word (<code style={{ fontFamily: 'inherit' }}>.docx</code>) à styles nommés&nbsp;: titres, notes de bas de page et sommaire s’y composent d’eux-mêmes.
         </p>
         {donnees.edition && (
           <p style={{ fontSize: '0.6875rem', lineHeight: 1.45, color: 'var(--cs-texte-gris)', margin: '6px 0 0' }}>
-            Édition extraite : {donnees.edition}.
+            Édition extraite&nbsp;: {donnees.edition}.
           </p>
         )}
 
@@ -240,7 +240,7 @@ export default function MenuExtraction({ donnees, onFermer }: {
 
         {long && (
           <p style={{ fontSize: '0.6875rem', lineHeight: 1.45, color: 'var(--cs-attente)', margin: '14px 0 0' }}>
-            Cette œuvre est longue : l’extraction peut demander un moment.
+            Cette œuvre est longue&nbsp;: l’extraction peut demander un moment.
           </p>
         )}
         {erreur && (

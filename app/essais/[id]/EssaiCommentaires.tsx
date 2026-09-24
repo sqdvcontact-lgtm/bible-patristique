@@ -72,7 +72,7 @@ export default function EssaiCommentaires({ idEssai }: { idEssai: number }) {
   }, [idEssai])
 
   const supprimerCommentaire = async (id: number) => {
-    if (!window.confirm('Supprimer définitivement ce commentaire ?')) return
+    if (!window.confirm('Supprimer définitivement ce commentaire\u202F?')) return
     const { data: session } = await supabase.auth.getSession()
     const token = session.session?.access_token
     const res = await fetch('/api/essais/supprimer-commentaire', {
@@ -84,7 +84,7 @@ export default function EssaiCommentaires({ idEssai }: { idEssai: number }) {
   }
 
   const supprimerMonCommentaire = async (id: number) => {
-    if (!window.confirm('Supprimer ce commentaire ? Il restera visible en tant que commentaire supprimé.')) return
+    if (!window.confirm('Supprimer ce commentaire\u202F? Il restera visible en tant que commentaire supprimé.')) return
     const { error } = await supabase.from('essais_commentaires').update({ supprime: true }).eq('id', id)
     if (!error) setCommentaires(prev => prev.map(c => c.id === id ? { ...c, supprime: true } : c))
   }

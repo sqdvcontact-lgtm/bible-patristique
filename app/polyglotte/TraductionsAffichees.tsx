@@ -116,7 +116,7 @@ export default function TraductionsAffichees({ colonnes, fiches }: {
               {edition && (reference
                 ? (
                   <button type="button" onClick={e => copier(e, reference)}
-                    aria-label={`Copier la référence bibliographique : ${c.nom}`}
+                    aria-label={`Copier la référence bibliographique\u00A0: ${c.nom}`}
                     style={{ ...LIGNE, color: 'var(--cs-texte-gris)', display: 'block', width: '100%', textAlign: 'left',
                       background: 'none', border: 'none', padding: 0, margin: 0, cursor: 'pointer' }}>
                     {rendreEnrichi(edition)}

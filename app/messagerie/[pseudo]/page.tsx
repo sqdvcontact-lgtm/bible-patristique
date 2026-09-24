@@ -91,7 +91,7 @@ export default function ConversationPage() {
       if (!res.ok) {
         const json = await res.json().catch(() => ({}))
         setErreurEnvoi(typeof json.error === 'string' && json.error
-          ? `Le message n’a pas pu être envoyé : ${json.error}`
+          ? `Le message n’a pas pu être envoyé\u00A0: ${json.error}`
           : 'Le message n’a pas pu être envoyé. Réessayez.')
         return
       }

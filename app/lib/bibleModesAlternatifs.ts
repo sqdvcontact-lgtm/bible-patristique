@@ -224,7 +224,7 @@ function groupeCommentaires(faits: FaitsLectureBible): GroupeLectureBible | null
       {
         cle: 'avec-commentaires',
         label: 'Avec les commentaires',
-        description: 'Le texte avec l’appareil de l’édition : introductions, commentaires et notes',
+        description: 'Le texte avec l’appareil de l’édition\u00A0: introductions, commentaires et notes',
         actif: !texteSeul,
         cible: { texteSeul: false },
       },

@@ -76,7 +76,7 @@ export default function AvisLivreEntier({ nomLivre, onConfirmer, onAnnuler }: {
 
         <p id="cs-livre-entier-propos" style={{ fontSize: '0.78125rem', color: 'var(--cs-texte)', lineHeight: 1.55, margin: 0 }}>
           Ce mode compose le livre d’un bout à l’autre, dans chaque colonne. Cela fait
-          beaucoup de texte à la fois : la page peut mettre un moment à s’afficher et perdre
+          beaucoup de texte à la fois&nbsp;: la page peut mettre un moment à s’afficher et perdre
           en fluidité, surtout avec de nombreuses colonnes.
         </p>
 

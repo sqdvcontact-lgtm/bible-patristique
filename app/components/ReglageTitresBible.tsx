@@ -112,7 +112,7 @@ export default function ReglageTitresBible({ familleId, masques, onChange }: {
             })}
           </div>
           <p style={{ margin: '0.5rem 0 0', fontSize: '0.6875rem', lineHeight: 1.35, color: 'var(--cs-texte-second)' }}>
-            Réglage de l’édition entière, pour tous les lecteurs. Un titre masqué se tait ; le texte qu’il coiffe paraît toujours.
+            Réglage de l’édition entière, pour tous les lecteurs. Un titre masqué se tait&#8239;; le texte qu’il coiffe paraît toujours.
           </p>
           {erreur && <p role="alert" style={{ margin: '0.375rem 0 0', fontSize: '0.6875rem', color: 'var(--cs-danger-fonce)' }}>{erreur}</p>}
         </div>,

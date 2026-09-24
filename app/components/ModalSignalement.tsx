@@ -54,7 +54,7 @@ const NIVEAUX = [
 
 type Niveau = 'mineur' | 'important' | 'bloquant'
 
-export default function ModalSignalement({ titre, texteObjet, onClose, onEnvoyer, avecNiveauImportance = false, titreFenetre = 'Signaler une erreur', placeholder = "Décrivez l'erreur constatée…" }: {
+export default function ModalSignalement({ titre, texteObjet, onClose, onEnvoyer, avecNiveauImportance = false, titreFenetre = 'Signaler une erreur', placeholder = "Décrivez l’erreur constatée…" }: {
   titre?: string
   texteObjet?: string
   onClose: () => void
@@ -145,7 +145,7 @@ export default function ModalSignalement({ titre, texteObjet, onClose, onEnvoyer
               )}
             </span>
             <p className="cs-signalement-merci-titre">Signalement envoyé</p>
-            <p className="cs-signalement-merci-note">Merci : il sera relu.</p>
+            <p className="cs-signalement-merci-note">Merci&nbsp;: il sera relu.</p>
             {/* ⚠️ Le compte se dit EN CHIFFRES, et il est le seul objet mouvant de la fenêtre :
                 l'anneau ne se lit pas à la synthèse vocale, et une région vivante le dit à sa
                 place. ⛔ Elle n'est PAS assertive : elle ne doit pas couper l'annonce de
