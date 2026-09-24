@@ -48,6 +48,7 @@ import {
   ChampFiche, Consulter, CorpsFiche, EnTeteFiche, ListeOuvragesCites, ModaleFiche,
   PortraitFiche, RubriqueFiche, SectionFiche,
 } from '@/app/components/FicheModele'
+import LivresDisponiblesTraduction from '@/app/components/LivresDisponiblesTraduction'
 import { FriseAuteur } from '@/app/components/ModaleAuteur'
 import { joindreLieux } from '@/app/lib/adresseEdition'
 import { MotAttente } from '@/app/lib/attenteEnCreux'
@@ -400,6 +401,9 @@ export function ContenuFicheTraduction({ info, chrono, ouvragesCites, nomFallbac
               </dl>
             </SectionFiche>
           )}
+          {/* ── LES LIVRES PORTÉS ── Une bible partielle les liste, une complète se tait
+              (2026-09-24, voir `LivresDisponiblesTraduction`). */}
+          {i.trad_id && <LivresDisponiblesTraduction code={i.trad_id} />}
           {i.bio_courte && <p className="cs-fiche-bio">{enProse(i.bio_courte)}</p>}
           {/* Notice éditoriale : HTML (h2/p/em/ul/li) composé par la feuille — titres de
               section en sérif italique, prose en sans justifiée. */}
