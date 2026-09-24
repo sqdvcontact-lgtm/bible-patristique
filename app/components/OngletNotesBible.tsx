@@ -170,7 +170,7 @@ export default function OngletNotesBible({ contexte, onCompte, onAvantOuvrir }: 
         <input
           value={recherche}
           onChange={e => setRecherche(e.target.value)}
-          placeholder="Chercher une note, un verset (3, 12)…"
+          placeholder="Rechercher une note, un verset (3, 12)…"
           aria-label="Chercher dans les notes de la bible"
           className="cs-volet-recherche"
           style={{ width: '100%', boxSizing: 'border-box', fontSize: '0.71875rem', color: 'var(--cs-texte)' }}

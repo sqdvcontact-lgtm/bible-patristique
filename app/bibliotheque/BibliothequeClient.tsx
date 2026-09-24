@@ -1262,7 +1262,7 @@ function SectionCatalogueManquant({ auteurs }: { auteurs: Auteur[] }) {
         </p>
       ) : auteursTriés.length === 0 ? (
         <p style={{ textAlign: 'center', fontSize: '0.8125rem', color: 'var(--cs-texte-doux)', fontStyle: 'italic', fontFamily: SERIF }}>
-          Aucun auteur ne correspond à ces critères.
+          Aucun auteur ne correspond aux filtres retenus.
         </p>
       ) : (
         <>
@@ -2180,13 +2180,13 @@ export default function BibliothequeClient({ auteurs: auteursInitiaux, erreurCha
                     <Chip key={famille.cle} compte={compte} plafond={plafond} actif={famillesActives.has(famille.cle)} onClick={() => basculer(setFamillesActives, famille.cle)}>{famille.libelle}</Chip>
                   ))}
                 </LigneFiltres>
-                {/* ⚠️ « Tout effacer » se range sous la COLONNE DES PASTILLES, non au bord du
+                {/* ⚠️ « Réinitialiser les filtres » se range sous la COLONNE DES PASTILLES, non au bord du
                     panneau : posé au fer à gauche sous trois rangs qui commencent cinq rem plus
                     loin, il ne se rattachait à rien et faisait un objet de plus en bas d'écran. */}
                 {/* ⛔ ET LE PIED DU PANNEAU EST TOUJOURS LÀ (demande de l'auteur, 2026-09-13 :
                     « faire en sorte que rien ne bouge quand on clique sur un filtre »). Il
                     paraissait au premier filtre et s'effaçait au dernier : le panneau grandissait
-                    et rétrécissait sous le clic, et la liste avec lui. « Tout effacer » y garde
+                    et rétrécissait sous le clic, et la liste avec lui. « Réinitialiser les filtres » y garde
                     sa place, invisible tant qu'il n'y a rien à effacer, et le compte de la liste
                     s'y lit tant que le panneau est ouvert, au lieu de s'insérer au-dessus d'elle.
                     ⚠️ Le compte tient TOUJOURS sa ligne, une insécable à défaut de texte : un
@@ -2201,7 +2201,7 @@ export default function BibliothequeClient({ auteurs: auteursInitiaux, erreurCha
                   <div style={{ display: 'flex', alignItems: 'baseline', gap: '0.75rem', minWidth: 0 }}>
                     <button onClick={effacerLesFiltres}
                       className="cs-bouton-lien" style={{ visibility: nbFiltres > 0 ? 'visible' : 'hidden' }}>
-                      Tout effacer
+                      Réinitialiser les filtres
                     </button>
                     <p aria-live="polite" style={{ ...STYLE_RESUME_LISTE, margin: '0 0 0 auto', textAlign: 'right' }}>
                       {resumeListe ?? INSECABLE}
@@ -2220,7 +2220,7 @@ export default function BibliothequeClient({ auteurs: auteursInitiaux, erreurCha
                 ))}
                 <button onClick={effacerLesFiltres}
                   className="cs-bouton-lien" style={{ padding: '0 4px' }}>
-                  Tout effacer
+                  Réinitialiser les filtres
                 </button>
               </div>
             )}
@@ -2246,7 +2246,7 @@ export default function BibliothequeClient({ auteurs: auteursInitiaux, erreurCha
             <div style={{ minHeight: '100lvh' }}>
               {auteursFiltres.length === 0 ? (
                 <p style={{ textAlign: 'center', fontSize: '0.8125rem', color: 'var(--cs-texte-doux)', fontStyle: 'italic', fontFamily: SERIF }}>
-                  Aucun auteur ne correspond à ces critères.
+                  Aucun auteur ne correspond aux filtres retenus.
                 </p>
               ) : (
                 <>

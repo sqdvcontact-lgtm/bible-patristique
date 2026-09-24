@@ -174,7 +174,7 @@ function PericopesCitantes({ entree, noms }: { entree: EntreeBibliographie; noms
       {tout && n > PERICOPES_VISIBLES && (
         <>
           {' '}
-          <button type="button" className="biblio-deplier" onClick={() => setTout(false)}>Replier</button>
+          <button type="button" className="biblio-deplier" onClick={() => setTout(false)}>Afficher moins</button>
         </>
       )}
     </span>
@@ -444,7 +444,7 @@ export default function BibliographieClient({ entrees: servies, nomsPericopes }:
           <div style={{ maxWidth: '48rem', margin: '0 auto' }}>
             {groupes.length === 0 ? (
               <div style={{ paddingTop: '8px' }}>
-                <MentionVide>Aucun ouvrage ne correspond à la recherche et aux filtres retenus.</MentionVide>
+                <MentionVide>Aucun ouvrage ne correspond aux filtres retenus.</MentionVide>
                 {actifs && (
                   <button type="button" onClick={reinitialiser}
                     style={{ marginTop: '12px', padding: '6px 14px', borderRadius: '8px', cursor: 'pointer', border: `1px solid ${BORD}`, background: 'var(--cs-surface)', color: 'var(--cs-texte-second)', fontFamily: SERIF, fontSize: '0.78125rem' }}>

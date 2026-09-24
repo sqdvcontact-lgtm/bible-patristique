@@ -1577,7 +1577,7 @@ export default function PanneauPatristique({
                 {!enAttente && !echec && itemsFiltres.length === 0 && (
                   <EtatVideVolet>
                     <MentionVide>
-                      {itemsAffiches.length === 0 ? 'Aucune occurrence.' : 'Aucun résultat pour ces filtres.'}
+                      {itemsAffiches.length === 0 ? 'Aucune occurrence.' : 'Aucune occurrence ne correspond aux filtres retenus.'}
                     </MentionVide>
                     {itemsAffiches.length === 0 && <FleuronDiscret />}
                   </EtatVideVolet>

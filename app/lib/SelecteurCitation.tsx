@@ -484,8 +484,8 @@ function ParcourirPatristique({ onChoisir }: { onChoisir: (c: Choix) => void }) 
       .sort((a, b) => cleTriTitre(a.titre).localeCompare(cleTriTitre(b.titre), 'fr') || a.titre.localeCompare(b.titre, 'fr'))
     return (
       <div>
-        <input aria-label="Chercher une œuvre" value={rechercheOeuvre} onChange={e => setRechercheOeuvre(e.target.value)} autoFocus
-          placeholder="Chercher une œuvre (titre ou auteur)…"
+        <input aria-label="Rechercher une œuvre" value={rechercheOeuvre} onChange={e => setRechercheOeuvre(e.target.value)} autoFocus
+          placeholder="Rechercher une œuvre (titre ou auteur)…"
           style={{ width: '100%', boxSizing: 'border-box', fontSize: '0.8125rem', padding: '9px 12px', borderRadius: '8px', border: '1px solid var(--cs-bord)', background: 'var(--cs-fond-clair)', color: 'var(--cs-texte-fort)', marginBottom: '12px', outline: 'none' }} />
         {oeuvres === null ? (
           <MotAttente>Chargement du catalogue…</MotAttente>
@@ -572,8 +572,8 @@ function ParcourirPatristique({ onChoisir }: { onChoisir: (c: Choix) => void }) 
           </select>
         </div>
       )}
-      <input aria-label="Chercher un passage dans cette œuvre" value={rechercheSeg} onChange={e => setRechercheSeg(e.target.value)}
-        placeholder="Chercher un passage dans cette œuvre…"
+      <input aria-label="Rechercher un passage dans cette œuvre" value={rechercheSeg} onChange={e => setRechercheSeg(e.target.value)}
+        placeholder="Rechercher un passage dans cette œuvre…"
         style={{ width: '100%', boxSizing: 'border-box', fontSize: '0.75rem', padding: '7px 10px', borderRadius: '4px', border: '1px solid var(--cs-bord)', background: 'var(--cs-fond-clair)', color: 'var(--cs-texte-fort)', marginBottom: '10px', outline: 'none', flexShrink: 0 }} />
       <div style={{ flex: 1, minHeight: 0, overflowY: 'auto' }}>
         {chargement ? <MotAttente /> : (

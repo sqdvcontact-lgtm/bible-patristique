@@ -304,12 +304,12 @@ function RechercheAuteur({ auteurs, exclus, onChoisir }: {
   }
   return (
     <div style={{ position: 'relative', marginBottom: ouverte ? '0' : '4px' }}>
-      <input aria-label="Chercher un auteur" type="text" value={saisie}
+      <input aria-label="Rechercher un auteur" type="text" value={saisie}
         onChange={e => { setSaisie(e.target.value); setRang(0); setFermee(false) }}
         onKeyDown={auClavier}
         role="combobox" aria-expanded={ouverte} aria-controls={`${idBase}-liste`} aria-autocomplete="list"
         aria-activedescendant={ouverte ? idOption(designe) : undefined}
-        placeholder="Chercher un auteur…"
+        placeholder="Rechercher un auteur…"
         style={{ width: '100%', fontSize: '0.75rem', padding: '4px 7px', borderRadius: '4px', border: '1px solid var(--cs-or-doux)', background: 'var(--cs-surface)', color: 'var(--cs-encre)', boxSizing: 'border-box', outline: 'none' }} />
       {ouverte && (
         <div id={`${idBase}-liste`} role="listbox" aria-label="Auteurs proposés"
@@ -413,7 +413,7 @@ export default function FiltresPatristiques(p: PanneauFiltresProps) {
 
           {p.nombreActifs > 0 && (
             <button onClick={p.toutEffacer} className="cs-bouton-lien cs-bouton-lien--or" style={{ marginTop: '8px' }}>
-              Tout effacer
+              Réinitialiser les filtres
             </button>
           )}
         </div>

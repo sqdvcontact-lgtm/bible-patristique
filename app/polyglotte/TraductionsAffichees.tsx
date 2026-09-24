@@ -108,7 +108,7 @@ export default function TraductionsAffichees({ colonnes, fiches }: {
           }) : null
           return (
             <li key={c.cle} style={{ minWidth: 0, display: 'flex', flexDirection: 'column', gap: '1px' }}>
-              <NomVolet onOuvrir={() => setOuverte({ code: c.code, nom: c.nom })} titre={`Voir la notice : ${c.nom}`}>
+              <NomVolet onOuvrir={() => setOuverte({ code: c.code, nom: c.nom })} titre={`Voir la fiche : ${c.nom}`}>
                 {rendreEnrichi(c.nom)}
               </NomVolet>
               {c.variante && <span style={{ ...LIGNE, fontStyle: 'italic' }}>{c.variante}</span>}

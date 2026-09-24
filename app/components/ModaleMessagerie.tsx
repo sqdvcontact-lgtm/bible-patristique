@@ -239,8 +239,8 @@ export default function ModaleMessagerie({ ouvert, onClose }: { ouvert: boolean;
           // ── Vue liste + recherche de pseudos ────────────────────────────
           <>
             <div style={{ flexShrink: 0, padding: '10px 14px 8px', borderBottom: '1px solid var(--cs-fond-doux)', position: 'relative' }}>
-              <input aria-label="Chercher un pseudonyme" value={recherche} onChange={e => setRecherche(e.target.value)}
-                placeholder="Chercher un pseudonyme pour écrire…"
+              <input aria-label="Rechercher un pseudonyme" value={recherche} onChange={e => setRecherche(e.target.value)}
+                placeholder="Rechercher un pseudonyme pour écrire…"
                 style={{ width: '100%', boxSizing: 'border-box', fontSize: '0.78125rem', padding: '7px 11px', border: '1px solid var(--cs-bord)', borderRadius: '999px', background: 'var(--cs-surface)', color: 'var(--cs-texte-fort)', outline: 'none' }} />
               {recherche.trim().length >= 2 && (
                 <div style={{ position: 'absolute', left: '14px', right: '14px', top: 'calc(100% - 2px)', zIndex: 5, background: 'var(--cs-surface)', border: '1px solid var(--cs-bord)', borderRadius: '8px', boxShadow: 'var(--cs-ombre-flottante)', overflow: 'hidden' }}>

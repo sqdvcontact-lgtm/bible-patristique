@@ -64,7 +64,7 @@ describe('le bouton dit ce qu’il montrera', () => {
   })
 
   it('se replie par une formule fixe', () => {
-    expect(LIBELLE_REPLIER_OUVRAGES).toBe('Replier la liste')
+    expect(LIBELLE_REPLIER_OUVRAGES).toBe('Afficher moins')
   })
 })
 

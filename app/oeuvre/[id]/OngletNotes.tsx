@@ -225,7 +225,7 @@ export default function OngletNotes({
         <input
           value={recherche}
           onChange={e => setRecherche(e.target.value)}
-          placeholder="Chercher une note, ou son numéro…"
+          placeholder="Rechercher une note, ou son numéro…"
           aria-label="Chercher dans les notes"
           className="cs-volet-recherche"
           style={{ width: '100%', boxSizing: 'border-box', fontSize: '0.71875rem', color: 'var(--cs-texte)' }}

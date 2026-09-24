@@ -256,14 +256,14 @@ export default function ModalLienBiblique({
                   setChargementRecherche(true)
                 }
               }}
-              placeholder="Rechercher un mot, une expression ou une référence..."
+              placeholder="Rechercher un mot, une expression ou une référence…"
               style={{ width: '100%', boxSizing: 'border-box', border: '1px solid var(--cs-bord)', borderRadius: '8px', padding: '8px 13px', fontSize: '0.75rem', background: 'var(--cs-surface)', color: 'var(--cs-texte-fort)', outline: 'none', marginBottom: '12px' }}
             />
 
             {recherche.trim().length >= 2 ? (
               <div>
                 <p style={{ ...STYLE_RUBRIQUE, margin: '0 0 9px' }}>
-                  {chargementRecherche ? 'Recherche...' : `${resultats.length} résultat(s)`}
+                  {chargementRecherche ? 'Recherche…' : `${resultats.length} résultat(s)`}
                 </p>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '7px' }}>
                   {resultats.map(v => (
@@ -338,7 +338,7 @@ export default function ModalLienBiblique({
             <button onClick={onFermer} style={{ border: '1px solid var(--cs-bord)', background: 'var(--cs-surface)', color: 'var(--cs-texte-second)', borderRadius: '999px', padding: '7px 14px', cursor: 'pointer', fontSize: '0.75rem' }}>Fermer</button>
             <button onClick={valider} disabled={selectionListe.length === 0 || enregistrement}
               style={{ border: '1px solid var(--cs-vert)', background: selectionListe.length === 0 || enregistrement ? 'var(--cs-desactive-fond)' : 'var(--cs-vert-aplat)', color: selectionListe.length === 0 || enregistrement ? 'var(--cs-desactive-encre)' : 'var(--cs-sur-aplat)', borderRadius: '999px', padding: '7px 15px', cursor: selectionListe.length === 0 || enregistrement ? 'default' : 'pointer', fontSize: '0.75rem', fontWeight: 700 }}>
-              {enregistrement ? 'Enregistrement...' : 'Créer le lien biblique'}
+              {enregistrement ? 'Enregistrement…' : 'Créer le lien biblique'}
             </button>
           </div>
         </div>

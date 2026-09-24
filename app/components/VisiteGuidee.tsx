@@ -233,7 +233,7 @@ export default function VisiteGuidee({ visite, onScene, onSujet, onFin }: Visite
    *  fois, y compris si l'on revient dessus. */
   const annonceRef = useRef<string | null>(null)
   // Le sens de la dernière navigation : une étape qui s'avère impossible se saute
-  // dans le sens où l'on allait, sans quoi « Retour » buterait indéfiniment dessus.
+  // dans le sens où l'on allait, sans quoi « Précédent » buterait indéfiniment dessus.
   const sensRef = useRef<1 | -1>(1)
 
   const etape: EtapeVisite | null = rang >= 0 ? visite.etapes[rang] ?? null : null
@@ -624,7 +624,7 @@ export function ProposVisite({ visite, etape, position, total, derniere, onAller
               posé à gauche, où l'on ne clique pas par mégarde en enchaînant. */}
           <button onClick={onTerminer} className="cs-visite-bouton cs-visite-passer" style={STYLE_PASSER}>Passer la visite</button>
           <div className="cs-visite-espace" style={{ flex: 1 }} />
-          <button onClick={() => onAller(-1)} className="cs-visite-bouton cs-visite-bouton--second" style={STYLE_SECOND}>Retour</button>
+          <button onClick={() => onAller(-1)} className="cs-visite-bouton cs-visite-bouton--second" style={STYLE_SECOND}>Précédent</button>
           <button onClick={() => onAller(1)} className="cs-visite-bouton cs-visite-bouton--fort" style={STYLE_PRINCIPAL}>{derniere ? 'Terminer' : 'Suivant'}</button>
         </div>
       </div>

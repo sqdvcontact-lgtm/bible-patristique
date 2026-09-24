@@ -42,7 +42,7 @@ import { chargerNoticesBibliographiques } from './referencesBibliographiquesChar
  *  Catéchèses de Cyrille près de quatre cents. */
 export const SEUIL_OUVRAGES_CITES = 10
 
-export const LIBELLE_REPLIER_OUVRAGES = 'Replier la liste'
+export const LIBELLE_REPLIER_OUVRAGES = 'Afficher moins'
 
 /** Ce que la liste montre, repliée ou non. ⚠️ Elle ne se replie que si elle passe le
  *  seuil : une liste de dix entrées n'a rien à cacher. */

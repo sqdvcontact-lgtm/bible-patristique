@@ -1138,7 +1138,7 @@ export default function RechercheClient() {
               onSubmit={e => { e.preventDefault(); setShowSugg(false); void lancer() }}
               style={{ position:'relative', width:'100%', borderBottom:'1px solid var(--cs-bord)', display:'flex', alignItems:'center', gap:'8px' }}>
               <div style={{ position:'relative', flex:1, minWidth:0 }}>
-              <input aria-label="Chercher un mot, une expression ou une référence" ref={inputRef} value={query}
+              <input aria-label="Rechercher un mot, une expression ou une référence" ref={inputRef} value={query}
                 onChange={e => setQuery(e.target.value)}
                 onKeyDown={e => {
                   if (e.key === 'Escape') setShowSugg(false)
