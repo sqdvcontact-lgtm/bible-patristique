@@ -71,6 +71,19 @@
   --cs-chasse-ui: 0.008em;
   --cs-espace-mot-ui: -0.03em;
 
+  /* ── Le GRIS du corps de lecture ──
+     Le gris typographique PAR DÉFAUT du texte qu'on lit, en Source Serif : prose des
+     Pères, versets, essais, Polyglotte. Posé d'abord sur la lecture des Pères
+     (demande de l'auteur, 2026-09-24 : « les mots légèrement plus serrés ») ; les
+     autres surfaces le reprendront en lisant ces deux jetons au lieu de leurs valeurs.
+     ⚠️ Il valait -0,025 em. Le serif garde sa chasse de dessin : c'est l'ESPACE qui
+     fait le gris, la lettre resserrée épaissirait la tache sans l'unifier.
+     ⚠️ Plus l'espace naturelle est étroite, plus un blanc de justification se voit
+     (mesuré sur la Polyglotte, voir `.poly-texte-cell`) : ne pas descendre sans
+     relire une colonne justifiée étroite. */
+  --cs-corps-espace-mot: -0.045em;
+  --cs-corps-chasse: 0;
+
   /* ── Mesure de lecture (responsive) ──
      Famille couplée exprimée en rem pour qu'elle grandisse au même rythme que
      la police racine fluide (voir la règle `html` plus bas) : la colonne de

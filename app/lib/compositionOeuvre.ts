@@ -152,8 +152,8 @@ export function styleParagrapheLecture({ signature, exergue, rubrique, masque }:
     textJustify: 'inter-word',
     fontStyle: rubrique ? 'italic' : undefined,
     margin: `0 0 ${blancDeSortie}${exergue ? ` ${RETRAIT_EXERGUE}` : ''}`,
-    wordSpacing: '-0.025em',
-    letterSpacing: 0,
+    wordSpacing: 'var(--cs-corps-espace-mot)',
+    letterSpacing: 'var(--cs-corps-chasse)',
     hyphens: 'auto',
     WebkitHyphens: 'auto',
     overflowWrap: 'break-word',
@@ -300,8 +300,8 @@ export function styleBlocDeVers({ masque }: { masque?: boolean } = {}): CSSPrope
     fontSize: CORPS_LECTURE,
     color: 'var(--cs-texte-fort)',
     margin: '0 0 0.72rem',
-    wordSpacing: '-0.025em',
-    letterSpacing: 0,
+    wordSpacing: 'var(--cs-corps-espace-mot)',
+    letterSpacing: 'var(--cs-corps-chasse)',
   }
 }
 
@@ -486,7 +486,7 @@ export function styleColonneOriginale(
     color: argument ? 'var(--cs-texte-second)' : seul ? 'var(--cs-texte-fort)' : undefined,
     margin: `0 0 ${argument ? BLANC_ARGUMENT : '0.72rem'}`,
     // Le latin se resserre, le grec beaucoup moins : ses signes diacritiques portent.
-    wordSpacing: grec ? '-0.01em' : '-0.025em',
+    wordSpacing: grec ? '-0.01em' : 'var(--cs-corps-espace-mot)',
     letterSpacing: 0,
   }
   if (vers) return commun as CSSProperties

@@ -213,8 +213,8 @@ const STYLE_TEXTE_PARALLELE = {
   fontSize: '0.8125rem',
   lineHeight: 1.62,
   color: 'var(--cs-texte-fort)',
-  wordSpacing: '-0.025em',
-  letterSpacing: 0,
+  wordSpacing: 'var(--cs-corps-espace-mot)',
+  letterSpacing: 'var(--cs-corps-chasse)',
   overflowWrap: 'break-word',
   whiteSpace: 'pre-line',
 } as const
