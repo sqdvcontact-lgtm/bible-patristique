@@ -58,6 +58,7 @@ import {
 } from './niveauxAffichage'
 
 import { rendreTexteEnrichi, texteSansEnrichissement, normaliserEspaces, normaliserEspacesOriginal } from './texteEnrichi'
+import { rendreEnrichi } from '@/app/lib/enrichissements'
 import { bornerGuillemets } from '@/app/lib/guillemets'
 import { effacerTiretsDeBordure } from '@/app/lib/tirets'
 import { CelluleActions, useCelluleActions } from '@/app/components/CelluleActions'
@@ -5103,7 +5104,7 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
                     aria-label={`${lecture.label}, choisir la traduction biblique`}
                     title="Choisir la traduction biblique"
                     style={{ display: 'flex', alignItems: 'center', gap: '7px', width: '100%', padding: '5px 10px', borderRadius: '4px', border: `1px solid ${tradOuverte ? 'var(--cs-vert)' : 'var(--cs-bord)'}`, background: 'var(--cs-surface)', fontSize: '0.6875rem', color: 'var(--cs-encre)', cursor: 'pointer', transition: 'border-color var(--cs-duree-courte)' }}>
-                    <span style={{ flex: 1, textAlign: 'left', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontWeight: 500 }}>{lecture.label}</span>
+                    <span style={{ flex: 1, textAlign: 'left', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontWeight: 500 }}>{rendreEnrichi(lecture.label)}</span>
                     <span aria-hidden="true" style={{ display: 'flex', flexShrink: 0, color: 'var(--cs-texte-doux)', transform: tradOuverte ? 'rotate(180deg)' : 'none', transition: 'transform var(--cs-duree-courte)' }}><IconeChevron dir="down" taille="0.6rem" strokeWidth={2.2} /></span>
                   </button>
                   {tradOuverte && (

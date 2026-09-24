@@ -49,6 +49,7 @@ import {
   STYLE_RANG_FACETTES,
 } from './InventaireNotes'
 import { SERIF } from '@/app/lib/polices'
+import { rendreEnrichi } from '@/app/lib/enrichissements'
 
 /** Au-delà, une note visée dans un autre chapitre n'est plus attendue : la page n'y est
  *  pas arrivée, et l'on se contente de ce qu'elle montre. Un départ à froid de la fonction
@@ -227,7 +228,7 @@ export default function OngletNotesBible({ contexte, onCompte, onAvantOuvrir }: 
             se lit comme un livre sans notes. */}
         {echecs.map(echec => (
           <p key={echec.trad} role="alert" style={{ fontSize: '0.6875rem', color: 'var(--cs-danger-fonce)', margin: '4px 0 0', lineHeight: 1.4 }}>
-            Les notes éditoriales de {echec.libelle} n’ont pas pu être relevées.
+            Les notes éditoriales de {rendreEnrichi(echec.libelle)} n’ont pas pu être relevées.
           </p>
         ))}
       </div>

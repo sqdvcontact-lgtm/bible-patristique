@@ -41,6 +41,7 @@ import { replier } from "@/app/lib/bibleBibliographieOuvrages";
 import { HAUTEUR_NAVBAR } from "@/app/lib/mesures";
 import OngletsPage from "@/app/components/OngletsPage";
 import { SERIF } from '@/app/lib/polices'
+import { rendreEnrichi } from '@/app/lib/enrichissements'
 
 // ⛔ « Les appels de note ne doivent pas paraître dans les citations » : la règle
 // était ÉCRITE ICI, et elle ne valait que pour l'affichage — les deux boutons de
@@ -1090,7 +1091,7 @@ export default function PagePrelevements() {
                           <p className="prel-texte">
                             «&#8201;{rendreTexteEnrichi(preparerTexteCitation(texte))}&#8201;»
                           </p>
-                          {provenance && <p className="prel-provenance">{provenance}</p>}
+                          {provenance && <p className="prel-provenance">{rendreEnrichi(provenance)}</p>}
                         </div>
                         {!selection && (
                           <div className="prel-actions">

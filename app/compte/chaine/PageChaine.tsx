@@ -34,6 +34,7 @@ import { rendreTexteEnrichi } from '@/app/oeuvre/[id]/texteEnrichi'
 import { useEstMobile } from '@/app/lib/useEstMobile'
 import { POINTS_DE_RUPTURE } from '@/app/lib/pointsDeRupture'
 import { SERIF } from '@/app/lib/polices'
+import { rendreEnrichi } from '@/app/lib/enrichissements'
 
 type Etat = {
   /** La DEMANDE que cet état satisfait. ⛔ L'attente se DÉDUIT de sa comparaison avec la
@@ -170,7 +171,7 @@ export default function PageChaine() {
           <>
             <p className="chn-avis">
               Vos notes et vos commentaires, rangés dans l’ordre du canon.
-              {pret.nomTrad && <> Les versets sont donnés dans la {pret.nomTrad}.</>}
+              {pret.nomTrad && <> Les versets sont donnés dans la {rendreEnrichi(pret.nomTrad)}.</>}
             </p>
 
             {pret.groupes.map(groupe => (

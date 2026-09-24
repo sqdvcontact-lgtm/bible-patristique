@@ -1529,7 +1529,7 @@ export default function RechercheClient() {
                                 <span className="sigles">
                                   <span className={`sigle ${displayLeMot ? 'sigle--affichee' : 'sigle--absente'}`} title={labelDisplay}>{siglesParCode[tradBible] ?? tradBible}</span>
                                   {contientDans.filter(t => t.code !== tradBible).map(t => (
-                                    <span key={t.code} className="sigle" title={t.label}>{siglesParCode[t.code] ?? t.label}</span>
+                                    <span key={t.code} className="sigle" title={t.label}>{siglesParCode[t.code] ?? rendreEnrichi(t.label)}</span>
                                   ))}
                                 </span>
                               </div>
@@ -1537,13 +1537,13 @@ export default function RechercheClient() {
                                   mot y est ; sinon montré tel quel (la ligne du haut dit où il se trouve). */}
                               {temoin && (
                                 <p className="grp-glose-absent">
-                                  Le mot n’est pas dans {labelDisplay}. Texte de {temoin.label}.
+                                  Le mot n’est pas dans {rendreEnrichi(labelDisplay)}. Texte de {rendreEnrichi(temoin.label)}.
                                 </p>
                               )}
                               <p style={{ fontFamily:SANS, fontSize:'0.78125rem', lineHeight:1.32, color:'var(--cs-texte-fort)', margin:0 }}>
                                 {texteMontre
                                   ? rendreEtSurligner(texteMontre, marque)
-                                  : <span style={{ color:'var(--cs-texte-doux)', fontStyle:'italic' }}>Ce verset n’existe pas dans {labelDisplay}.</span>}
+                                  : <span style={{ color:'var(--cs-texte-doux)', fontStyle:'italic' }}>Ce verset n’existe pas dans {rendreEnrichi(labelDisplay)}.</span>}
                               </p>
                             </a>
                           )
@@ -1660,7 +1660,7 @@ export default function RechercheClient() {
                           target="_blank" rel="noopener noreferrer">
                                 {temoin && (
                                   <p className="grp-glose-absent" style={{ gridColumn:'1 / -1', margin:'4px 0 0 var(--poly-marge-x, 11px)' }}>
-                                    Le mot n’est dans aucune colonne affichée. Il se lit dans {temoin.label}, que le lien ouvre.
+                                    Le mot n’est dans aucune colonne affichée. Il se lit dans {rendreEnrichi(temoin.label)}, que le lien ouvre.
                                   </p>
                                 )}
                                 {/* ⛔ LA RÉFÉRENCE CANONIQUE EST EN MARGE, non dans une colonne

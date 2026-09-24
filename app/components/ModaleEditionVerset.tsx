@@ -16,6 +16,7 @@ import { raccourcisEditeur, collageTexteBrut } from '@/app/lib/raccourcisEditeur
 import { useFermerAEchap } from '@/app/lib/useFermerAEchap'
 import { useFenetreModale } from '@/app/lib/useFenetreModale'
 import IconeCroix from '@/app/components/IconeCroix'
+import { rendreEnrichi } from '@/app/lib/enrichissements'
 import { HAUTEUR_NAVBAR } from '@/app/lib/mesures'
 
 // Conversions markup ↔ HTML pour la zone éditable WYSIWYG du verset. Le markup est
@@ -143,7 +144,7 @@ export default function ModaleEditionVerset({ verset, traduction, traductionLabe
         onClick={e => e.stopPropagation()} style={{ background:'var(--cs-surface)', borderRadius:'12px', padding:'20px 22px', width:'30rem', maxWidth:'100%', boxShadow:'var(--cs-ombre-modale)' }}>
         <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:'10px' }}>
           <p style={{ fontSize:'0.75rem', fontWeight:600, color:'var(--cs-attente)', margin:0 }}>
-            Modifier {refCourt} de la {traductionLabel}
+            Modifier {refCourt} de la {rendreEnrichi(traductionLabel)}
           </p>
           <button type="button" onClick={onClose} aria-label="Fermer" className="cs-croix-fermer"><IconeCroix /></button>
         </div>
