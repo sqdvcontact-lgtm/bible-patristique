@@ -163,6 +163,8 @@ import IconeChevron from '@/app/components/IconeChevron'
 import BarreVoletMobile from '@/app/components/BarreVoletMobile'
 import RailVolet from '@/app/components/RailVolet'
 import OngletsPage from '@/app/components/OngletsPage'
+import { usePoigneeVolet } from '@/app/lib/poigneeVolet'
+import { useFoyerAuRepli } from '@/app/lib/useFoyerAuRepli'
 import { enregistrerOeuvreRecente } from '@/app/lib/oeuvresRecentes'
 import EtatVideVolet, { MentionVide } from '@/app/components/EtatVideVolet'
 import { HAUTEUR_BARRE_VOLET, HAUTEUR_NAVBAR, HAUTEUR_SOUS_NAVBAR } from '@/app/lib/mesures'
@@ -1063,6 +1065,40 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
   const voletsDirty = navWidth !== null || pannWidth !== null
   const refNav = useRef<HTMLElement>(null)
   const refAside = useRef<HTMLElement>(null)
+  // ── Les deux volets : identifiants, poignées, foyer rendu, tiroirs modaux ──────────
+  // (audit d'harmonie, 2026-09-23 : la page Bible faisait tout cela, l'œuvre rien).
+  const idVoletGauche = useId()
+  const idVoletDroit = useId()
+  const idPanneauDroit = useId()
+  const idOngletDroit = useCallback((c: string) => `${idPanneauDroit}-onglet-${c}`, [idPanneauDroit])
+  const poigneeGauche = usePoigneeVolet({
+    largeur: navWidth, mesurer: () => refNav.current?.getBoundingClientRect().width,
+    changer: setNavWidth, min: 120, max: 400, cote: 'gauche', controle: idVoletGauche,
+  })
+  const poigneeDroite = usePoigneeVolet({
+    largeur: pannWidth, mesurer: () => refAside.current?.getBoundingClientRect().width,
+    changer: setPannWidth, min: 200, max: 560, cote: 'droite', controle: idVoletDroit,
+  })
+  // Replier rend le foyer au rail, déplier au chevron (voir `useFoyerAuRepli`).
+  const refRailGauche = useRef<HTMLButtonElement>(null)
+  const refChevronGauche = useRef<HTMLButtonElement>(null)
+  const refRailDroit = useRef<HTMLButtonElement>(null)
+  const refChevronDroit = useRef<HTMLButtonElement>(null)
+  useFoyerAuRepli(navOuverte, refRailGauche, refChevronGauche)
+  useFoyerAuRepli(panneauOuvert, refRailDroit, refChevronDroit)
+  // ⛔ SUR UN TÉLÉPHONE, UN VOLET OUVERT EST UN TIROIR MODAL, comme sur la page Bible :
+  // `role="dialog"`, Échap, et le foyer pris dans le tiroir puis rendu à la barre.
+  // ⚠️ `voletsPrets` attend que l'arrivée ait fermé les volets d'un téléphone : sans lui,
+  // le premier rendu, volets encore ouverts, prendrait le foyer pour le rendre aussitôt.
+  const [voletsPrets, setVoletsPrets] = useState(false)
+  const tiroirSommaire = mobile && navOuverte && voletsPrets
+  const tiroirReferences = mobile && panneauOuvert && voletsPrets
+  const fermerSommaire = useCallback(() => setNavOuverte(false), [])
+  const fermerReferences = useCallback(() => setPanneauOuvert(false), [])
+  useFermerAEchap(tiroirSommaire, fermerSommaire)
+  useFenetreModale(refNav, tiroirSommaire)
+  useFermerAEchap(tiroirReferences, fermerReferences)
+  useFenetreModale(refAside, tiroirReferences)
   // ⛔ La configuration est NORMALISÉE à l'ouverture : bornée à ce que chaque surface
   // sait rendre, chapeaux éteints au-dessus de leur niveau. La règle et ses mesures
   // vivent dans `niveauxAffichage.ts` — c'est elle qui répare les pastilles à la fois
@@ -1198,9 +1234,12 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
       //    précèdent, et l’on ne voit plus ce que le volet offre.
       setSommaireOuvert(false)
     }
+    setVoletsPrets(true)
   }, [])
   useEffect(() => {
-    localStorage.setItem('cs_volets_oeuvre2', JSON.stringify({ nav: navWidth, pann: pannWidth }))
+    // ⚠️ Le stockage peut être refusé (navigation privée, réglage du navigateur) : la
+    // largeur ne se retient pas, et rien ne tombe.
+    try { localStorage.setItem('cs_volets_oeuvre2', JSON.stringify({ nav: navWidth, pann: pannWidth })) } catch {}
   }, [navWidth, pannWidth])
   // ⛔ L'écoute du clic à côté du menu des traductions vit dans `ListeMenuBibles` (2026-09-15).
 
@@ -3593,20 +3632,24 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
         <>
         {/* Mobile : tiroir par-dessus le texte, sous la navbar. */}
         {mobile && <div onClick={() => setNavOuverte(false)} style={{ position: 'fixed', inset: 0, background: 'var(--cs-calque-modale)', zIndex: Z_TIROIR_VOILE }} />}
-        <nav ref={refNav} data-sommaire-panneau style={mobile ? {
+        {/* ⛔ LE VOLET EST UN REPÈRE (`aside`), SON SOMMAIRE UNE NAVIGATION (`nav`), comme
+            partout ailleurs sur le site (audit d'harmonie, 2026-09-23).
+            ⛔ ET IL NE DÉFILE PAS LUI-MÊME : c'est son contenu qui défile, dans l'enveloppe
+            qui suit. La poignée y était DANS le défileur, si bien qu'elle partait avec le
+            sommaire, et elle se tenait à l'intérieur du filet sur cinq pixels quand les trois
+            autres poignées du site en font neuf, à cheval sur lui. Posée ici, hors de ce qui
+            défile, elle prend leur mesure. ⚠️ Sur un téléphone, le tiroir défile lui-même :
+            l'enveloppe s'efface (`display: contents`). */}
+        <aside ref={refNav} id={idVoletGauche} data-sommaire-panneau aria-label="Volet de l’œuvre"
+          role={tiroirSommaire ? 'dialog' : undefined} aria-modal={tiroirSommaire || undefined}
+          style={mobile ? {
           position: 'fixed', top: `calc(${HAUTEUR_NAVBAR} + ${HAUTEUR_BARRE_VOLET})`, left: 0, right: 0, zIndex: Z_TIROIR, maxHeight: `calc(100dvh - ${HAUTEUR_NAVBAR} - ${HAUTEUR_BARRE_VOLET} - 2.5rem)`, overflowY: 'auto', overflowX: 'hidden', background: 'var(--cs-fond-clair)', borderBottom: '1px solid var(--cs-bord)', display: 'flex', flexDirection: 'column', boxShadow: 'var(--cs-ombre-modale)',
-        } : { width: navWidth == null ? 'clamp(240px, 16vw, 380px)' : navWidth + 'px', flexShrink: 0, position: 'sticky', top: HAUTEUR_NAVBAR, alignSelf: 'flex-start', height: HAUTEUR_SOUS_NAVBAR, overflowY: 'auto', overflowX: 'hidden', borderRight: '1px solid var(--cs-bord)', display: 'flex', flexDirection: 'column', minWidth: 0 }}>
-          {!mobile && <div data-sommaire-poignee onMouseDown={e => {
-            e.preventDefault()
-            const startW = navWidth ?? refNav.current?.getBoundingClientRect().width ?? 240
-            const startX = e.clientX
-            const onMove = (ev: MouseEvent) => setNavWidth(Math.max(120, Math.min(400, startW + ev.clientX - startX)))
-            const onUp = () => document.removeEventListener('mousemove', onMove)
-            document.addEventListener('mousemove', onMove)
-            document.addEventListener('mouseup', onUp, { once: true })
-          }} style={{ position: 'absolute', right: 0, top: 0, bottom: 0, width: '5px', cursor: 'url("data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 width=%2724%27 height=%2724%27 viewBox=%270 0 24 24%27 fill=%27none%27 stroke=%27%235f574b%27 stroke-width=%271.7%27 stroke-linecap=%27round%27 stroke-linejoin=%27round%27%3E%3Cpath d=%27M8 7L3 12l5 5%27/%3E%3Cpath d=%27M3 12h18%27/%3E%3Cpath d=%27M16 7l5 5-5 5%27/%3E%3C/svg%3E") 12 12, ew-resize', zIndex: 10 }}
+        } : { width: navWidth == null ? 'clamp(240px, 16vw, 380px)' : navWidth + 'px', flexShrink: 0, position: 'sticky', top: HAUTEUR_NAVBAR, alignSelf: 'flex-start', height: HAUTEUR_SOUS_NAVBAR, background: 'var(--cs-fond-clair)', borderRight: '1px solid var(--cs-bord)', display: 'flex', flexDirection: 'column', minWidth: 0 }}>
+          {!mobile && <div data-sommaire-poignee {...poigneeGauche} title="Glisser pour redimensionner"
+            style={{ position: 'absolute', right: '-4px', top: 0, bottom: 0, width: '9px', cursor: 'url("data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 width=%2724%27 height=%2724%27 viewBox=%270 0 24 24%27 fill=%27none%27 stroke=%27%235f574b%27 stroke-width=%271.7%27 stroke-linecap=%27round%27 stroke-linejoin=%27round%27%3E%3Cpath d=%27M8 7L3 12l5 5%27/%3E%3Cpath d=%27M3 12h18%27/%3E%3Cpath d=%27M16 7l5 5-5 5%27/%3E%3C/svg%3E") 12 12, ew-resize', zIndex: 10 }}
             className="cs-poignee-volet cs-poignee-volet--droite"
           />}
+          <div style={mobile ? { display: 'contents' } : { flex: 1, minHeight: 0, overflowY: 'auto', overflowX: 'hidden', display: 'flex', flexDirection: 'column' }}>
           {/* ⚠️ L’EN-TÊTE SE RESSERRE SUR UN TÉLÉPHONE (relevé de l’auteur,
               2026-09-09 : « revoir l’en-tête qui prend trop de place »). Mesuré dans
               le tiroir, il faisait 88 px pour un nom d’auteur, un titre et un lien,
@@ -3663,7 +3706,8 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
                     c’est-à-dire vers le rail du BUREAU, qui n’existe pas là. C’est la
                     barre « Sommaire » qui ferme, et elle reste posée pour cela. */}
                 {!mobile && (
-                  <BoutonVolet titre="Réduire le sommaire" onClick={() => setNavOuverte(false)}>
+                  <BoutonVolet titre="Réduire le volet" repli refBouton={refChevronGauche}
+                    aria-expanded={true} aria-controls={idVoletGauche} onClick={() => setNavOuverte(false)}>
                     <IconeChevron dir="left" taille="0.875rem" strokeWidth={1.5} />
                   </BoutonVolet>
                 )}
@@ -3985,7 +4029,7 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
             )}
 
             {sommaireAQuoiSommer && (
-            <div data-visite="oeuvre-sommaire" style={{ ...(!mobile && sommaireOuvert ? { flex: 1, minHeight: 0 } : { flexShrink: 0 }), display: 'flex', flexDirection: 'column' }}>
+            <nav aria-label="Sommaire" data-visite="oeuvre-sommaire" style={{ ...(!mobile && sommaireOuvert ? { flex: 1, minHeight: 0 } : { flexShrink: 0 }), display: 'flex', flexDirection: 'column' }}>
               <button onClick={() => setSommaireOuvert(!sommaireOuvert)} aria-expanded={sommaireOuvert}
                 style={TETE_RUBRIQUE}>
                 <span style={RUBRIQUE_AXE}>Sommaire</span>
@@ -4091,10 +4135,11 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
             })}
           </div>
               )}
-            </div>
+            </nav>
             )}
           </div>
-        </nav>
+          </div>
+        </aside>
         </>
         ) : mobile ? null : (
           // ⛔ LE RAIL EST LE COMPOSANT PARTAGÉ, non un quatrième dessin. La charte le
@@ -4108,7 +4153,7 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
           // ⚠️ La bande sticky reste ICI : c'est la page qui sait où elle se colle, et le
           // rail se contente d'y remplir la hauteur. Même parti que la Polyglotte.
           <div style={{ position: 'sticky', top: HAUTEUR_NAVBAR, height: HAUTEUR_SOUS_NAVBAR, alignSelf: 'flex-start', flexShrink: 0, display: 'flex' }}>
-            <RailVolet cote="gauche" libelle="Ouvrir le sommaire" onOuvrir={() => setNavOuverte(true)} />
+            <RailVolet ref={refRailGauche} cote="gauche" libelle="Ouvrir le sommaire" onOuvrir={() => setNavOuverte(true)} />
           </div>
         )}
 
@@ -4985,20 +5030,15 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
         <>
         {/* Mobile : tiroir montant du bas, par-dessus le texte. */}
         {mobile && <div onClick={() => setPanneauOuvert(false)} style={{ position: 'fixed', inset: 0, background: 'var(--cs-calque-modale)', zIndex: Z_TIROIR_VOILE }} />}
-        <aside ref={refAside} data-visite="oeuvre-bible" style={mobile ? {
+        <aside ref={refAside} id={idVoletDroit} data-visite="oeuvre-bible" aria-label="Références et commentaires"
+          role={tiroirReferences ? 'dialog' : undefined} aria-modal={tiroirReferences || undefined}
+          style={mobile ? {
           position: 'fixed', bottom: HAUTEUR_BARRE_VOLET, left: 0, right: 0, zIndex: Z_TIROIR, maxHeight: `calc(100dvh - ${HAUTEUR_NAVBAR} - ${HAUTEUR_BARRE_VOLET} - 2rem)`, borderTop: '1px solid var(--cs-bord)', display: 'flex', flexDirection: 'column', background: 'var(--cs-surface)', boxShadow: 'var(--cs-ombre-modale-haut)',
         } : { width: pannWidth == null ? 'clamp(280px, 21vw, 480px)' : pannWidth + 'px', flexShrink: 0, position: 'sticky', top: HAUTEUR_NAVBAR, alignSelf: 'flex-start', height: HAUTEUR_SOUS_NAVBAR, borderLeft: '1px solid var(--cs-bord)', display: 'flex', flexDirection: 'column', background: 'var(--cs-surface)' }}>
-          <div onMouseDown={e => {
-            e.preventDefault()
-            const startW = pannWidth ?? refAside.current?.getBoundingClientRect().width ?? 320
-            const startX = e.clientX
-            const onMove = (ev: MouseEvent) => setPannWidth(Math.max(200, Math.min(560, startW - (ev.clientX - startX))))
-            const onUp = () => document.removeEventListener('mousemove', onMove)
-            document.addEventListener('mousemove', onMove)
-            document.addEventListener('mouseup', onUp, { once: true })
-          }} style={{ position: 'absolute', left: '-4px', top: 0, bottom: 0, width: '9px', cursor: 'url("data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 width=%2724%27 height=%2724%27 viewBox=%270 0 24 24%27 fill=%27none%27 stroke=%27%235f574b%27 stroke-width=%271.7%27 stroke-linecap=%27round%27 stroke-linejoin=%27round%27%3E%3Cpath d=%27M8 7L3 12l5 5%27/%3E%3Cpath d=%27M3 12h18%27/%3E%3Cpath d=%27M16 7l5 5-5 5%27/%3E%3C/svg%3E") 12 12, ew-resize', zIndex: 10 }}
+          {!mobile && <div {...poigneeDroite} title="Glisser pour redimensionner"
+            style={{ position: 'absolute', left: '-4px', top: 0, bottom: 0, width: '9px', cursor: 'url("data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 width=%2724%27 height=%2724%27 viewBox=%270 0 24 24%27 fill=%27none%27 stroke=%27%235f574b%27 stroke-width=%271.7%27 stroke-linecap=%27round%27 stroke-linejoin=%27round%27%3E%3Cpath d=%27M8 7L3 12l5 5%27/%3E%3Cpath d=%27M3 12h18%27/%3E%3Cpath d=%27M16 7l5 5-5 5%27/%3E%3C/svg%3E") 12 12, ew-resize', zIndex: 10 }}
             className="cs-poignee-volet cs-poignee-volet--gauche"
-          />
+          />}
 
           {/* ⛔ LA BARRE EST LE MODÈLE DU SITE, non une huitième barre recomposée.
               Elle était écrite en styles en ligne — filet posé à la main, trait vert de
@@ -5012,22 +5052,30 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
           <div style={{ position: 'relative', flexShrink: 0, display: 'flex', alignItems: 'stretch' }}>
             {/* ⛔ ELLE NE PARAÎT PLUS SUR TÉLÉPHONE : elle y regardait à DROITE, vers un
                 rail de BUREAU qui n’existe pas là. C’est la barre du bas qui ferme. */}
-            {!mobile && <button onClick={() => setPanneauOuvert(false)} title="Réduire le panneau" aria-label="Réduire le panneau"
-              style={{ position: 'absolute', left: 0, top: 0, bottom: 0, zIndex: 1, minWidth: '24px', padding: '0 6px', background: 'none', border: 'none', cursor: 'pointer', color: 'var(--cs-texte-doux)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            {!mobile && <button ref={refChevronDroit} onClick={() => setPanneauOuvert(false)} title="Réduire le volet" aria-label="Réduire le volet"
+              aria-expanded={true} aria-controls={idVoletDroit}
+              /* ⛔ `.cs-volet-reduire` porte l'encre et le survol vert du chevron, comme sur la
+                 page Bible : une couleur posée en ligne battrait la règle de survol. */
+              className="cs-volet-reduire"
+              style={{ position: 'absolute', left: 0, top: 0, bottom: 0, zIndex: 1, minWidth: '24px', padding: '0 6px', background: 'none', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
               <IconeChevron dir="right" taille="0.875rem" strokeWidth={1.5} />
             </button>}
             <OngletsPage
               className="cs-onglets--volet"
               style={{ flex: 1, minWidth: 0 }}
-              intitule="Ce que le volet montre"
+              intitule="Ce que montre le volet"
               onglets={ongletsDuVolet.map(cle => ({ cle, libelle: LIBELLE_ONGLET_VOLET[cle] }))}
               actif={ongletDroit}
               choisir={setOngletDroit}
+              idPanneau={idPanneauDroit}
+              idOnglet={idOngletDroit}
             />
           </div>
 
-          <div style={ongletDroit === 'refs'
-            ? { flex: 1, overflowY: 'auto', padding: '0 12px 16px', display: 'flex', flexDirection: 'column' }
+          {/* ⚠️ `scrollbar-gutter: stable`, comme le défileur du volet des Pères : un contenu
+              plus court fait disparaître la barre, et tout le volet sautait de quinze pixels. */}
+          <div id={idPanneauDroit} role="tabpanel" aria-labelledby={idOngletDroit(ongletDroit)} style={ongletDroit === 'refs'
+            ? { flex: 1, overflowY: 'auto', padding: '0 12px 16px', display: 'flex', flexDirection: 'column', ...(mobile ? {} : { scrollbarGutter: 'stable' }) }
             : { flex: 1, minHeight: 0, overflow: 'hidden', padding: '0 12px', display: 'flex', flexDirection: 'column' }}>
             {ongletDroit === 'refs' ? (
               <>
@@ -5230,7 +5278,7 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
           // références bibliques » faisait trente-six signes dans une hauteur qui en porte
           // la moitié, et s'écrêtait donc sans qu'on sache où.
           <div style={{ position: 'sticky', top: HAUTEUR_NAVBAR, height: HAUTEUR_SOUS_NAVBAR, alignSelf: 'flex-start', flexShrink: 0, display: 'flex' }}>
-            <RailVolet cote="droite" libelle="Ouvrir les références" onOuvrir={() => setPanneauOuvert(true)} />
+            <RailVolet ref={refRailDroit} cote="droite" libelle="Ouvrir les références" onOuvrir={() => setPanneauOuvert(true)} />
           </div>
         )}
       </div>

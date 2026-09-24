@@ -113,21 +113,24 @@ import { SERIF } from '@/app/lib/polices'
  * police racine, et un style en ligne battrait toute règle de feuille sans `!important`.
  * Il ne reste en ligne que ce qui ne dépend de rien — le fond, l'encre, le curseur.
  */
-export function BoutonVolet({ titre, onClick, children, refBouton, ...aria }: {
+export function BoutonVolet({ titre, onClick, children, refBouton, repli = false, ...aria }: {
   titre: string
   /** ⚠️ L'événement est passé : une action qui ouvre une fenêtre ANCRÉE a besoin du
    *  rectangle du bouton qui l'a demandée, et il ne se retrouve pas après coup. */
   onClick: (e: React.MouseEvent<HTMLButtonElement>) => void
   children: React.ReactNode
   refBouton?: React.Ref<HTMLButtonElement>
+  /** Le chevron qui REPLIE le volet : il prend `.cs-volet-reduire`, l'encre et le survol
+   *  de tous les chevrons de repli du site (page Bible, Polyglotte, publication). */
+  repli?: boolean
   'aria-haspopup'?: 'menu'
   'aria-expanded'?: boolean
   'aria-controls'?: string
 }) {
   return (
     <button ref={refBouton} type="button" onClick={onClick} title={titre} aria-label={titre}
-      className="cs-bouton-volet cs-survol-encre" {...aria}
-      style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '3px', '--repos-encre': 'var(--cs-texte-doux)', '--survol-encre': 'var(--cs-vert)', display: 'flex', alignItems: 'center', justifyContent: 'center', lineHeight: 1, transition: 'color var(--cs-duree-courte)' } as React.CSSProperties}>
+      className={repli ? 'cs-bouton-volet cs-volet-reduire' : 'cs-bouton-volet cs-survol-encre'} {...aria}
+      style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '3px', ...(repli ? {} : { '--repos-encre': 'var(--cs-texte-doux)', '--survol-encre': 'var(--cs-vert)' }), display: 'flex', alignItems: 'center', justifyContent: 'center', lineHeight: 1, transition: 'color var(--cs-duree-courte)' } as React.CSSProperties}>
       {children}
     </button>
   )
