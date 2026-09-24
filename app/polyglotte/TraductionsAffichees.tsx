@@ -94,8 +94,8 @@ export default function TraductionsAffichees({ colonnes, fiches }: {
       <ol className="cs-defilement-discret" style={{ listStyle: 'none', margin: 0, padding: 0, display: 'flex', flexDirection: 'column', gap: '8px', maxHeight: '32vh', overflowY: 'auto' }}>
         {colonnes.map(c => {
           const f = fiches.get(c.code)
-          const datesDuTexte = /\(éd\.\)\s*$/.test(f?.auteur ?? '')
-          const auteur = f?.auteur && !AUTEUR_TU.test(f.auteur) ? (f.dates && !datesDuTexte ? `${f.auteur} (${f.dates})` : f.auteur) : null
+          // ⛔ Aucune date après le nom, comme sur la carte de la Bible classique (2026-09-24).
+          const auteur = f?.auteur && !AUTEUR_TU.test(f.auteur) ? f.auteur : null
           const edition = f ? libelleEditionTraduction({
             datePublication: f.datePublication, lieuEdition: f.lieuEdition,
             editeur: joindreEditeurs(f.editeur, index), anneeEdition: f.anneeEdition,

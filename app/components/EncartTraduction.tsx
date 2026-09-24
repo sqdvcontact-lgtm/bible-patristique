@@ -170,11 +170,10 @@ export default function EncartTraduction({ trad, onReduire, reglage, controle }:
   // D'où vient le texte : une phrase, ou rien du tout quand la base ne donne pas
   // d'année à nommer (voir `libelleEditionTraduction`).
   const edition = libelleEditionTraduction(trad)
-  // ⛔ Les dates d'un ÉDITEUR scientifique (« Louis-Claude Fillion (éd.) ») sont, dans la
-  // donnée, celles du TEXTE qu'il édite (« IVe siècle » pour la Vulgate) : posées à côté
-  // de son nom, elles se liraient comme ses dates de vie. La carte les tait (demande de
-  // l'auteur, 2026-09-23) ; la fiche les garde, où elles datent le texte.
-  const datesDuTexte = /\(éd\.\)\s*$/.test(trad.auteur ?? '')
+  // ⛔ LA CARTE NE DATE PERSONNE (décision de l'auteur, 2026-09-24) : ni le traducteur,
+  // ni l'éditeur dont la donnée porte les dates du TEXTE (« IVe siècle » pour la Vulgate),
+  // ni l'anonyme d'une bible médiévale, dont « (XIIIe siècle) » redisait le nom de la
+  // bible. Les dates restent dans la donnée, et la fiche que le nom ouvre les montre.
   // ⛔ LA PHRASE DE LA CARTE N'EST PAS LA RÉFÉRENCE : elle dit d'où vient le texte, la
   // référence dit les VOLUMES. C'est celle-ci qu'on met dans le presse-papiers, composée
   // par le moteur de la fiche (`texteReferenceEdition`) et non recomposée ici.
@@ -250,19 +249,17 @@ export default function EncartTraduction({ trad, onReduire, reglage, controle }:
           </button>
         )}
       </div>
-      {/* Le TRADUCTEUR, avec ses dates de vie complètes. La langue de la bible se lit
+      {/* Le TRADUCTEUR, sans dates (voir plus haut). La langue de la bible se lit
           dans la fiche « En savoir plus », que le nom ouvre.
           ⛔ Plus de repli sur `label` : le nom de la bible est écrit une ligne plus
           haut depuis le 2026-08-31, et la ligne du traducteur le redisait alors mot
           pour mot. Sans traducteur nommé, elle porte un tiret, qui dit au moins que
           la place existe et qu'on ne l'a pas remplie. */}
       <span style={{ fontFamily: SANS, fontSize: '0.8125rem', fontWeight: 500, color: 'var(--cs-encre)', lineHeight: 1.35 }}>
-        {/* ⚠️ Le nom et les dates se COMPOSENT, comme dans le menu central et dans la
-            fiche : « Bible française du XIIIe siècle » et « (XIIIe siècle) » y prennent
-            leurs petites capitales et leur exposant. La carte les rendait bruts, à un
+        {/* ⚠️ Le nom se COMPOSE, comme dans le menu central et dans la fiche : ses
+            siècles y prennent leurs petites capitales et leur exposant. La carte les rendait bruts, à un
             centimètre d'un menu qui les compose. */}
         {trad.auteur ? rendreEnrichi(trad.auteur) : '—'}
-        {trad.auteurDates && !datesDuTexte && <span style={{ fontWeight: 400, color: 'var(--cs-texte-gris)' }}> {rendreEnrichi(`(${trad.auteurDates})`)}</span>}
       </span>
       {/* L'ÉDITION, dans le corps des pages de titre et le sans du volet. La phrase tient sur
           une ou deux lignes quel que soit le volet, et n'a donc ni budget ni mesure —
