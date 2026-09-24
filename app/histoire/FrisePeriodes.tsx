@@ -16,9 +16,12 @@
 // Le socle d'UNE ligne laisse plus de la moitié de la frise à la proportion, et l'ordre
 // des durées se lit toujours : un bloc plus long dure plus longtemps.
 //
-// ⚠️ Le nom tient sur une ligne ; les dates paraissent sous lui quand le bloc en a la
-// place (requête de conteneur sur la hauteur de son CONTENU, rembourrage déduit), et
-// l'infobulle les donne toujours.
+// ⛔ LA COMPOSITION EST CELLE D'UNE PAGE DE TITRE ANCIENNE (demande de l'auteur) : le
+// nom centré en sérif, un filet court, les dates en italique aux chiffres elzéviriens,
+// un filet gravé autour du bloc. Le socle garde des marges propres même au plus court.
+// Les dates paraissent quand le bloc en a la place, le nom passe sur deux lignes quand
+// il y a la hauteur (requêtes de conteneur sur la hauteur du CONTENU, rembourrage
+// déduit), et l'infobulle donne toujours tout.
 //
 // ⛔ ELLE SUIT LES FILTRES : une période sans événement retenu dans la liste s'éteint,
 // sans disparaître, pour que la frise garde sa forme.
@@ -28,7 +31,7 @@
 
 import { useEffect, useState } from 'react'
 import { HAUTEUR_NAVBAR } from '@/app/lib/mesures'
-import { SANS, SERIF } from '@/app/lib/polices'
+import { SERIF } from '@/app/lib/polices'
 import { allerAAncre } from '@/app/lib/defilement'
 
 export type PeriodeFrise = { code: string; nom: string; date_debut: number | null; date_fin: number | null }
@@ -58,8 +61,8 @@ export function dureePeriode(debut: number | null, fin: number | null): number {
   return Math.max(1, f - debut + 1)
 }
 
-/** Le socle d'un bloc : une ligne de nom et son rembourrage. */
-const SOCLE = '1.375rem'
+/** Le socle d'un bloc : une ligne de nom et des marges propres autour. */
+const SOCLE = '1.875rem'
 
 export default function FrisePeriodes({ periodes, comptes }: {
   periodes: PeriodeFrise[]
@@ -94,7 +97,7 @@ export default function FrisePeriodes({ periodes, comptes }: {
 
   return (
     <nav aria-label="Périodes de l’histoire de l’Église"
-      style={{ display: 'flex', flexDirection: 'column', gap: '2px', height: '100%', boxSizing: 'border-box', padding: '18px 14px 20px', overflow: 'hidden' }}>
+      style={{ display: 'flex', flexDirection: 'column', gap: '3px', height: '100%', boxSizing: 'border-box', padding: '18px 10px 20px', overflow: 'hidden' }}>
       {periodes.map((p, i) => {
         const n = comptes.get(p.code) ?? 0
         const actif = courante === p.code
@@ -116,25 +119,41 @@ export default function FrisePeriodes({ periodes, comptes }: {
       <style>{`
         .frise-periode {
           container-type: size; min-height: 0; overflow: hidden;
-          display: flex; flex-direction: column; justify-content: flex-start; align-items: stretch;
-          width: 100%; margin: 0; padding: 4px 8px; border: none; border-radius: 4px;
-          text-align: left; cursor: pointer; font-family: ${SANS};
+          display: flex; flex-direction: column; justify-content: safe center; align-items: center;
+          width: 100%; margin: 0; padding: 6px 8px; border: none; border-radius: 4px;
+          text-align: center; cursor: pointer; font-family: ${SERIF};
           background: var(--cs-fond-doux);
-          transition: background var(--cs-duree-courte);
+          box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--cs-bord) 60%, transparent);
+          transition: background var(--cs-duree-courte), box-shadow var(--cs-duree-courte);
         }
-        .frise-periode--paire { background: color-mix(in srgb, var(--cs-fond-doux) 70%, var(--cs-bord)); }
+        .frise-periode--paire { background: color-mix(in srgb, var(--cs-fond-doux) 78%, var(--cs-bord)); }
         .frise-periode-nom {
-          font-family: ${SERIF}; font-size: 0.75rem; line-height: 1.2; color: var(--cs-encre);
+          max-width: 100%; font-size: 0.75rem; line-height: 1.2; letter-spacing: 0; word-spacing: -0.02em; color: var(--cs-encre);
           white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
         }
-        .frise-periode-bornes { margin-top: 1px; font-size: 0.6875rem; line-height: 1.2; color: var(--cs-texte-second); font-variant-numeric: tabular-nums; white-space: nowrap; }
-        @container (max-height: 1.75rem) { .frise-periode-bornes { display: none; } }
-        .frise-periode[aria-current='true'] { background: var(--cs-vert-aplat); }
-        .frise-periode[aria-current='true'] .frise-periode-nom { color: var(--cs-sur-aplat); font-weight: 600; }
-        .frise-periode[aria-current='true'] .frise-periode-bornes { color: var(--cs-sur-aplat-doux); }
+        .frise-periode-bornes {
+          font-size: 0.6875rem; line-height: 1.2; font-style: italic; color: var(--cs-texte-second);
+          font-variant-numeric: oldstyle-nums proportional-nums; white-space: nowrap;
+        }
+        /* Un filet court entre le nom et ses dates, à la manière d'une page de titre. */
+        .frise-periode-bornes::before {
+          content: ''; display: block; width: 1rem; height: 1px; margin: 3px auto 2px;
+          background: currentColor; opacity: 0.35;
+        }
+        /* Assez de hauteur : le nom peut passer sur deux lignes au lieu d'être coupé. */
+        @container (min-height: 3rem) {
+          .frise-periode-nom { white-space: normal; text-wrap: balance; display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; }
+        }
+        /* Trop peu de hauteur pour les dates et leur filet : le nom seul. */
+        @container (max-height: 2.0625rem) { .frise-periode-bornes { display: none; } }
+        .frise-periode[aria-current='true'] {
+          background: color-mix(in srgb, var(--cs-fond-doux) 86%, var(--cs-vert));
+          box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--cs-vert) 70%, transparent);
+        }
+        .frise-periode[aria-current='true'] .frise-periode-nom { color: var(--cs-vert); font-weight: 600; }
         .frise-periode:disabled { cursor: default; opacity: var(--cs-opacite-desactive); }
         @media (hover: hover) {
-          .frise-periode:not(:disabled):not([aria-current='true']):hover { background: color-mix(in srgb, var(--cs-fond-doux) 80%, var(--cs-vert)); }
+          .frise-periode:not(:disabled):not([aria-current='true']):hover { background: color-mix(in srgb, var(--cs-fond-doux) 90%, var(--cs-vert)); }
         }
       `}</style>
     </nav>
