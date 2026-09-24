@@ -87,6 +87,7 @@ export default async function EssaiPage({ params }: { params: Promise<{ id: stri
         categories: essai.categories ?? [], contenu: essai.contenu, statut: essai.statut,
         nb_vues: essai.nb_vues, user_id: anonyme ? null : essai.user_id, created_at: essai.created_at, publie_at: essai.publie_at,
         auteur_pseudo: nomAffiche, anonyme, verset_en_tete: essai.verset_en_tete ?? null,
+        auteur_profil: anonyme ? null : (profil?.pseudo ?? null),
         // ⛔ Le motif de la modération ne part au navigateur que pour un essai RENVOYÉ, que
         // seuls son auteur et l'administration peuvent ouvrir (garde plus haut). Publié, il
         // resterait dans la charge de la page de tout lecteur.

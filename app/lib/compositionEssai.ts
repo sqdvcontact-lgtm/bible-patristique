@@ -36,8 +36,13 @@ export const PARAGRAPHE_ESSAI: Declarations = {
   'text-justify': 'inter-word',
   hyphens: 'auto',
   '-webkit-hyphens': 'auto',
-  'line-height': '1.5',
-  'word-spacing': '-0.025em',
+  // Resserré le 2026-09-24 (demande de l'auteur : « condenser légèrement plus le
+  // texte »). L'espace optimale descend d'un cran, et la césure plus hardie
+  // (`hyphenate-limit-chars`) coupe plus tôt les mots longs, ce qui borne les
+  // blancs les plus larges d'une ligne justifiée.
+  'line-height': '1.44',
+  'word-spacing': '-0.045em',
+  'hyphenate-limit-chars': '5 2 2',
   'letter-spacing': '0',
   'text-indent': '0.9em',
   'margin-top': '0',

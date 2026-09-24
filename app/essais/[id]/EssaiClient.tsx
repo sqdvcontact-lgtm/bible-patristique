@@ -26,6 +26,9 @@ import { Z_TIROIR, Z_TIROIR_VOILE } from '@/app/lib/empilement'
 import IconeChevron from '@/app/components/IconeChevron'
 import RailVolet from '@/app/components/RailVolet'
 import { useFoyerAuRepli } from '@/app/lib/useFoyerAuRepli'
+import { BoutonVolet } from '@/app/oeuvre/[id]/TeteVolet'
+import { poserEnHaut } from '@/app/lib/defilementLecture'
+import ModaleProfilLecteur from '@/app/components/ModaleProfilLecteur'
 
 const ABREV_VERS_NOM: Record<string, string> = Object.fromEntries(
   Object.entries(ABREV_FR).map(([code, abrev]) => [abrev, LIVRES.find(l => l.code === code)?.nom ?? abrev])
@@ -46,6 +49,8 @@ type Essai = {
   /** L'auteur porte-t-il la marque de mécène. Voir app/components/MarqueMecene.tsx. */
   auteur_mecene?: boolean
   verset_en_tete?: string | null
+  /** Le pseudonyme du compte de l'auteur, pour ouvrir sa fiche ; nul pour un essai anonyme. */
+  auteur_profil?: string | null
   /** Le motif écrit par la modération, pour un essai renvoyé ou refusé, et seulement là. */
   motif_moderation?: string | null
 }
@@ -60,22 +65,6 @@ function chiffreEnLettres(n: number): string {
     return diz[d] + (u === 1 && d < 8 ? '-et-un' : u > 0 ? '-' + MOTS_NOMBRES[u] : (d === 8 ? 's' : ''))
   }
   return String(n)
-}
-
-// ⚠️ `onClick` reçoit l'ÉVÉNEMENT : le partage ouvre une bulle ANCRÉE, qui a besoin du
-// rectangle du bouton qui l'a demandée, et ce rectangle ne se retrouve pas après coup.
-function BoutonPartage({ label, onClick, children, loading }: { label: string; onClick: (e: React.MouseEvent<HTMLButtonElement>) => void; children: React.ReactNode; loading?: boolean }) {
-  const [flash, setFlash] = useState(false)
-  const handleClick = (e: React.MouseEvent<HTMLButtonElement>) => {
-    onClick(e)
-    if (label === 'Copier le lien') { setFlash(true); setTimeout(() => setFlash(false), 1600) }
-  }
-  return (
-    <button onClick={handleClick} title={label} disabled={loading}
-      style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '34px', height: '34px', borderRadius: '8px', border: '1px solid var(--cs-bord)', background: flash ? 'var(--cs-fond)' : 'var(--cs-surface)', color: flash ? 'var(--cs-vert)' : loading ? 'var(--cs-bord)' : 'var(--cs-texte-doux)', cursor: loading ? 'default' : 'pointer', transition: 'background var(--cs-duree-moyenne), color var(--cs-duree-moyenne)', flexShrink: 0 }}>
-      {children}
-    </button>
-  )
 }
 
 export default function EssaiClient({ essai }: { essai: Essai }) {
@@ -198,37 +187,42 @@ export default function EssaiClient({ essai }: { essai: Essai }) {
   const dateFormatee = new Date(dateAffichee).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })
   const versetParse = (() => { try { return essai.verset_en_tete ? JSON.parse(essai.verset_en_tete) as { ref: string; texte: string } : null } catch { return null } })()
   const sommaire = extraireSommaire(essai.contenu)
-  const allerAu = (id: string) => document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+  // ⛔ Le texte défile dans SON bloc, non dans la fenêtre : `scrollIntoView` faisait
+  // aussi défiler la page et posait le titre sous la barre. `poserEnHaut` vise le
+  // défileur qui porte le titre, et le pose en haut de sa bande (2026-09-24).
+  const allerAu = (id: string) => { const cible = document.getElementById(id); if (cible) poserEnHaut(cible) }
+  const [profilOuvert, setProfilOuvert] = useState(false)
 
-  // Boutons télécharger / partager / copier le lien, réutilisés dans le volet gauche
-  // (desktop) et, en mobile, dans l'en-tête du volet des commentaires.
+  // Boutons télécharger / partager / signaler, en tête du volet gauche (desktop), sur le
+  // modèle de la tête du volet d'une œuvre (`BoutonVolet`), et, en mobile, dans l'en-tête
+  // du volet des commentaires.
   const boutonsPartage = (
     <>
-      <BoutonPartage label={pdfEnCours ? 'Génération…' : 'Télécharger en PDF'} onClick={telechargerPDF} loading={pdfEnCours}>
+      <BoutonVolet titre={pdfEnCours ? 'Génération du PDF…' : 'Télécharger en PDF'} onClick={() => { if (!pdfEnCours) telechargerPDF() }}>
         {pdfEnCours ? (
-          <svg width="14" height="14" viewBox="0 0 13 13" fill="none" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round">
-            <circle cx="6.5" cy="6.5" r="4.5" strokeDasharray="12 8">
-              <animateTransform attributeName="transform" type="rotate" from="0 6.5 6.5" to="360 6.5 6.5" dur="0.8s" repeatCount="indefinite"/>
+          <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" aria-hidden="true">
+            <circle cx="8" cy="8" r="5.5" strokeDasharray="15 10">
+              <animateTransform attributeName="transform" type="rotate" from="0 8 8" to="360 8 8" dur="0.8s" repeatCount="indefinite"/>
             </circle>
           </svg>
         ) : (
-          <svg width="14" height="14" viewBox="0 0 13 13" fill="none" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M2.5 9.5v1a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1v-1"/>
-            <path d="M6.5 1.5v6M4 5.5l2.5 2.5 2.5-2.5"/>
+          <svg viewBox="0 0 16 16" fill="none" aria-hidden="true">
+            <path d="M8 1.8v8.2M4.8 6.9L8 10.1l3.2-3.2" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+            <path d="M2.6 12.1v1.1a1 1 0 0 0 1 1h8.8a1 1 0 0 0 1-1v-1.1" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
           </svg>
         )}
-      </BoutonPartage>
-      <BoutonPartage label="Partager" onClick={e => setAncrePartage(e.currentTarget.getBoundingClientRect())}>
-        <svg width="14" height="14" viewBox="0 0 13 13" fill="none" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round">
-          <circle cx="10" cy="2.5" r="1.3"/>
-          <circle cx="10" cy="10.5" r="1.3"/>
-          <circle cx="3" cy="6.5" r="1.3"/>
-          <path d="M4.2 7.2l4.7 2.6M8.9 3.2 4.2 5.8"/>
+      </BoutonVolet>
+      <BoutonVolet titre="Partager" onClick={e => setAncrePartage(e.currentTarget.getBoundingClientRect())}>
+        <svg viewBox="0 0 16 16" fill="none" aria-hidden="true">
+          <path d="M4.8 7.3l6.4-3.4M4.8 8.7l6.4 3.4" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round"/>
+          <circle cx="12" cy="3.5" r="2.2" fill="currentColor"/>
+          <circle cx="12" cy="12.5" r="2.2" fill="currentColor"/>
+          <circle cx="4" cy="8" r="2.2" fill="currentColor"/>
         </svg>
-      </BoutonPartage>
-      <BoutonPartage label="Signaler" onClick={() => { if (exigerCompte('signaler cette publication')) setSignalerOuvert(true) }}>
+      </BoutonVolet>
+      <BoutonVolet titre="Signaler" onClick={() => { if (exigerCompte('signaler cette publication')) setSignalerOuvert(true) }}>
         <IconeSignalement size={14} />
-      </BoutonPartage>
+      </BoutonVolet>
     </>
   )
 
@@ -266,6 +260,10 @@ export default function EssaiClient({ essai }: { essai: Essai }) {
           margin-bottom: 1mm !important;
           text-indent: 0 !important;
         }
+        /* Le nom de l'auteur ouvre sa fiche : le survol le souligne, comme le crédit
+           d'une œuvre en tête de son volet. */
+        .essai-nom-auteur { text-decoration: none; }
+        .essai-nom-auteur:hover, .essai-nom-auteur:focus-visible { text-decoration: underline; text-underline-offset: 3px; }
         @keyframes essai-note-progress { from { width: 0% } to { width: 100% } }
       `}</style>
 
@@ -274,22 +272,30 @@ export default function EssaiClient({ essai }: { essai: Essai }) {
       {!mobile && (
         <aside style={{ width: '15rem', flexShrink: 0, background: 'var(--cs-fond-clair)', borderRight: '1px solid var(--cs-bord)', height: '100%', overflowY: 'auto', padding: '22px 16px 24px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
           <div>
-            {essai.auteur_pseudo && (
-              <p style={{ fontSize: '0.625rem', fontWeight: 700, letterSpacing: '0.13em', textTransform: 'uppercase', color: 'var(--cs-vert)', margin: '0 0 8px', fontFamily: SANS }}>
-                {essai.auteur_pseudo}
-                {essai.auteur_mecene && <>{' '}<MarqueMecene taille="1.1em" /></>}
-              </p>
-            )}
-            <h2 style={{ fontFamily: SERIF, fontSize: '1.0625rem', fontWeight: GRAISSE_TITRE_VOLET, color: 'var(--cs-encre-fonce)', lineHeight: 1.28, margin: 0 }}>{essai.titre}</h2>
+            {/* La tête du volet d'une œuvre : le titre, et ses actions au fer à droite,
+                alignées sur sa première ligne (2026-09-24). */}
+            <div style={{ display: 'flex', alignItems: 'flex-start', gap: '8px' }}>
+              <h2 style={{ flex: 1, minWidth: 0, fontFamily: SERIF, fontSize: '1.0625rem', fontWeight: GRAISSE_TITRE_VOLET, color: 'var(--cs-encre-fonce)', lineHeight: 1.28, margin: 0 }}>{essai.titre}</h2>
+              <div className="cs-tete-volet-actions" style={{ marginTop: 'calc((1.36rem - max(24px, 1.5rem)) / 2)' }}>
+                {boutonsPartage}
+              </div>
+            </div>
             {essai.sous_titre && (
               <p style={{ fontFamily: SERIF, fontSize: '0.8125rem', fontStyle: 'italic', color: 'var(--cs-texte-gris)', margin: '5px 0 0', lineHeight: 1.35 }}>{essai.sous_titre}</p>
             )}
+            {essai.auteur_pseudo && (
+              <p style={{ fontSize: '0.625rem', fontWeight: 700, letterSpacing: '0.13em', textTransform: 'uppercase', color: 'var(--cs-vert)', margin: '10px 0 0', fontFamily: SANS }}>
+                {essai.auteur_profil ? (
+                  <button type="button" onClick={() => setProfilOuvert(true)} className="essai-nom-auteur" title={`Voir la fiche : ${essai.auteur_pseudo}`}
+                    style={{ font: 'inherit', letterSpacing: 'inherit', textTransform: 'inherit', color: 'inherit', background: 'none', border: 'none', padding: 0, cursor: 'pointer', textAlign: 'left' }}>
+                    {essai.auteur_pseudo}
+                  </button>
+                ) : essai.auteur_pseudo}
+                {essai.auteur_mecene && <>{' '}<MarqueMecene taille="1.1em" /></>}
+              </p>
+            )}
             <p style={{ fontSize: '0.6875rem', letterSpacing: '0.04em', color: 'var(--cs-texte-gris)', margin: '12px 0 0', fontFamily: SANS }}>Publié le {dateFormatee}</p>
             <p style={{ fontSize: '0.6875rem', color: 'var(--cs-texte-gris)', margin: '3px 0 0', fontFamily: SANS }}>Lu {nbVues} fois</p>
-          </div>
-
-          <div style={{ display: 'flex', gap: '6px' }}>
-            {boutonsPartage}
           </div>
 
           {sommaire.length > 0 && (
@@ -459,6 +465,10 @@ export default function EssaiClient({ essai }: { essai: Essai }) {
       {signalerOuvert && (
         <ModalSignalement titre={`Publication\u00A0: ${essai.titre}`} avecNiveauImportance
           onClose={() => setSignalerOuvert(false)} onEnvoyer={envoyerSignalement} />
+      )}
+
+      {profilOuvert && essai.auteur_profil && (
+        <ModaleProfilLecteur pseudo={essai.auteur_profil} onClose={() => setProfilOuvert(false)} />
       )}
 
       {ancrePartage && (

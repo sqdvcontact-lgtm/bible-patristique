@@ -1,0 +1,99 @@
+'use client'
+
+/**
+ * La fiche d'un LECTEUR, ouverte en fenêtre depuis la page de lecture d'un essai.
+ *
+ * Demande de l'auteur, 2026-09-24 : le nom de l'auteur d'un essai ouvre sa page « en
+ * fenêtre, comme une notice auteur, sans illustration toutefois ». Elle prend donc le
+ * cadre des fiches (`ModaleFiche`, `CorpsFiche`, `EnTeteFiche`) et ne pose aucun portrait.
+ *
+ * ⚠️ Les données viennent de `/api/profil/[pseudo]`, la même source que la page
+ * publique : ce que la fenêtre montre, la page le montre aussi, et rien de plus.
+ */
+
+import Link from 'next/link'
+import { useEffect, useId, useState } from 'react'
+import { ChampFiche, CorpsFiche, EnTeteFiche, ModaleFiche, SectionFiche } from '@/app/components/FicheModele'
+import { MotAttente } from '@/app/lib/attenteEnCreux'
+import { calculerRang } from '@/app/lib/classement'
+import { SERIF, SANS } from '@/app/lib/polices'
+
+type ProfilFiche = {
+  pseudo: string
+  nom_reel?: string | null
+  bio: string | null
+  membre_depuis: string
+  lecture?: { nb_auteurs: number; total_auteurs: number }
+  essais?: { id: number; titre: string; sous_titre: string | null; publie_at: string | null }[]
+}
+
+export default function ModaleProfilLecteur({ pseudo, onClose }: { pseudo: string | null; onClose: () => void }) {
+  const titreId = useId()
+  const [profil, setProfil] = useState<ProfilFiche | null>(null)
+  const [erreur, setErreur] = useState(false)
+
+  useEffect(() => {
+    if (!pseudo) return
+    let annule = false
+    setProfil(null); setErreur(false)
+    fetch(`/api/profil/${encodeURIComponent(pseudo)}`)
+      .then(res => (res.ok ? res.json() : Promise.reject()))
+      .then((p: ProfilFiche) => { if (!annule) setProfil(p) })
+      .catch(() => { if (!annule) setErreur(true) })
+    return () => { annule = true }
+  }, [pseudo])
+
+  if (!pseudo) return null
+
+  const rang = profil?.lecture ? calculerRang(profil.lecture.nb_auteurs, profil.lecture.total_auteurs).rang : null
+  const essais = profil?.essais ?? []
+
+  return (
+    <ModaleFiche titreId={titreId} libelle="À propos de cet auteur" onFermer={onClose}>
+      {erreur ? (
+        <p style={{ fontFamily: SERIF, fontSize: '1rem', color: 'var(--cs-texte-doux)', textAlign: 'center', margin: '30px 0' }}>Profil introuvable</p>
+      ) : !profil ? (
+        <MotAttente centre marge="30px 0" />
+      ) : (
+        <CorpsFiche
+          entete={
+            <div className="cs-fiche-tete">
+              <EnTeteFiche titre={profil.pseudo} titreId={titreId} sousTitre={profil.nom_reel || undefined} />
+              <dl className="cs-fiche-identite" aria-label="Repères sur l’auteur">
+                <ChampFiche libelle="Membre depuis">{String(new Date(profil.membre_depuis).getFullYear())}</ChampFiche>
+                <ChampFiche libelle="Rang">{rang}</ChampFiche>
+              </dl>
+            </div>
+          }
+          pied={
+            <Link href={`/profil/${encodeURIComponent(profil.pseudo)}`} onClick={onClose}
+              style={{ fontFamily: SANS, fontSize: '0.71875rem', color: 'var(--cs-vert-fonce)', textDecoration: 'none' }}>
+              Voir la page de {profil.pseudo}
+            </Link>
+          }
+        >
+          {profil.bio && (
+            <SectionFiche titre="Présentation"><p className="cs-notice-prose" style={{ whiteSpace: 'pre-line' }}>{profil.bio}</p></SectionFiche>
+          )}
+          {essais.length > 0 && (
+            <SectionFiche titre={essais.length > 1 ? 'Essais' : 'Essai'}>
+              <ul className="cs-fiche-liste-colonne">
+                {essais.map(e => (
+                  <li key={e.id} className="cs-fiche-rangee-colonne">
+                    <span style={{ fontFamily: SANS, fontSize: '0.6875rem', color: 'var(--cs-date)' }}>
+                      {e.publie_at ? new Date(e.publie_at).getFullYear() : ''}
+                    </span>
+                    <span style={{ lineHeight: 1.38 }}>
+                      <Link href={`/essais/${e.id}`} onClick={onClose} className="cs-fiche-oeuvre"
+                        style={{ fontFamily: SERIF, fontSize: '0.78125rem', color: 'var(--cs-texte)' }}>{e.titre}</Link>
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            </SectionFiche>
+          )}
+        </CorpsFiche>
+      )}
+    </ModaleFiche>
+  )
+}
