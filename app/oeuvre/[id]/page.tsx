@@ -245,7 +245,7 @@ export default async function OeuvrePage({
   params:Promise<{id:string}>
   // `niv1`, `groupe` et `cle` sont la POSITION DE LECTURE emportée d'un texte à
   // l'autre de la même œuvre : voir `passageTexte.ts` et `resoudrePassage` plus bas.
-  searchParams?:Promise<{segment?:string;texte?:string;compare?:string;book?:string;division?:string;mt?:string;niv1?:string;groupe?:string;cle?:string;depuis?:string}>
+  searchParams?:Promise<{segment?:string;texte?:string;mt?:string;niv1?:string;groupe?:string;cle?:string;depuis?:string}>
 }) {
   const {id}=await params
   const sp = searchParams ? await searchParams : {}
@@ -343,9 +343,6 @@ export default async function OeuvrePage({
     redirect(`/oeuvre/${encodeURIComponent(id)}?texte=${encodeURIComponent(texteEnLangueOriginale.idTexte)}`)
   }
 
-  const alignementDemande = sp.compare
-    ? alignementsDisponibles.find(alignement => alignement.alignmentSetId === sp.compare)
-    : null
   const versionActive = versionParId.get(idTexte)!
   const identiteActive = identiteEdition(oeuvre, versionActive)
 
@@ -861,10 +858,6 @@ export default async function OeuvrePage({
       niv1Initial={premierNiv1 ?? niv1List[0] ?? null}
       vueInitiale={vueInitiale}
       niv1InitialPartiel={niv1InitialPartiel}
-      comparaisonInitiale={Boolean(alignementDemande)}
-      alignmentSetIdInitial={alignementDemande?.alignmentSetId ?? null}
-      comparaisonLivreInitial={Number(sp.book ?? '1')}
-      comparaisonDivisionInitiale={Number(sp.division ?? '1')}
       // ⛔ Le chemin « Patristique › Auteur › Œuvre » n'est plus AFFICHÉ (refusé par
       // l'auteur le 2026-09-23) : il reste déclaré aux moteurs (JSON-LD ci-dessus), et la
       // ligne ne porte plus que le retour vers le verset d'où l'on vient.

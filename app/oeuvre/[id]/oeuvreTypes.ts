@@ -225,14 +225,6 @@ export type AlignementDisponible = {
   status: string | null
 }
 
-/** Une colonne se compose en sérif, sauf le texte en langue originale mis en
- *  regard du français, qui passe en sans-serif pour se distinguer d'un coup d'œil.
- *  Fonction pure, testée dans `polices.test.ts`. */
-export function estColonneOriginale(langue: string | null | undefined): boolean {
-  const l = (langue ?? '').trim().toLowerCase()
-  return l.length > 0 && l !== 'français' && l !== 'francais'
-}
-
 export type Props = {
   // Libellé de tous les auteurs (« Augustin d’Hippone et Possidius ») : c'est lui
   // qui nomme l'œuvre au frontispice, dans les citations et dans l'historique.
@@ -302,10 +294,6 @@ export type Props = {
   cibleReprise?: boolean
   niv1Initial?: string | null
   vueInitiale?: 'texte' | 'apparat'
-  comparaisonInitiale?: boolean
-  alignmentSetIdInitial?: string | null
-  comparaisonLivreInitial?: number
-  comparaisonDivisionInitiale?: number
   /** Le fil d'Ariane visible, et le retour au verset d'où l'on vient (`?depuis=`),
    *  composés par la page serveur et posés au-dessus du frontispice. */
   filAriane?: ReactNode

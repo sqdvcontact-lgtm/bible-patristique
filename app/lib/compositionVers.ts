@@ -1,12 +1,12 @@
 import type { CSSProperties } from 'react'
 
 /**
- * La composition des VERS — une seule règle, deux surfaces.
+ * La composition des VERS — une seule règle pour toutes les surfaces.
  *
  * Un poème ne se compose pas comme de la prose, et le site le savait à moitié : les
- * traductions parallèles traitaient les vers, la lecture ordinaire — celle où tout le
- * monde lit — les rendait en prose justifiée avec césure automatique. Ce module porte
- * la règle unique, et `OeuvreClient` comme `ComparaisonTraductions` s'y rapportent.
+ * traductions parallèles (retirées le 2026-09-26) traitaient les vers, la lecture
+ * ordinaire — celle où tout le monde lit — les rendait en prose justifiée avec césure
+ * automatique. Ce module porte la règle unique, et `OeuvreClient` s'y rapporte.
  *
  * ── L'ALINÉA DE BASE ────────────────────────────────────────────────────────────
  *

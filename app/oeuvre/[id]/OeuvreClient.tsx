@@ -195,15 +195,6 @@ import {
   retenirLaPosition,
   segmentEnTeteDeFenetre,
 } from '@/app/lib/passageTexte'
-import {
-  choisirAlignement,
-  comparaisonDisponible,
-  divisionVoisine,
-  divisionPresente,
-  libelleLivreComparaison,
-  libelleDivisionComparaison,
-  type DivisionAlignee,
-} from './comparaisonTraductionsUtils'
 import { SERIF, SANS } from '@/app/lib/polices'
 import { STYLE_POSITION_PAGE, STYLE_RUBRIQUE, TITRE_CARTE } from '@/app/lib/hierarchieTitres'
 import IconeCroix from '@/app/components/IconeCroix'
@@ -218,8 +209,8 @@ const CHARS_PAR_PAGE = 15000
  * tourne une page.
  *
  * ⛔ Et il ne peut plus être `barre-nav-niv1`, qui portait ce rôle : cette barre n'est
- * rendue qu'en lecture ORDINAIRE — ni en texte entier, ni sur un texte sans niveaux, ni
- * en comparaison. Tourner une page y laissait donc le lecteur exactement où il était,
+ * rendue qu'en lecture ORDINAIRE, ni en texte entier ni sur un texte sans niveaux.
+ * Tourner une page y laissait donc le lecteur exactement où il était,
  * la page neuve commençant au-dessus de lui (relevé de l'auteur, 2026-09-10 : « revoir
  * le changement de page »). Le repère est désormais rendu dans TOUS les modes de
  * lecture, à la place que la barre occupe quand elle existe.
@@ -331,19 +322,16 @@ function chargerCodesTraductions(): PromiseLike<string[]> {
 }
 
 // ── CE QUE LA PAGE NE REND QU'À LA DEMANDE ────────────────────────────────────
-// ⛔ Quatre composants que le lecteur ordinaire ne voit JAMAIS voyageaient dans le même
+// ⛔ Des composants que le lecteur ordinaire ne voit JAMAIS voyageaient dans le même
 // paquet que la lecture : la modale d'édition et l'association d'un verset sont réservées
-// à l'administrateur, le menu d'extraction ne paraît qu'au clic, et la comparaison de
-// traductions qu'en mode comparaison. Ensemble, un cinquième de la source de la page.
+// à l'administrateur, et le menu d'extraction ne paraît qu'au clic.
 //
 // ⚠️ SANS `ssr: false`, et c'est délibéré : le chunk CLIENT se sépare, mais le rendu
 // serveur ne bouge pas d'un caractère. `ssr: false` retarderait à l'hydratation ce que
-// l'administrateur voit aujourd'hui dès le premier écran, et une arrivée par
-// « ?compare= » ouvrirait sur du vide.
+// l'administrateur voit aujourd'hui dès le premier écran.
 const ModaleEditionAdmin = dynamic(() => import('./ModaleEditionAdmin'))
 const MenuExtraction = dynamic(() => import('./MenuExtraction'))
 const BullePartage = dynamic(() => import('@/app/components/BullePartage'))
-const ComparaisonTraductions = dynamic(() => import('./ComparaisonTraductions'))
 
 // ── Proposition de lien biblique (non-admin) ──────────────────────────────────
 // Le lecteur dispose des DEUX moyens, et non plus du seul texte libre : il choisit ses
@@ -562,7 +550,7 @@ const TETE_RUBRIQUE: React.CSSProperties = { flexShrink: 0, display: 'flex', ali
 
 type OngletDroit = 'refs' | 'commentaires' | 'notes'
 
-export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre = [], idOeuvre, idTexte, versionsTextuelles, alignementsDisponibles, notesStructurees: notesStructureesRecues = AUCUNE_NOTE_EN_REGARD, ancresNotesStructurees: ancresNotesStructureesRecues = AUCUNE_ANCRE_EN_REGARD, notesStructureesPartielles = false, notesOriginales: notesOriginalesRecues = AUCUNE_NOTE_EN_REGARD, ancresNotesOriginales: ancresNotesOriginalesRecues = AUCUNE_ANCRE_EN_REGARD, notesOriginalesPartielles = false, blocsOriginal = AUCUN_BLOC, estAdmin: estAdminReel, niv1List: niv1ListProp, niv1TexteMap: niv1TexteMapProp = {}, niveauxSommaire = 1, niveauxCorps = 1, txtSommaire = [], txtCorps = [], afficherNumeros = true, lectureTexteEntier = false, fleuron = null, titresComposes: titresComposesInit = null, oeuvre, groupes: groupesInit, segments: segmentsInit, tocApparat, groupesApparat: groupesApparatInit, segmentsApparat: segmentsApparatInit, noticesBibliographiques: noticesBibliographiquesInit = {}, degradations = AUCUNE_DEGRADATION, segmentCibleId = null, cibleReprise = false, niv1Initial = null, vueInitiale = 'texte', niv1InitialPartiel = false, comparaisonInitiale = false, alignmentSetIdInitial = null, comparaisonLivreInitial = 1, comparaisonDivisionInitiale = 1, filAriane = null, retour = null }: Props) {
+export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre = [], idOeuvre, idTexte, versionsTextuelles, alignementsDisponibles, notesStructurees: notesStructureesRecues = AUCUNE_NOTE_EN_REGARD, ancresNotesStructurees: ancresNotesStructureesRecues = AUCUNE_ANCRE_EN_REGARD, notesStructureesPartielles = false, notesOriginales: notesOriginalesRecues = AUCUNE_NOTE_EN_REGARD, ancresNotesOriginales: ancresNotesOriginalesRecues = AUCUNE_ANCRE_EN_REGARD, notesOriginalesPartielles = false, blocsOriginal = AUCUN_BLOC, estAdmin: estAdminReel, niv1List: niv1ListProp, niv1TexteMap: niv1TexteMapProp = {}, niveauxSommaire = 1, niveauxCorps = 1, txtSommaire = [], txtCorps = [], afficherNumeros = true, lectureTexteEntier = false, fleuron = null, titresComposes: titresComposesInit = null, oeuvre, groupes: groupesInit, segments: segmentsInit, tocApparat, groupesApparat: groupesApparatInit, segmentsApparat: segmentsApparatInit, noticesBibliographiques: noticesBibliographiquesInit = {}, degradations = AUCUNE_DEGRADATION, segmentCibleId = null, cibleReprise = false, niv1Initial = null, vueInitiale = 'texte', niv1InitialPartiel = false, filAriane = null, retour = null }: Props) {
   // La mémoire des visites vit sur le COMPTE, miroitée sur ce poste : une seule porte.
   const { visiteFaite, oublierVisite, profilPret, exigerCompte } = useCompte()
   const { modeUtilisateurStandard } = useAffichageAdmin()
@@ -814,121 +802,6 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
   const notesDuTextePretes = !notesStructureesPartielles || notesDuTexteChargees !== null
   // Mode d'affichage du texte : français seul, bilingue (français + latin), latin seul.
   const [modeTexte, setModeTexte] = useState<'fr' | 'bilingue' | 'la'>('fr')
-  // « Traductions parallèles » est désactivé pour le moment (mode de lecture jugé
-  // trop complexe). On force l'indisponibilité : les boutons disparaissent et le
-  // mode est neutralisé partout (via modeComparaisonActif). Réversible d'une ligne :
-  // rétablir `comparaisonDisponible(alignementsDisponibles)`.
-  const COMPARAISON_ACTIVE = false
-  const comparaisonEstDisponible = COMPARAISON_ACTIVE && comparaisonDisponible(alignementsDisponibles)
-  const [alignmentSetId, setAlignmentSetId] = useState<string | null>(alignmentSetIdInitial)
-  const alignementActif = choisirAlignement(alignementsDisponibles, alignmentSetId)
-  const [modeComparaison, setModeComparaison] = useState(comparaisonInitiale)
-  const modeComparaisonActif = comparaisonEstDisponible && modeComparaison && Boolean(alignementActif)
-  // Navigation de la comparaison, MENÉE COMME LA LECTURE : l'état (livre, division,
-  // liste ordonnée des divisions alignées) vit ici pour alimenter à la fois le
-  // sommaire de gauche et la barre « ‹ Livre — Division › », exactement comme les
-  // niveaux du texte alimentent le sommaire et la barre de niveau 1.
-  const [comparaisonDivisions, setComparaisonDivisions] = useState<DivisionAlignee[]>([])
-  const [comparaisonBook, setComparaisonBook] = useState(() => Number.isInteger(comparaisonLivreInitial) && comparaisonLivreInitial >= 1 ? comparaisonLivreInitial : 1)
-  const [comparaisonDivision, setComparaisonDivision] = useState(() => Number.isInteger(comparaisonDivisionInitiale) && comparaisonDivisionInitiale >= 1 ? comparaisonDivisionInitiale : 1)
-  const fermerComparaison = () => {
-    setModeComparaison(false)
-    const params = new URLSearchParams(window.location.search)
-    params.delete('compare')
-    params.delete('book')
-    params.delete('division')
-    router.replace(`${window.location.pathname}${params.size ? `?${params.toString()}` : ''}`, { scroll: false })
-  }
-  // ⛔ NE PAS SUPPRIMER PARCE QUE « PERSONNE NE L'APPELLE ». Cette fonction n'a plus de
-  // bouton depuis la refonte des sélecteurs de lecture (18 août 2026), et c'est VOULU :
-  // tout l'appareil de comparaison dort derrière `COMPARAISON_ACTIVE = false`, quelques
-  // lignes plus haut, où il est dit réversible d'une ligne. Le linter la signale comme
-  // morte ; elle est en sommeil, ce qui n'est pas la même chose. La rétablir demande de
-  // remettre `COMPARAISON_ACTIVE` à vrai ET de lui rendre un point d'entrée.
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars -- en sommeil, voir ci-dessus
-  const ouvrirLectureParallele = (setId: string) => {
-    setVue('texte')
-    setAlignmentSetId(setId)
-    setModeComparaison(true)
-    const params = new URLSearchParams(window.location.search)
-    params.set('compare', setId)
-    params.set('book', String(comparaisonBook))
-    params.set('division', String(comparaisonDivision))
-    router.replace(`${window.location.pathname}?${params.toString()}`, { scroll: false })
-  }
-  // Va à une division alignée (depuis le sommaire de gauche ou les flèches ‹ ›),
-  // met l'URL à jour et ramène en haut du texte — comme un changement de niveau 1.
-  const naviguerComparaison = (book: number, division: number) => {
-    setComparaisonBook(book)
-    setComparaisonDivision(division)
-    const params = new URLSearchParams(window.location.search)
-    if (alignementActif) params.set('compare', alignementActif.alignmentSetId)
-    params.set('book', String(book))
-    params.set('division', String(division))
-    router.replace(`${window.location.pathname}?${params.toString()}`, { scroll: false })
-    if (mobile) setNavOuverte(false)
-    allerAAncre('barre-nav-division')
-  }
-  // Charge la liste ordonnée des divisions alignées à l'entrée en comparaison, avec
-  // le TITRE EXACT de chaque division tiré de la traduction de référence (niv1/niv2),
-  // pour que le sommaire soit identique à celui de la lecture. Recale la division
-  // courante sur la première disponible si elle est hors liste.
-  useEffect(() => {
-    if (!comparaisonEstDisponible || !alignementActif || !modeComparaison) return
-    let actif = true
-    ;(async () => {
-      const { data: alnData, error } = await supabase.from('texte_alignements')
-        .select('alignment_id,book,canonical_division_order')
-        .eq('alignment_set_id', alignementActif.alignmentSetId)
-        .order('book').order('canonical_division_order')
-      if (!actif || error || !alnData) return
-      // Une entrée par division (dans l'ordre), avec un groupe représentatif dont on
-      // lira le titre côté référence.
-      const parDivision = new Map<string, { book: number; division: number; alignmentId: string }>()
-      for (const row of alnData as { alignment_id: string; book: number; canonical_division_order: number }[]) {
-        const cle = `${row.book}|${row.canonical_division_order}`
-        if (!parDivision.has(cle)) parDivision.set(cle, { book: row.book, division: row.canonical_division_order, alignmentId: row.alignment_id })
-      }
-      const reps = [...parDivision.values()]
-      // ⛔ LA CLAUSE SE DÉCOUPE EN OCTETS D’ADRESSE. Une liste d’identifiants
-      // d’alignement non bornée franchit les ~25 000 octets que la passerelle accorde,
-      // et rend un « 400 » NU, sans code ni message : c’est la panne du 29 août 2026,
-      // et ces deux clauses en portaient encore le motif.
-      const lotsMembres = await Promise.all(lotsPourClauseIn(reps.map(rep => rep.alignmentId)).map(lot =>
-        supabase.from('texte_alignement_membres')
-          .select('alignment_id,segment_key').eq('role', 'reference').in('alignment_id', lot)))
-      const memErreur = lotsMembres.find(r => r.error)?.error
-      if (memErreur) console.warn('[oeuvre] divisions alignées : membres non chargés', memErreur)
-      const memData = lotsMembres.flatMap(r => r.data ?? [])
-      const cleParAlignement = new Map<string, string>()
-      for (const row of (memData ?? []) as { alignment_id: string; segment_key: string }[]) if (!cleParAlignement.has(row.alignment_id)) cleParAlignement.set(row.alignment_id, row.segment_key)
-      const segKeys = [...cleParAlignement.values()]
-      // ⚠️ Une clé de segment fait de trente à quatre-vingts signes : c’est ICI que
-      // l’adresse enflait le plus vite.
-      const lotsTitres = segKeys.length
-        ? await Promise.all(lotsPourClauseIn(segKeys).map(lot =>
-            supabase.from('segments').select('segment_key,ref_niv1,ref_niv2').in('segment_key', lot)))
-        : []
-      const segErreur = lotsTitres.find(r => r.error)?.error
-      if (segErreur) console.warn('[oeuvre] divisions alignées : titres non chargés', segErreur)
-      const segData = lotsTitres.flatMap(r => r.data ?? [])
-      const titreParCle = new Map<string, { niv1: string | null; niv2: string | null }>()
-      for (const row of (segData ?? []) as { segment_key: string; ref_niv1: string | null; ref_niv2: string | null }[]) titreParCle.set(row.segment_key, { niv1: row.ref_niv1, niv2: row.ref_niv2 })
-      const liste: DivisionAlignee[] = reps.map(rep => {
-        const segKey = cleParAlignement.get(rep.alignmentId)
-        const titre = segKey ? titreParCle.get(segKey) : undefined
-        return { book: rep.book, division: rep.division, niv1: titre?.niv1 ?? undefined, niv2: titre?.niv2 ?? undefined }
-      })
-      if (!actif) return
-      setComparaisonDivisions(liste)
-      if (liste.length > 0 && !divisionPresente(liste, comparaisonBook, comparaisonDivision)) {
-        setComparaisonBook(liste[0].book)
-        setComparaisonDivision(liste[0].division)
-      }
-    })()
-    return () => { actif = false }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [comparaisonEstDisponible, alignementActif?.alignmentSetId, modeComparaison])
   useEffect(() => {
     try {
       // Un lien direct « ?mt=la » (texte original / bilingue) l'emporte sur la
@@ -997,7 +870,6 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
   // et le syllabateur latins.
   const estGrec = /grec/i.test(oeuvre.langue_originale ?? '')
   const basculerTexte = (mode: 'fr' | 'bilingue' | 'la') => {
-    if (modeComparaisonActif) fermerComparaison()
     setModeTexte(mode)
     try {
       // Le mode retenu vaut pour la SESSION (voir « LE FRANÇAIS SEUL EST LE DÉFAUT ») :
@@ -1030,8 +902,7 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
   // ⚠️ La prose y gagne aussi : sa colonne latine passe de 209 à 295 px.
   // ⛔ Le « Latin seul » garde 31,25 rem : il n'a qu'une colonne, et une colonne de
   // 672 px n'est plus une mesure de lecture.
-  const largeurLecture = modeComparaisonActif ? '52rem'
-    : mobile ? '35rem'
+  const largeurLecture = mobile ? '35rem'
     : affichageBilingue ? '42rem'
     : '31.25rem'
 
@@ -1303,7 +1174,7 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
     // Le paragraphe en tête de fenêtre, et ce qu'on sait de lui pour le retrouver dans
     // l'autre texte. Un groupe d'alignement ne vaut qu'entre deux textes de la MÊME
     // œuvre ; une œuvre sœur ne reçoit que le niveau.
-    const tete = main && vue === 'texte' && !modeComparaisonActif ? segmentEnTeteDeFenetre(main, haut) : null
+    const tete = main && vue === 'texte' ? segmentEnTeteDeFenetre(main, haut) : null
     const seg = tete ? segments.find(s => s.id === tete.id) : undefined
     const cible = adresseAvecPosition(url, {
       niv1: vue === 'texte' && niv1Actif ? niv1Actif : null,
@@ -1465,7 +1336,7 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
   //    « texte entier » lui-même : vingt-trois œuvres s’y lisent AVEC leur sommaire,
   //    dont l’Apologétique (52 chapitres) et les Homélies sur la Genèse (68), où il est
   //    la seule navigation — la garde de 2026-09-05 tient toujours.
-  const sommaireAQuoiSommer = modeComparaisonActif || niv1List.length > 1
+  const sommaireAQuoiSommer = niv1List.length > 1
   // ⛔ LE RETOUR AU TEXTE NE PARAÎT QUE LÀ OÙ LE SOMMAIRE MANQUE (demande de l'auteur,
   //    2026-09-13 : « seulement si le texte est en mode texte entier et ne dispose
   //    d'aucun niveau 1 dans son sommaire »). Quand le sommaire est là, ses entrées
@@ -1476,7 +1347,7 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
   //    dans ce cas (A0010O0109) ; tous les autres qui gardent le bouton se lisent en texte
   //    entier. ⚠️ Et le bloc de l'apparat ne s'étire plus quand le bouton le suit : il le
   //    pousserait au pied du volet, loin de la liste qu'il ferme.
-  const revenirAuTexteVisible = !modeComparaisonActif && vue === 'apparat' && !sommaireAQuoiSommer
+  const revenirAuTexteVisible = vue === 'apparat' && !sommaireAQuoiSommer
   // Carte niv1 -> titre textuel, complete des le rendu serveur.
   // Elle reste enrichie apres modifications ou chargements forces.
   const [niv1TexteMap, setNiv1TexteMap] = useState<Record<string, string>>(niv1TexteMapProp)
@@ -3315,14 +3186,14 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
   // Tirer un cadre depuis le blanc de la page sélectionne plusieurs passages, qu'on
   // enregistre ou qu'on copie d'un coup (app/components/LassoLecture.tsx).
   // ⛔ Seulement là où un passage s'enregistre un par un : la lecture du texte, en
-  // français seul ou en regard. Ni l'apparat, ni la comparaison, ni le latin seul, où la
+  // français seul ou en regard. Ni l'apparat, ni le latin seul, où la
   // colonne française est masquée.
   // ⚠️ La clé est l'identifiant du segment, lu dans la poignée « segment-<id> » que la
   // page pose déjà pour viser un passage.
   // ⚠️ Le latin SEUL se sélectionne lui aussi : c'est un texte à part entière, et la colonne
   // française y est simplement masquée — ses boîtes rendent zéro, le lasso ne la mesure donc
-  // pas. Restent hors du lasso l'apparat et la comparaison, où rien ne s'enregistre.
-  const lassoActif = !mobile && !sansSurvol && vue === 'texte' && !modeComparaisonActif
+  // pas. Reste hors du lasso l'apparat, où rien ne s'enregistre.
+  const lassoActif = !mobile && !sansSurvol && vue === 'texte'
   const segmentsDuLasso = (cles: readonly string[]) => {
     const parCle = new Map(segments.map(s => [String(s.id), s]))
     return cles.map(cle => parCle.get(cle)).filter((s): s is SegData => s !== undefined)
@@ -3616,8 +3487,7 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
            de la citation sortie — corps réduit, justification, ni guillemets ni filet —
            mais retrait à GAUCHE seulement, et un léger blanc entre versets au lieu du
            blanc de paragraphe : on lit un passage continu, non une suite de sujets.
-           Les mesures vivent dans app/lib/compositionVersets.ts, que la comparaison
-           des traductions emploie aussi : une seule composition, deux surfaces. */
+           Les mesures vivent dans app/lib/compositionVersets.ts. */
         .citation-versets { font-family: ${SERIF}; font-size: 0.8125rem; color: var(--cs-texte-fort); margin: 0 0 0.72rem; word-spacing: -0.025em; letter-spacing: 0; }
         .citation-verset { display: block; margin: 0 0 ${BLANC_ENTRE_VERSETS} ${RETRAIT_VERSET}; font-size: 0.95em; line-height: ${INTERLIGNE_LECTURE}; text-align: justify; text-justify: inter-word; hyphens: auto; -webkit-hyphens: auto; overflow-wrap: break-word; white-space: pre-line; }
         .citation-verset:last-child { margin-bottom: 0; }
@@ -4004,7 +3874,7 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
                 mains la précèdent. Chaque rubrique ouverte prend ensuite sa part en dedans.
                 ⚠️ Le partage de hauteur appartient au BUREAU : dans un tiroir, un plafond en
                 pourcentage se résout contre un conteneur sans hauteur. */}
-            {!modeComparaisonActif && sectionsApparat.length > 0 && (
+            {sectionsApparat.length > 0 && (
               <div data-visite="oeuvre-apparat" style={{ ...(!mobile && apparatsOuverts > 0 ? { flex: apparatSEtire ? 1 : '0 1 auto', maxHeight: sommaireAQuoiSommer ? '50%' : undefined, minHeight: 0 } : { flexShrink: 0 }), display: 'flex', flexDirection: 'column' }}>
                 {sectionsApparat.map(section => {
                   const ouvert = apparatOuvert[section]
@@ -4080,41 +3950,7 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
               <div style={mobile ? { padding: '4px 16px 24px' } : { flex: 1, overflowY: 'auto', padding: '4px 16px 24px' }}>
             <p style={{ display: 'none' }}></p>
 
-            {/* En comparaison, le sommaire liste les Livres → Divisions alignés,
-                exactement au gabarit des niveaux 1/2 du texte ; cliquer charge la
-                division (comme cliquer un niveau 1 charge sa section). */}
-            {modeComparaisonActif && (
-              comparaisonDivisions.length === 0 ? (
-                <MotAttente marge="4px 0 0">Chargement des divisions…</MotAttente>
-              ) : (
-                Array.from(new Set(comparaisonDivisions.map(d => d.book))).map(bk => {
-                  const estActif = comparaisonBook === bk
-                  const divisionsDuLivre = comparaisonDivisions.filter(d => d.book === bk)
-                  const titreLivre = divisionsDuLivre[0]?.niv1 || `LIVRE ${libelleLivreComparaison(bk)}`
-                  return (
-                    <div key={bk} style={{ marginBottom: '6px' }}>
-                      <button onClick={() => divisionsDuLivre[0] && naviguerComparaison(bk, divisionsDuLivre[0].division)}
-                        style={{ display: 'block', width: '100%', textAlign: 'left', background: 'none', border: 'none', cursor: 'pointer', padding: '3px 0', fontSize: '0.71875rem', fontWeight: estActif ? 600 : 400, color: estActif ? 'var(--cs-vert)' : 'var(--cs-texte)', lineHeight: 1.35 }}>
-                        {rendreIntituleDeSommaire(titreLivre)}
-                      </button>
-                      {estActif && divisionsDuLivre.map(d => {
-                        const actif2 = comparaisonDivision === d.division
-                        return (
-                          <div key={d.division} style={{ borderLeft: actif2 ? '2px solid var(--cs-vert)' : '2px solid transparent', marginBottom: '2px' }}>
-                            <button onClick={() => naviguerComparaison(bk, d.division)}
-                              style={{ display: 'block', width: '100%', textAlign: 'left', background: 'none', border: 'none', cursor: 'pointer', padding: '3px 0 3px 8px' }}>
-                              <span style={{ fontSize: '0.6875rem', color: actif2 ? 'var(--cs-vert)' : 'var(--cs-texte-second)', fontWeight: actif2 ? 600 : 400, display: 'block', lineHeight: 1.3 }}>{rendreIntituleDeSommaire(d.niv2 || libelleDivisionComparaison(d.division))}</span>
-                            </button>
-                          </div>
-                        )
-                      })}
-                    </div>
-                  )
-                })
-              )
-            )}
-
-            {!modeComparaisonActif && niv1List.map(n1 => {
+            {niv1List.map(n1 => {
               const estActif = vue === 'texte' && n1 === niv1Actif
               // Le complément ne se compose que s'il dit autre chose que son titre.
               const n1txt = complementDeTitre(n1, niv1TexteMap[n1])
@@ -4202,10 +4038,6 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
             Aucune transformation ici non plus, pour la même raison que sur `<main>`. */}
         <div style={{ flex: 1, minWidth: 0, display: 'flex', position: 'relative' }}>
         <main ref={mainRef} lang="fr" className={sortie ? 'lecture-sortie' : entree ? 'lecture-entree' : undefined} style={{ flex: 1, minWidth: 0, padding: mobile ? '2.875rem 14px 3.75rem' : '0 14px 80px', position: 'relative', overflow: 'visible' }}><div ref={colonneRef} data-colonne-lecture="" style={{ maxWidth: largeurLecture, margin: '0 auto', position: 'relative', overflow: 'visible' }}>
-          {/* Frontispice IDENTIQUE à la lecture (même en Traductions parallèles) : même
-              composant, même rembourrage symétrique, le titre centré sur toute la largeur
-              du bloc. Les deux traductions comparées sont nommées en tête de colonnes plus
-              bas. */}
           {/* Le fil d'Ariane est OBSERVÉ : tant qu'il se voit, son lien de retour suffit ;
               passé hors de vue — à l'arrivée sur un passage lointain —, le retour se tient
               en haut de la colonne (`RetourFlottant`). */}
@@ -4227,45 +4059,16 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
           <BandeauDegradations degradations={degradations} estAdmin={estAdmin} />
 
           {/* Le fleuron qui sépare la page de titre du texte. Il se centre sur toute
-              la largeur du bloc, en lecture comme en comparaison. */}
+              la largeur du bloc. */}
           <div style={{ display: 'flex', justifyContent: 'center', margin: '40px 0 44px' }}>
             <Fleuron cle={fleuronChoisi} />
           </div>
-
-          {/* Barre de circulation de la comparaison — jumelle de « barre-nav-niv1 » :
-              flèches ‹ › et titre « Livre — Division » centré, serif. */}
-          {vue === 'texte' && modeComparaisonActif && alignementActif && (() => {
-            const prev = divisionVoisine(comparaisonDivisions, comparaisonBook, comparaisonDivision, -1)
-            const next = divisionVoisine(comparaisonDivisions, comparaisonBook, comparaisonDivision, 1)
-            const courante = comparaisonDivisions.find(d => d.book === comparaisonBook && d.division === comparaisonDivision)
-            // Les intitulés alignés viennent des segments de la traduction de
-            // référence, sans la banque de notes qui les accompagne en lecture :
-            // l'appel y serait muet, on le masque comme au sommaire.
-            const titreLivre = rendreIntituleDeSommaire(courante?.niv1 || `LIVRE ${libelleLivreComparaison(comparaisonBook)}`)
-            const titreDivision = rendreIntituleDeSommaire(courante?.niv2 || libelleDivisionComparaison(comparaisonDivision))
-            return (
-              <div id="barre-nav-division" style={{ display: 'flex', alignItems: 'last baseline', justifyContent: 'center', gap: '16px', marginBottom: '1.5rem', paddingBottom: '1rem', borderBottom: '1px solid var(--cs-fond-doux)', minHeight: '32px', scrollMarginTop: `calc(${HAUTEUR_NAVBAR} + 4px)` }}>
-                <button onClick={() => prev && naviguerComparaison(prev.book, prev.division)} disabled={!prev} aria-label="Division précédente"
-                  style={{ flexShrink: 0, width: '1.1em', textAlign: 'center', fontSize: '1.125rem', lineHeight: 1, color: prev ? 'var(--cs-texte-doux)' : 'transparent', background: 'none', border: 'none', cursor: prev ? 'pointer' : 'default', padding: 0, pointerEvents: prev ? 'auto' : 'none' }}>
-                  {prev ? '‹' : ''}
-                </button>
-                <span style={{ fontSize: TITRE_CARTE, fontWeight: 500, color: 'var(--cs-encre)', fontFamily: SERIF, textAlign: 'center', minWidth: 0, lineHeight: 1.3 }}>
-                  {titreLivre}
-                  <span style={{ display: 'block', fontSize: '0.9375rem', fontWeight: 400, color: 'var(--cs-texte-second)', fontStyle: 'italic', marginTop: '4px', fontFamily: SERIF }}>{titreDivision}</span>
-                </span>
-                <button onClick={() => next && naviguerComparaison(next.book, next.division)} disabled={!next} aria-label="Division suivante"
-                  style={{ flexShrink: 0, width: '1.1em', textAlign: 'center', fontSize: '1.125rem', lineHeight: 1, color: next ? 'var(--cs-texte-doux)' : 'transparent', background: 'none', border: 'none', cursor: next ? 'pointer' : 'default', padding: 0, pointerEvents: next ? 'auto' : 'none' }}>
-                  {next ? '›' : ''}
-                </button>
-              </div>
-            )
-          })()}
 
           {/* Le repère du HAUT DU TEXTE — voir `ANCRE_DEBUT_LECTURE`. Il se pose à la
               place qu'occupe la barre « ‹ › » quand elle existe, et il est rendu dans
               TOUS les modes de lecture : c'est lui que vise le retour en haut, qu'on
               tourne une page, qu'on change de division ou qu'on quitte l'apparat. */}
-          {vue === 'texte' && !modeComparaisonActif && (
+          {vue === 'texte' && (
             <div id={ANCRE_DEBUT_LECTURE} aria-hidden="true" style={{ scrollMarginTop: `calc(${HAUTEUR_NAVBAR} + 4px)` }} />
           )}
 
@@ -4274,7 +4077,7 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
               2026-09-24) : sans sous-titre, elles tombent sur le titre et son numéro ; avec un
               sous-titre, elles descendent sur la ligne grisée. Centrées, elles flottaient entre
               les deux. */}
-          {vue === 'texte' && !modeComparaisonActif && !texteSansNiveaux && !lectureTexteEntier && (
+          {vue === 'texte' && !texteSansNiveaux && !lectureTexteEntier && (
             <div id="barre-nav-niv1" style={{ position: 'relative', display: 'flex', alignItems: 'last baseline', justifyContent: 'center', gap: '16px', marginBottom: '1.5rem', paddingBottom: '1rem', borderBottom: '1px solid var(--cs-fond-doux)', minHeight: '32px', scrollMarginTop: `calc(${HAUTEUR_NAVBAR} + 4px)` }}>
               {/* ⛔ ELLES SE NOMMENT. Leur nom accessible était le GLYPHE : un lecteur
                   d’écran annonçait « guillemet simple gauche », ou rien. Ce sont les
@@ -4350,9 +4153,7 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
           )}
 
           {/* Vue texte principal */}
-          {vue === 'texte' && modeComparaisonActif && alignementActif ? (
-            <ComparaisonTraductions key={`${alignementActif.alignmentSetId}:${comparaisonBook}:${comparaisonDivision}`} alignement={alignementActif} estAdmin={estAdmin} book={comparaisonBook} division={comparaisonDivision} userId={userId} auteur={auteur} />
-          ) : vue === 'texte' && (() => {
+          {vue === 'texte' && (() => {
             // Les titres que la page a montrés : la règle vit dans `titresDuGroupe`, que la
             // copie du lasso lit aussi (charte § 38.8.1).
             let montres = titresAuDepart
@@ -4640,8 +4441,7 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
                     const placeSignature = placeDeLaSignature(toutSignature, signatureSuit)
                     // EXERGUE : le verset posé en seuil de la pièce, et sa traduction.
                     // Rentré du quart de la mesure et justifié — la règle et ses mesures
-                    // vivent dans `app/lib/compositionExergue.ts`, que la comparaison des
-                    // traductions emploie aussi : une seule composition, deux surfaces.
+                    // vivent dans `app/lib/compositionExergue.ts`.
                     // ⛔ Le blanc qui le suit se juge lui aussi sur le bloc SUIVANT : cousu
                     // quand la traduction reprend le même verset, ouvert en seuil quand le
                     // texte commence.
@@ -4660,7 +4460,7 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
                     // Citation biblique posée VERSET PAR VERSET : la coupure vient de
                     // l'édition, non de la segmentation, et ne se recolle donc pas comme
                     // celle d'une `citation` sortie. Règle et mesures dans
-                    // `app/lib/compositionVersets.ts`, partagées avec la comparaison.
+                    // `app/lib/compositionVersets.ts`.
                     const toutVerset = estBlocVersets(chunk.ids.map(sid => segMap.get(sid)?.nature))
                     // L'original a sa PROPRE nature : un original en vers se compose en
                     // vers même si la traduction d'en face est en prose, et l'inverse.
@@ -4827,7 +4627,7 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
           })()}
 
           {/* Navigation de pages — bas de page */}
-          {vue === 'texte' && !modeComparaisonActif && pages.length > 1 && (
+          {vue === 'texte' && pages.length > 1 && (
             <NavPages pages={pages} pageActuelle={pageActuelle} setPageActuelle={changerPage} bas />
           )}
 

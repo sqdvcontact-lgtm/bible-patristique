@@ -20,7 +20,7 @@
  * ⚠️ LE RETRAIT CÈDE QUAND LA MESURE NE PEUT PLUS LE PAYER. Un quart pris sur une
  * colonne de lecture (31,25 rem) laisse une soixantaine de signes par ligne, largement
  * au-dessus du plancher de la charte (§ 3.11.4 : sous une quarantaine de signes, on
- * ferre au lieu de justifier). Pris sur la colonne d'une comparaison de traductions, ou
+ * ferre au lieu de justifier). Pris sur une colonne de la lecture en regard, ou
  * sur un téléphone étroit, il laisserait des lignes de trente signes que la
  * justification creuserait de lézardes. La mesure minimale garde donc la main : le
  * retrait vaut le quart, mais jamais plus que ce qui reste au-dessus d'elle, et il

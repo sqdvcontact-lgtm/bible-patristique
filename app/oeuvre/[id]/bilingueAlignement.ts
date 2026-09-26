@@ -54,7 +54,7 @@ import {
 import { liantAvantSegment } from '@/app/lib/jonctionSegments'
 import { estBlocDeVers } from '@/app/lib/compositionVers'
 
-/** Un ensemble d'alignement, tel que la page le charge déjà pour la comparaison. */
+/** Un ensemble d'alignement, tel que la page le charge pour la lecture en regard. */
 export type EnsembleAlignement = {
   alignmentSetId: string
   referenceTextId: string

@@ -98,7 +98,6 @@ export const COULEURS_EN_DUR: Record<string, readonly string[]> = {
   'lib/NoteTooltip.tsx': ['#c0a878', 'rgba(185,165,120,0.35)', 'rgba(255,248,235,0.7)'],
   'librairies/page.tsx': ['#153f78', '#5d3a6e', '#5e3a1c', 'rgba(124,88,47,0.38)', 'rgba(151,30,37,0.36)', 'rgba(22,63,125,0.32)', 'rgba(31,90,90,0.34)', 'rgba(93,58,110,0.34)'],
   'manuscrits/bible-899/bible899.module.css': ['#4c4942', '#4f5e54', '#514a42', '#5e574e', '#5f503d', '#73664f', '#765718', '#777168', '#7d746a', '#8d432e', '#b57735', '#c9c1b6', '#f2e7c9', 'rgba(255,253,248,0.97)', 'rgba(53,44,32,0.1)', 'rgba(58,48,35,0.08)'],
-  'oeuvre/[id]/ComparaisonStatut.tsx': ['rgba(142,102,38,0.32)', 'rgba(190,145,66,0.09)'],
   // Les CALQUES de fenêtre écrits en brun translucide (0,32 à 0,55 selon l'écran) lisent
   // tous --cs-calque-modale depuis le 2026-09-23 : la polyglotte, la recherche, la
   // bibliothèque, le sélecteur de citation, la messagerie, le lien biblique, le compte requis.

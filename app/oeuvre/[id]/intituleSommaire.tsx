@@ -29,7 +29,7 @@ export function titreSansAppelsDeNote(texte: string) {
 // « Plan de *l’Apologétique* » avec ses astérisques, les chapeaux des Questions sur
 // l'Heptateuque avec leurs balises <i>, quand le corps compose les mêmes titres enrichis.
 // La règle de la charte (§ 3.6) vaut « absolument partout », chapeaux et libellés
-// d'interface compris : le sommaire, la barre de la comparaison, l'inventaire des notes,
+// d'interface compris : le sommaire, l'inventaire des notes,
 // le menu d'extraction et la tête d'un renvoi passent donc tous par ici.
 // ⚠️ Un LIEN n'y est pas rendu : l'intitulé vit déjà dans un bouton ou dans un lien, et un
 // lien dans un contrôle est un contenu interactif imbriqué. Son libellé reste.

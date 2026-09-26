@@ -1,7 +1,7 @@
 // La FORME de l'appel de note, et ce qui voyage avec lui.
 //
 // Toutes les surfaces qui portent des notes s'y réfèrent : la page d'œuvre, le
-// panneau patristique, la comparaison des traductions, le paratexte biblique.
+// panneau patristique, le paratexte biblique.
 // Une seule définition, sans quoi les appels d'une même page finissent par ne
 // plus avoir ni la même taille ni la même teinte.
 //
