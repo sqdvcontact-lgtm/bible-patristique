@@ -158,6 +158,67 @@ export function detacherDernierMot(texte: string): [string, string] {
   return dernier ? [texte.slice(0, dernier.index), dernier[0]] : [texte, '']
 }
 
+// ── Et seulement sa dernière syllabe ─────────────────────────────────────────
+// ⛔ UN `nowrap` INTERDIT AUSSI LA CÉSURE (relevé de l’auteur, 2026-09-26, sur
+// « inmortalitatem³⁶ & ³⁷ », 1 Co 15, 53 dans un texte français). Le mot entier voyageait
+// avec l’appel : trop long pour finir la ligne, il ne pouvait plus s’y couper, partait
+// entier à la suivante, et la justification étirait la ligne qu’il quittait. Seule la
+// DERNIÈRE SYLLABE voyage désormais avec l’appel ; la tête du mot reste dehors, terminée
+// par une césure conditionnelle (U+00AD), et se coupe comme n’importe quel mot.
+// ⚠️ Une coupe DÉJÀ posée par le site (latin, grec) fait foi : on coupe à la dernière.
+// Sinon on syllabe à la française, ce qui vaut aussi pour le latin : la consonne
+// seule passe à la syllabe suivante, deux consonnes se séparent sauf les groupes qui
+// ne se coupent jamais (muette + liquide, digrammes), et les voyelles ne se séparent pas.
+
+const CESURE = '­'
+const VOYELLES_SYLLABE = 'aeiouyàâäéèêëîïôöùûüÿæœāēīōūăĕĭŏŭáíóú'
+const GROUPES_INSECABLES = new Set([
+  'bl', 'br', 'cl', 'cr', 'dr', 'fl', 'fr', 'gl', 'gr', 'pl', 'pr', 'tr', 'vr',
+  'ch', 'ph', 'th', 'rh', 'gn',
+])
+/** La tête garde au moins deux lettres, la queue aussi : c’est le plancher de la césure
+ *  du site (`CESURE_VERSET`, « 5 2 2 »). Un mot de moins de sept lettres voyage entier :
+ *  le rejeter à la ligne ne creuse pas la précédente. */
+const MIN_TETE = 2
+const MIN_QUEUE = 2
+const MIN_MOT = 7
+
+/** Coupe un mot avant sa dernière syllabe : `[tête + U+00AD, queue]`, ou `['', mot]`
+ *  quand il n’y a pas de coupe sûre. Fonction pure. */
+export function couperAvantDerniereSyllabe(mot: string): [string, string] {
+  const posee = mot.lastIndexOf(CESURE)
+  if (posee > 0) return [mot.slice(0, posee + 1), mot.slice(posee + 1)]
+  // Seule la dernière composante d’un mot composé ou élidé se syllabe (« l’homme »).
+  const debut = Math.max(mot.lastIndexOf('-'), mot.lastIndexOf('’'), mot.lastIndexOf('\'')) + 1
+  const bas = mot.toLowerCase()
+  const lettre = (i: number) => /\p{L}/u.test(bas[i] ?? '')
+  const voyelle = (i: number) => VOYELLES_SYLLABE.includes(bas[i] ?? '')
+  let i = mot.length
+  while (i > debut && !lettre(i - 1)) i--
+  const finLettres = i
+  if (finLettres - debut < MIN_MOT) return ['', mot]
+  while (i > debut && lettre(i - 1) && !voyelle(i - 1)) i--
+  while (i > debut && voyelle(i - 1)) i--
+  // `qu` et `gu` ne font qu’une consonne : leur u appartient à la syllabe suivante.
+  let consonnes = 0
+  while (i - consonnes > debut && lettre(i - consonnes - 1) && !voyelle(i - consonnes - 1)) consonnes++
+  if (consonnes === 0) return ['', mot]
+  const coupe = consonnes >= 2 && GROUPES_INSECABLES.has(bas.slice(i - 2, i)) ? i - 2 : i - 1
+  const lettresTete = [...bas.slice(debut, coupe)].filter((c) => /\p{L}/u.test(c))
+  if (lettresTete.length < MIN_TETE || !lettresTete.some((c) => VOYELLES_SYLLABE.includes(c))) return ['', mot]
+  if (finLettres - coupe < MIN_QUEUE) return ['', mot]
+  return [mot.slice(0, coupe) + CESURE, mot.slice(coupe)]
+}
+
+/** Le dernier mot, réduit à sa dernière syllabe : ce qui part avec l’appel. La tête du
+ *  mot reste dans le fragment, coupable. */
+export function detacherDerniereSyllabe(texte: string): [string, string] {
+  const [avant, mot] = detacherDernierMot(texte)
+  if (!mot) return [avant, mot]
+  const [tete, queue] = couperAvantDerniereSyllabe(mot)
+  return [avant + tete, queue]
+}
+
 /** Le séparateur qui précède l’appel de rang `rang` dans une suite : esperluette
  *  avant le dernier, virgule avant les autres. */
 export function separateurAppels(rang: number, total: number) {

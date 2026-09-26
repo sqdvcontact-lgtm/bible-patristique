@@ -28,6 +28,7 @@ import { ATTRIBUT_CLE_NOTE } from './ouvrirNoteDansLeTexte'
 import {
   PONCTUATION_ATTACHEE,
   detacherDernierMot,
+  detacherDerniereSyllabe,
   separateurAppels,
   styleAppelNote,
   styleSeparateurAppels,
@@ -426,7 +427,7 @@ export function rendreTexteAvecNotes(
       let attache: React.ReactNode = ''
       const precedent = noeuds[noeuds.length - 1]
       if (typeof precedent === 'string') {
-        const [avant, mot] = detacherDernierMot(precedent)
+        const [avant, mot] = detacherDerniereSyllabe(precedent)
         if (mot) { noeuds[noeuds.length - 1] = avant; attache = mot }
       } else if (isValidElement(precedent)) {
         // Un élément : on lui prend son DERNIER MOT dans un clone, pour ne pas rendre
@@ -437,7 +438,7 @@ export function rendreTexteAvecNotes(
         // de ces enfants, et on ne coupe que s’il est du texte.
         const enfants = Children.toArray((precedent.props as { children?: React.ReactNode }).children)
         const queue = enfants[enfants.length - 1]
-        const [avant, mot] = typeof queue === 'string' ? detacherDernierMot(queue) : ['', '']
+        const [avant, mot] = typeof queue === 'string' ? detacherDerniereSyllabe(queue) : ['', '']
         const debut = [...enfants.slice(0, -1), avant]
         const debutHabite = debut.some(x => (typeof x === 'string' ? x.trim() !== '' : x != null))
         if (mot && debutHabite) {
