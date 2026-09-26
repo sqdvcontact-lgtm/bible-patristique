@@ -872,7 +872,12 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
   // La langue s'écrit « Grec » ou « grec » selon les fiches : la comparaison stricte
   // laissait passer la minuscule, et un texte grec repartait alors avec les libellés
   // et le syllabateur latins.
-  const estGrec = /grec/i.test(oeuvre.langue_originale ?? '')
+  // La seconde colonne n'est pas toujours l'original de l'œuvre. Pour Irénée, le grec
+  // n'est conservé que par fragments et la colonne complète est la version latine
+  // ancienne : sa langue doit donc commander libellés, césure et attribut `lang`, sans
+  // transformer le latin en faux « original grec ».
+  const langueEnRegard = paireDeLecture.texteEnRegard?.langue ?? oeuvre.langue_originale
+  const estGrec = /grec/i.test(langueEnRegard ?? '')
   const basculerTexte = (mode: 'fr' | 'bilingue' | 'la') => {
     setModeTexte(mode)
     try {
@@ -2708,13 +2713,16 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
   // Les libellés se lisent sur les TEXTES : la langue de l'original retenu, celle de la
   // traduction que vise le premier mode. Le latin tenait lieu de langue inconnue, et le
   // premier mode se disait « Français » même quand il menait au latin de Funk.
-  const langueOriginaleLue = versionOriginale?.langue || editionsOriginal[0]?.langue_originale || oeuvre.langue_originale || null
+  const versionEnRegardChoisie = paireDeLecture.texteEnRegard
+  const langueOriginaleLue = versionOriginale?.langue || versionEnRegardChoisie?.langue
+    || editionsOriginal[0]?.langue_originale || oeuvre.langue_originale || null
   const labelOrigMenu = libelleLangue(langueOriginaleLue) || 'Texte original'
   const editionFrRef = (!couranteEstOriginale && editionCourante) ? editionCourante : (editionsTraduction[0] ?? null)
   const labelTraductionMenu = libelleLangue(versionTraduite?.langue || editionFrRef?.langue_trad) || 'Français'
   const labelBilingueMenu = `${labelTraductionMenu} & ${libelleLangue(langueOriginaleLue) || 'original'}`
   const editionOrigRef = (couranteEstOriginale && editionCourante) ? editionCourante : (editionsOriginal[0] ?? null)
-  const aOriginalQuelconque = aTexteOriginal || editionsOriginal.length > 0 || couranteEstOriginale || !!versionOriginale
+  const aOriginalQuelconque = aTexteOriginal || editionsOriginal.length > 0 || couranteEstOriginale
+    || !!versionOriginale || !!versionEnRegardChoisie
   // Deux textes d'une même œuvre se rejoignent par `?texte=`, deux œuvres sœurs par
   // leur identifiant. On ne bascule le mode sur place que si la cible est bien le
   // texte qu'on lit déjà : sans cette seconde condition, passer du latin au français
@@ -2748,15 +2756,16 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
   // La garde « editionFrRef || versionTraduite » laissait donc passer toute œuvre
   // traduite jusqu'à `editionFrRef!.id_oeuvre`, et la page tombait en 500 avant d'avoir
   // rien affiché — toutes les œuvres traduites, la Doctrine des Apôtres en témoin.
-  const cibleFrOeuvre = versionOriginale ? (versionTraduite ? idOeuvre : null) : (editionFrRef?.id_oeuvre ?? null)
-  const cibleFrTexte = versionOriginale ? (versionTraduite?.idTexte ?? null) : null
+  const paireTextuelleInterne = !!versionOriginale || !!versionEnRegardChoisie
+  const cibleFrOeuvre = paireTextuelleInterne ? (versionTraduite ? idOeuvre : null) : (editionFrRef?.id_oeuvre ?? null)
+  const cibleFrTexte = paireTextuelleInterne ? (versionTraduite?.idTexte ?? null) : null
   // ⛔ LE BILINGUE A SA PROPRE CIBLE, et ce n'est pas toujours celle du français. Lu
   // depuis une archive ou depuis une édition qu'aucun alignement ne couvre, « Français »
   // reste sur place — on ne change pas d'édition pour rien — quand « Français & Latin »
   // doit rejoindre la traduction que l'alignement relie à l'original. Les deux
   // partageaient `cibleFrTexte`, et c'est ainsi qu'un clic emmenait sur une archive
   // dépourvue d'alignement, où le mode restait pourtant allumé, sans seconde colonne.
-  const cibleBilingueTexte = versionOriginale ? (paireDeLecture.traductionBilingue?.idTexte ?? null) : null
+  const cibleBilingueTexte = paireTextuelleInterne ? (paireDeLecture.traductionBilingue?.idTexte ?? null) : null
   if (aOriginalQuelconque && cibleFrOeuvre) {
     const surFr = !couranteEstOriginale && (versionOriginale ? true : idOeuvre === editionFrRef?.id_oeuvre)
     modesLecture.push({ cle: 'fr', label: labelTraductionMenu, cibleOeuvre: cibleFrOeuvre, cibleTexte: cibleFrTexte, cibleMt: 'fr',
@@ -2772,6 +2781,12 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
   if (versionOriginale) {
     modesLecture.push({ cle: 'orig', label: labelOrigMenu, cibleOeuvre: idOeuvre, cibleTexte: versionOriginale.idTexte,
       cibleMt: 'fr', actif: surTexteOriginal })
+  } else if (versionEnRegardChoisie) {
+    // Une version ancienne traduite se lit pour ce qu'elle est, par son propre texte.
+    // Le bouton porte donc « Latin », non « Grec » ni « original ».
+    modesLecture.push({ cle: 'regard', label: labelOrigMenu, cibleOeuvre: idOeuvre,
+      cibleTexte: versionEnRegardChoisie.idTexte, cibleMt: 'fr',
+      actif: idTexte === versionEnRegardChoisie.idTexte })
   } else if (aOriginalQuelconque && (couranteEstOriginale || editionOrigRef || aTexteOriginal)) {
     const surOrig = idOeuvre === cibleOrigOeuvre && (couranteEstOriginale || (cibleOrigMt === 'la' && modeTexteEffectif === 'la'))
     modesLecture.push({ cle: 'orig', label: labelOrigMenu, cibleOeuvre: cibleOrigOeuvre, cibleMt: cibleOrigMt,
@@ -4305,7 +4320,7 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
                     {contenu}
                     {enRegardTexte && original && (
                       originalEnVers ? (
-                        <div lang={codeLangue(oeuvre.langue_originale)} className="texte-original" {...marqueOriginal}
+                        <div lang={codeLangue(langueEnRegard)} className="texte-original" {...marqueOriginal}
                           style={styleColonneOriginale({ surface: 'argument', seul: afficherOriginalSeul, grec: estGrec, vers: true })}>
                           {lignesDeVers(original.affichage).map((ligne, i) => (
                             <span key={i} style={styleLigneDeVers({ rang: 0 })}>
@@ -4314,7 +4329,7 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
                           ))}
                         </div>
                       ) : (
-                        <p lang={codeLangue(oeuvre.langue_originale)} className="texte-original" {...marqueOriginal}
+                        <p lang={codeLangue(langueEnRegard)} className="texte-original" {...marqueOriginal}
                           style={styleColonneOriginale({ surface: 'argument', seul: afficherOriginalSeul, grec: estGrec })}>
                           {composerOriginal(original.affichage, original.notes)}
                         </p>
@@ -4652,7 +4667,7 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
                              ⚠️ Pas de rang d'alinéa ici : la source ne mesure l'indentation
                              que du texte TRADUIT. On ne pose donc que l'alinéa de base, et
                              le retrait de suite, qui appartiennent à la composition. */
-                          <div lang={codeLangue(oeuvre.langue_originale)} className="texte-original" {...marqueOriginal} style={styleColonneOriginale({ surface: 'lecture', seul: afficherOriginalSeul, grec: estGrec, vers: true })}>
+                          <div lang={codeLangue(langueEnRegard)} className="texte-original" {...marqueOriginal} style={styleColonneOriginale({ surface: 'lecture', seul: afficherOriginalSeul, grec: estGrec, vers: true })}>
                             {lignesDeVers(original.affichage).map((ligne, i) => (
                               <span key={i} style={{ display: 'block', lineHeight: 1.4, marginLeft: `${retraitVers(0)}em`, paddingLeft: `${RETRAIT_SUITE}em`, textIndent: `-${RETRAIT_SUITE}em`, hyphens: 'none', WebkitHyphens: 'none' } as React.CSSProperties}>
                                 {composerOriginal(ligne, original.notes)}
@@ -4664,7 +4679,7 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
                         // français (mêmes taille et teinte). La langue de l'original commande la
                         // césure (latine ou grecque) et l'attribut `lang` : un texte grec composé
                         // avec le syllabateur latin coupait faux et se déclarait à tort « la ».
-                        <p lang={codeLangue(oeuvre.langue_originale)} className="texte-original" {...marqueOriginal} style={styleColonneOriginale({ surface: 'lecture', seul: afficherOriginalSeul, grec: estGrec })}>
+                        <p lang={codeLangue(langueEnRegard)} className="texte-original" {...marqueOriginal} style={styleColonneOriginale({ surface: 'lecture', seul: afficherOriginalSeul, grec: estGrec })}>
                           {composerOriginal(original.affichage, original.notes)}
                         </p>
                         )

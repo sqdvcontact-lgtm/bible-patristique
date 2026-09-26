@@ -183,6 +183,59 @@ describe('deux traductions, toutes deux alignées', () => {
   })
 })
 
+describe('une version latine ancienne en regard, sans original grec complet', () => {
+  const GENOUDE = 'A0015O0001TFR01'
+  const HARVEY = 'A0015O0001TLA01'
+  const versions: VersionLisible[] = [
+    traduction(GENOUDE, { traducteur: 'Antoine-Eugène de Genoude', isDefault: true }),
+    {
+      idTexte: HARVEY,
+      langue: 'Latin',
+      traducteur: 'Traducteur latin ancien anonyme',
+      isDefault: false,
+      isPublic: true,
+      statut: 'termine',
+    },
+  ]
+  const alignements = [ensemble(
+    'A0015O0001:GENOUDE1838-HARVEY1857:FR-LA:SEMANTIC',
+    GENOUDE,
+    HARVEY,
+    { alignmentLevel: 'segment', nbGroupes: 2500 },
+  )]
+
+  it('offre le latin en regard sans jamais le qualifier d’original grec', () => {
+    const paire = choisirPaireDeLecture({
+      idTexteActif: GENOUDE,
+      versions,
+      alignements,
+      langueOriginale: 'Grec',
+    })
+    expect(paire.original).toBeNull()
+    expect(paire.texteEnRegard?.idTexte).toBe(HARVEY)
+    expect(paire.traductionFr?.idTexte).toBe(GENOUDE)
+    expect(paire.traductionBilingue?.idTexte).toBe(GENOUDE)
+    expect(paire.idTexteEnRegard).toBe(HARVEY)
+    expect(paire.enRegardSurPlace).toBe(true)
+    expect(paire.bilingueOffert).toBe(true)
+  })
+
+  it('revient vers Genoude pour le bilingue quand le latin est lu seul', () => {
+    const paire = choisirPaireDeLecture({
+      idTexteActif: HARVEY,
+      versions: [...versions].reverse(),
+      alignements,
+      langueOriginale: 'Grec',
+    })
+    expect(paire.original).toBeNull()
+    expect(paire.texteEnRegard?.idTexte).toBe(HARVEY)
+    expect(paire.traductionFr?.idTexte).toBe(GENOUDE)
+    expect(paire.idTexteEnRegard).toBeNull()
+    expect(paire.navigationBilingue).toBe(GENOUDE)
+    expect(paire.enRegardSurPlace).toBe(false)
+  })
+})
+
 describe('quand rien ne peut se mettre en regard', () => {
   it('n’offre pas le bilingue : original présent, mais aucun alignement', () => {
     const paire = choisirPaireDeLecture({

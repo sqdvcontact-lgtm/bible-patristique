@@ -136,6 +136,10 @@ function comparerVersions(idTexteActif: string | null) {
 export type PaireDeLecture = {
   /** Le texte en langue originale retenu pour cette œuvre. Cible de « Latin »/« Grec ». */
   original: VersionLisible | null
+  /** Le texte effectivement placé dans la seconde colonne. C'est ordinairement
+   *  l'original ; à défaut d'original conservé sur le site, ce peut être une autre
+   *  version ancienne alignée (par exemple le latin d'Irénée face à Genoude). */
+  texteEnRegard: VersionLisible | null
   /** La traduction que vise « Français ». C'est celle qu'on lit, quand on lit une
    *  traduction : on ne change pas d'édition pour rien. */
   traductionFr: VersionLisible | null
@@ -158,6 +162,7 @@ export type PaireDeLecture = {
 
 const PAIRE_VIDE: PaireDeLecture = {
   original: null,
+  texteEnRegard: null,
   traductionFr: null,
   traductionBilingue: null,
   idTexteEnRegard: null,
@@ -209,13 +214,15 @@ export function choisirPaireDeLecture(params: {
   const traductions = retenues
     .filter(v => !estVersionEnLangueOriginale(v, langueOriginale))
     .sort(comparer)
+  const traductionsFrancaises = traductions.filter(v => memeLangue(v.langue, 'Français'))
+  const traductionsPourLecture = traductionsFrancaises.length > 0 ? traductionsFrancaises : traductions
   const ensembles = ensemblesUtilisables(params.alignements)
 
   let original: VersionLisible | null = originaux[0] ?? null
   let traductionAlignee: VersionLisible | null = null
   let ensembleAligne: EnsembleLisible | null = null
   for (const candidat of originaux) {
-    for (const traduction of traductions) {
+    for (const traduction of traductionsPourLecture) {
       const ensemble = choisirEnsembleBilingue(ensembles, traduction.idTexte, candidat.idTexte) as EnsembleLisible | null
       if (!ensemble) continue
       original = candidat
@@ -226,6 +233,34 @@ export function choisirPaireDeLecture(params: {
     if (ensembleAligne) break
   }
 
+  // Certaines œuvres ne peuvent pas encore offrir leur langue originale, mais portent
+  // deux témoins traduits qu'il faut pourtant lire ensemble. Le cas décisif est Irénée :
+  // l'original grec n'est conservé que par fragments, tandis que la version latine
+  // ancienne est complète et Genoude français. On ne baptise jamais ce latin
+  // « original » : il devient seulement le texte EN REGARD, et seulement si un
+  // ensemble d'alignement relie explicitement les deux versions.
+  let texteEnRegard: VersionLisible | null = original
+  if (!ensembleAligne && originaux.length === 0) {
+    const contreparties = traductions
+      .filter(v => !memeLangue(v.langue, 'Français'))
+      .sort(comparer)
+    for (const traduction of traductionsPourLecture) {
+      for (const contrepartie of contreparties) {
+        const ensemble = choisirEnsembleBilingue(
+          ensembles,
+          traduction.idTexte,
+          contrepartie.idTexte,
+        ) as EnsembleLisible | null
+        if (!ensemble) continue
+        traductionAlignee = traduction
+        texteEnRegard = contrepartie
+        ensembleAligne = ensemble
+        break
+      }
+      if (ensembleAligne) break
+    }
+  }
+
   const enRegardSurPlace = Boolean(ensembleAligne) && traductionAlignee?.idTexte === idTexteActif
 
   // La cible du bilingue : l'alignement du texte lu, ou celui d'une autre traduction
@@ -234,9 +269,10 @@ export function choisirPaireDeLecture(params: {
 
   return {
     original,
-    traductionFr: traductions[0] ?? null,
+    texteEnRegard,
+    traductionFr: traductionsPourLecture[0] ?? null,
     traductionBilingue,
-    idTexteEnRegard: original && original.idTexte !== idTexteActif ? original.idTexte : null,
+    idTexteEnRegard: texteEnRegard && texteEnRegard.idTexte !== idTexteActif ? texteEnRegard.idTexte : null,
     ensembleBilingue: enRegardSurPlace ? ensembleAligne : null,
     enRegardSurPlace,
     bilingueOffert: traductionBilingue !== null,

@@ -5339,6 +5339,12 @@ main.lecture-entree [data-cs-bloc],
   .cs-signalement-merci { gap: 6px; padding: 18px 16px 20px; }
 }
 
+/* ── Le corps ──────────────────────────────────────────────────────────────────
+   Le texte à gauche, le complément à droite, et le texte qui REPREND LA PLEINE MESURE
+   sous le complément quand celui-ci s'arrête — ce qu'une grille ne peut pas faire.
+   ⛔ Le complément vit APRÈS le texte dans le document (ordre de lecture, clavier,
+   téléphone). Une RÉSERVE vide flotte donc en tête, à la hauteur du complément, que
+   CorpsFiche mesure et reporte avant la peinture ; le complément se pose par-dessus.
    ⚠️ Les largeurs sont celles de l'ancienne grille — 1,35fr et 1fr, gouttière de 26 px,
    filet et rembourrage de 24 px — : le texte garde sa mesure au pixel près.
    ⛔ Tout ce qui fait CONTEXTE (flex, grille, flow-root) se range entier à côté d'un
