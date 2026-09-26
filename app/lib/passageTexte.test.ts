@@ -3,6 +3,7 @@ import {
   PEREMPTION_POSITION_MS,
   adresseAvecPosition,
   adresseCourante,
+  adresseDeDivision,
   annoncerBascule,
   basculeEnAttente,
   inscrireNiv1DansLAdresse,
@@ -11,6 +12,13 @@ import {
   reprendreBascule,
   retenirLaPosition,
 } from './passageTexte'
+
+describe('adresseDeDivision', () => {
+  it('compose l’adresse d’une division voisine, sans le passage visé', () => {
+    expect(adresseDeDivision('/oeuvre/X?texte=T2&niv1=Livre+I&groupe=G&segment=4', 'Livre II'))
+      .toBe('/oeuvre/X?texte=T2&niv1=Livre+II')
+  })
+})
 
 describe('adresseAvecPosition', () => {
   it('emporte le niveau et le groupe, en gardant ce que l’adresse portait', () => {

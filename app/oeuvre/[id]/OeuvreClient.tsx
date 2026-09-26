@@ -23,7 +23,7 @@ import { chargerNoticesBibliographiques, identifiantsOuvrages, tableDesNotices }
 
 import { useState, useEffect, useLayoutEffect, useRef, useMemo, useCallback, useTransition, useId, Fragment } from 'react'
 import dynamic from 'next/dynamic'
-import { useRouter } from 'next/navigation'
+import { usePathname, useRouter, useSearchParams } from 'next/navigation'
 import IconeCrayon from '@/app/components/IconeCrayon'
 import { createPortal } from 'react-dom'
 import { supabase } from "@/app/lib/supabase"
@@ -187,6 +187,7 @@ import {
   adresseCourante,
   annoncerBascule,
   basculeEnAttente,
+  adresseDeDivision,
   inscrireNiv1DansLAdresse,
   lirePositionRetenue,
   ordonnerBlocsVisibles,
@@ -196,7 +197,10 @@ import {
   segmentEnTeteDeFenetre,
 } from '@/app/lib/passageTexte'
 import { SERIF, SANS } from '@/app/lib/polices'
-import { STYLE_POSITION_PAGE, STYLE_RUBRIQUE, TITRE_CARTE } from '@/app/lib/hierarchieTitres'
+import { STYLE_RUBRIQUE, TITRE_CARTE } from '@/app/lib/hierarchieTitres'
+import NavigationBasChapitre, { type CibleBas } from '@/app/components/NavigationBasChapitre'
+import { sensDeLaTouche, type SensChapitre } from '@/app/lib/chapitresVoisins'
+import { voisinsDeLecture, type PasDeLecture, type VoisinsDeLecture } from './voisinsDeLecture'
 import IconeCroix from '@/app/components/IconeCroix'
 
 const CHARS_PAR_PAGE = 15000
@@ -2075,6 +2079,77 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
       }
     })
   }
+
+  // ── LE BAS D'UNE DIVISION, ET LES TOUCHES ← → ───────────────────────────────
+  // Sur le modèle du bas de chapitre de la Bible (`NavigationBasChapitre`,
+  // `sensDeLaTouche`, 2026-09-26) : dans une division de plusieurs pages, la flèche
+  // tourne la page ; à la dernière, « › » mène à la division suivante, et à la
+  // première, « ‹ » à la précédente, en tête de son texte (comme la barre du haut,
+  // par `changerNiv1`). La règle vit dans `voisinsDeLecture.ts`.
+  // ⚠️ L'adresse d'une division se compose depuis l'adresse de la PAGE, que le
+  // serveur connaît aussi (`usePathname`, `useSearchParams`) : lue dans `window`,
+  // elle différerait entre les deux rendus.
+  const cheminDeLaPage = usePathname()
+  const parametresDeLaPage = useSearchParams()
+  const voisinsBas = voisinsDeLecture({
+    divisions: niv1List,
+    division: niv1Actif,
+    page: pageActuelle,
+    nbPages: pages.length,
+    parDivision: !texteSansNiveaux && !lectureTexteEntier,
+  })
+  const allerVers = (pas: PasDeLecture) => {
+    if (pas.genre === 'page') changerPage(pas.page)
+    else changerNiv1(pas.niv1)
+  }
+  const cibleDuBas = (pas: PasDeLecture | null, sens: SensChapitre): CibleBas | null => {
+    if (!pas) return null
+    if (pas.genre === 'page') {
+      return { href: null, nom: '', geste: sens === 'precedent' ? 'Page précédente' : 'Page suivante' }
+    }
+    const requete = parametresDeLaPage.toString()
+    return {
+      href: adresseDeDivision(`${cheminDeLaPage}${requete ? `?${requete}` : ''}`, pas.niv1),
+      nom: intituleEnTexteNu(intituleDeNiveau1(pas.niv1, niv1TexteMap)),
+      geste: sens === 'precedent' ? 'Division précédente' : 'Division suivante',
+    }
+  }
+  // Un clic simple sur une division passe par `changerNiv1`, comme la barre du haut ;
+  // un clic du milieu, ou tenu avec Ctrl, ouvre l'adresse que la page sait relire.
+  const allerParAdresse = (href: string) => {
+    const niv1 = new URL(href, 'http://corpus.invalid').searchParams.get('niv1')
+    if (niv1) changerNiv1(niv1)
+  }
+  const tournerDuBas = (sens: SensChapitre) => {
+    const pas = voisinsBas[sens]
+    if (pas) allerVers(pas)
+  }
+  // Les touches ← et → font le geste des flèches du bas. ⛔ Inactives dans un champ,
+  // un menu ou une fenêtre (`sensDeLaTouche`), hors de la vue du texte, et pendant
+  // qu'un passage est déjà en route. ⚠️ L'écoute ne se repose pas à chaque rendu :
+  // elle lit l'état dans une référence, mise à jour après le rendu (recette de
+  // `BibleLayout`).
+  const raccourcisBasRef = useRef<{ voisins: VoisinsDeLecture; aller: (pas: PasDeLecture) => void; actif: boolean } | null>(null)
+  useEffect(() => {
+    raccourcisBasRef.current = { voisins: voisinsBas, aller: allerVers, actif: vue === 'texte' && !sortie && !niv1Loading }
+  })
+  useEffect(() => {
+    const surTouche = (e: KeyboardEvent) => {
+      const raccourcis = raccourcisBasRef.current
+      if (!raccourcis?.actif) return
+      // ⚠️ Valeurs d'attribut sans guillemets : la garde des fenêtres modales
+      // (`useFenetreModale.test.ts`) compte les attributs écrits entre guillemets.
+      const modale = document.querySelector('[aria-modal=true], [role=dialog]') !== null
+      const sens = sensDeLaTouche(e, document.activeElement, modale)
+      if (!sens) return
+      const pas = raccourcis.voisins[sens]
+      if (!pas) return
+      e.preventDefault()
+      raccourcis.aller(pas)
+    }
+    window.addEventListener('keydown', surTouche)
+    return () => window.removeEventListener('keydown', surTouche)
+  }, [])
 
   // Complétion en tâche de fond de la première tranche du niv1 initial. Le serveur
   // n'en envoie qu'une tranche (~1000 segments) pour peindre vite les grosses
@@ -4086,6 +4161,7 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
               <button onClick={() => niv1Prev && changerNiv1(niv1Prev)} disabled={!niv1Prev}
                 aria-label={niv1Prev ? `Aller à ${intituleEnTexteNu(niv1Prev)}` : undefined}
                 title={intituleEnTexteNu(niv1Prev ?? '') || undefined}
+                className="cs-fleche-chapitre"
                 style={{ flexShrink: 0, width: '1.1em', textAlign: 'center', fontSize: '1.125rem', lineHeight: 1, color: niv1Prev ? 'var(--cs-texte-doux)' : 'transparent', background: 'none', border: 'none', cursor: niv1Prev ? 'pointer' : 'default', padding: 0, pointerEvents: niv1Prev ? 'auto' : 'none' }}>
                 {niv1Prev ? '‹' : ''}
               </button>
@@ -4146,6 +4222,7 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
               <button onClick={() => niv1Next && changerNiv1(niv1Next)} disabled={!niv1Next}
                 aria-label={niv1Next ? `Aller à ${intituleEnTexteNu(niv1Next)}` : undefined}
                 title={intituleEnTexteNu(niv1Next ?? '') || undefined}
+                className="cs-fleche-chapitre"
                 style={{ flexShrink: 0, width: '1.1em', textAlign: 'center', fontSize: '1.125rem', lineHeight: 1, color: niv1Next ? 'var(--cs-texte-doux)' : 'transparent', background: 'none', border: 'none', cursor: niv1Next ? 'pointer' : 'default', padding: 0, pointerEvents: niv1Next ? 'auto' : 'none' }}>
                 {niv1Next ? '›' : ''}
               </button>
@@ -4626,9 +4703,18 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
             </>)
           })()}
 
-          {/* Navigation de pages — bas de page */}
-          {vue === 'texte' && pages.length > 1 && (
-            <NavPages pages={pages} pageActuelle={pageActuelle} setPageActuelle={changerPage} bas />
+          {/* Le bas d'une division : la page ou la division voisine, sur le modèle du
+              bas de chapitre de la Bible (voir « LE BAS D'UNE DIVISION »). */}
+          {vue === 'texte' && (
+            <NavigationBasChapitre
+              precedent={cibleDuBas(voisinsBas.precedent, 'precedent')}
+              suivant={cibleDuBas(voisinsBas.suivant, 'suivant')}
+              position={voisinsBas.position}
+              onAller={allerParAdresse}
+              onTourner={tournerDuBas}
+              nomDuGroupe="Suite de la lecture"
+              raccourcis
+            />
           )}
 
           {/* Vue apparat critique */}
@@ -5448,58 +5534,3 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
     </ProvisionNotesConnues>
   )
 }
-
-function NavPages({ pages, pageActuelle, setPageActuelle, bas = false }: {
-  pages: any[][]
-  pageActuelle: number
-  setPageActuelle: (p: number) => void
-  bas?: boolean
-}) {
-  if (pages.length <= 1) return null
-  const total = pages.length
-  const peutReculer = pageActuelle > 0
-  const peutAvancer = pageActuelle < total - 1
-  return (
-    <div style={{ paddingTop: bas ? '2.5rem' : '0', paddingBottom: bas ? '0.5rem' : '1.5rem' }}>
-      {/* Plus de filets de part et d'autre. Ils tiraient un trait sur toute la largeur de
-          la colonne pour annoncer trois signes, et faisaient du simple passage à la page
-          suivante une fin de chapitre. Le groupe se centre maintenant de lui-même. */}
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0', color: 'var(--cs-texte-doux)' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '0 16px' }}>
-          {/* ⛔ 9,6 × 21 px MESURÉS le 9 septembre 2026, pour un plancher de 24 (WCAG
-              2.2 § 2.5.8). Ces deux boutons tournent la page d’un texte : ils sont sur le
-              chemin de lecture, et ils ne portaient aucune zone de frappe. ⚠️ Le débord de
-              « .cs-cible-fine » vit sous « @media (hover: none) » : rien ne bouge à la
-              souris, tout change au doigt, et c’est l’axe que la charte impose — le
-              POINTEUR, jamais la largeur de la page. */}
-          <button
-            onClick={() => peutReculer && setPageActuelle(pageActuelle - 1)}
-            disabled={!peutReculer}
-            title="Page précédente"
-            aria-label="Page précédente"
-            className="cs-cible-fine"
-            style={{ background: 'none', border: 'none', cursor: peutReculer ? 'pointer' : 'default', color: peutReculer ? 'var(--cs-texte-second)' : 'var(--cs-bord)', fontSize: '0.9375rem', padding: '0 2px', lineHeight: 1, transition: 'color var(--cs-duree-courte)' }}>
-            ‹
-          </button>
-          {/* « sur » plutôt qu'une barre oblique. La barre est un signe de fraction : on y
-              lit d'abord un quart de quelque chose, et il faut un temps pour comprendre
-              qu'il s'agit d'une page dans un tout. Le rapport se lit, il ne se calcule
-              pas. */}
-          <span style={{ ...STYLE_POSITION_PAGE, minWidth: '5.5rem', textAlign: 'center' }}>
-            {pageActuelle + 1} sur {total}
-          </span>
-          <button
-            onClick={() => peutAvancer && setPageActuelle(pageActuelle + 1)}
-            disabled={!peutAvancer}
-            title="Page suivante"
-            aria-label="Page suivante"
-            className="cs-cible-fine"
-            style={{ background: 'none', border: 'none', cursor: peutAvancer ? 'pointer' : 'default', color: peutAvancer ? 'var(--cs-texte-second)' : 'var(--cs-bord)', fontSize: '0.9375rem', padding: '0 2px', lineHeight: 1, transition: 'color var(--cs-duree-courte)' }}>
-            ›
-          </button>
-        </div>
-      </div>
-    </div>
-  )
-}
-

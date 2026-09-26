@@ -173,16 +173,23 @@ export function adresseCourante(): string {
 export function inscrireNiv1DansLAdresse(niv1: string | null): void {
   if (typeof window === 'undefined') return
   try {
-    const params = new URLSearchParams(window.location.search)
-    if (niv1) params.set('niv1', niv1)
-    else params.delete('niv1')
-    params.delete('groupe')
-    params.delete('cle')
-    params.delete('segment')
-    const adresse = `${window.location.pathname}${params.size ? `?${params.toString()}` : ''}`
+    const adresse = adresseDeDivision(adresseCourante(), niv1)
     if (adresse === adresseCourante()) return
     window.history.replaceState(null, '', adresse)
   } catch {}
+}
+
+/** PURE : l'adresse (chemin et requête) de la division `niv1` du texte qu'on lit.
+ *  C'est celle qu'inscrit `inscrireNiv1DansLAdresse`, et celle que portent les liens
+ *  vers une division voisine : le serveur l'ouvre en tête de cette division. */
+export function adresseDeDivision(adresse: string, niv1: string | null): string {
+  const url = new URL(adresse, 'http://corpus.invalid')
+  if (niv1) url.searchParams.set('niv1', niv1)
+  else url.searchParams.delete('niv1')
+  url.searchParams.delete('groupe')
+  url.searchParams.delete('cle')
+  url.searchParams.delete('segment')
+  return `${url.pathname}${url.search}`
 }
 
 /** PURE : la position retenue est-elle celle de CETTE page, et assez fraîche ? */
