@@ -66,6 +66,8 @@ const OngletCommentaires = dynamic(() => import('@/app/components/OngletCommenta
  *  ce qu'un clic fera, dans le nom de ce qu'il ouvre (2026-09-22 ; le rail disait
  *  « Ouvrir les commentaires » et la barre mobile « Ouvrir les textes patristiques »). */
 const LIBELLE_RAIL = 'Ouvrir les Pères'
+// Largeur de la flèche de repli, posée hors du flux au bord gauche de la barre d'onglets.
+const LARGEUR_FLECHE_REPLI = '1.75rem'
 
 type Verset = { id_verset: string; ref: string; verset: number; chapitre: number }
 /** Un morceau d'extrait tel que le volet le lit : sa clé, et — une fois la page connue —
@@ -1418,6 +1420,11 @@ export default function PanneauPatristique({
 
   // Le volet se replie partout, SAUF en onglets sur un téléphone.
   const peutSeReduire = !mobile || presentation !== 'inline'
+  // En mode administrateur, la barre porte trois onglets (Pères, Notes, Sémantique) :
+  // la flèche de repli, posée hors du flux, frôlait « Pères de l'Église ». Les deux
+  // rangées d'onglets prennent alors une marge latérale de la largeur de la flèche,
+  // des deux côtés pour garder leur axe, et les mêmes pour rester en colonne.
+  const margeOnglets = isAdmin && peutSeReduire ? LARGEUR_FLECHE_REPLI : '0px'
 
   if (!ouvert) {
     // Sur un téléphone, le volet replié ne laisse rien : les onglets de la page, ou le
@@ -1476,13 +1483,13 @@ export default function PanneauPatristique({
               <button onClick={() => setOuvert(false)} title="Réduire le volet" aria-label="Réduire le volet"
                 aria-expanded={true} aria-controls={idVolet}
                 className="cs-volet-reduire"
-                style={{ position:'absolute', left:0, top:0, bottom:0, zIndex:1, width:'1.75rem', background:'none', border:'none', cursor:'pointer', padding:0, display:'flex', alignItems:'center', justifyContent:'center' }}>
+                style={{ position:'absolute', left:0, top:0, bottom:0, zIndex:1, width:LARGEUR_FLECHE_REPLI, background:'none', border:'none', cursor:'pointer', padding:0, display:'flex', alignItems:'center', justifyContent:'center' }}>
                 <IconeChevron dir="right" taille="0.875rem" strokeWidth={1.5} />
               </button>
             )}
             <OngletsPage
               className="cs-onglets--volet"
-              style={{ flex: 1, minWidth: 0 }}
+              style={{ flex: 1, minWidth: 0, paddingLeft: margeOnglets, paddingRight: margeOnglets }}
               intitule="Ce que montre le volet"
               onglets={ONGLETS.map(t => ({
                 cle: t.code,
@@ -1528,7 +1535,7 @@ export default function PanneauPatristique({
               <>
                 {/* Sous-onglets Citations / Commentaires / Échos */}
                 <div role="tablist" aria-label="Nature du rapport au texte biblique"
-                  style={{ display: 'flex', borderBottom: '1px solid var(--cs-fond-doux)', margin: '6px -12px 0', padding: 0 }}
+                  style={{ display: 'flex', borderBottom: '1px solid var(--cs-fond-doux)', margin: '6px -12px 0', padding: `0 ${margeOnglets}` }}
                   onKeyDown={e => circulerAuxFleches(e, SOUS_ONGLETS.map(s => s[0]), sousOnglet, setSousOnglet, idSousOnglet)}>
                   {SOUS_ONGLETS.map(([key, label, nb, unite]) => {
                     const actif = sousOnglet === key
