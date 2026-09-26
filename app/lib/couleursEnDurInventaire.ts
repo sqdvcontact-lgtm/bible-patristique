@@ -93,7 +93,7 @@ export const COULEURS_EN_DUR: Record<string, readonly string[]> = {
   // 2026-08-23). Et le brun 26 19 12 n'est pas un noir : un noir neutre posé sur une
   // peinture ancienne la refroidit. Ces valeurs ne se transposent donc pas — elles
   // sont ici pour mémoire, non comme dette.
-  'lib/bandeauTraduction.ts': ['#f7f4ef', 'rgba(26,19,12,0)', 'rgba(26,19,12,0.06)', 'rgba(26,19,12,0.24)', 'rgba(26,19,12,0.50)', 'rgba(26,19,12,0.68)', 'rgba(247,244,239,0.58)', 'rgba(247,244,239,0.7)', 'rgba(247,244,239,0.82)'],
+  'lib/bandeauTraduction.ts': ['#f7f4ef', 'rgba(26,19,12,0)', 'rgba(26,19,12,0.06)', 'rgba(26,19,12,0.24)', 'rgba(26,19,12,0.50)', 'rgba(26,19,12,0.68)', 'rgba(247,244,239,0.7)', 'rgba(247,244,239,0.82)'],
   'lib/frise.ts': ['#6d7d43', '#746187', '#83a06a', '#8a7440', '#b54d3f', '#c19a3e', '#c79a3a'],
   'lib/NoteTooltip.tsx': ['#c0a878', 'rgba(185,165,120,0.35)', 'rgba(255,248,235,0.7)'],
   'librairies/page.tsx': ['#153f78', '#5d3a6e', '#5e3a1c', 'rgba(124,88,47,0.38)', 'rgba(151,30,37,0.36)', 'rgba(22,63,125,0.32)', 'rgba(31,90,90,0.34)', 'rgba(93,58,110,0.34)'],

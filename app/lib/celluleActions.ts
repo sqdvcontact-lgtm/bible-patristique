@@ -134,11 +134,6 @@ export function positionCellule(
   return { top: haut, left, cote: 'dessus' }
 }
 
-/** Durée d'un appui long, au tactile, avant que la cellule paraisse. Même valeur que
- *  l'appui long déjà en place sur la page Bible : deux surfaces qui demandent le même
- *  geste doivent demander la même patience. */
-export const APPUI_LONG_MS = 450
-
 /** Délai de grâce entre la sortie du texte et la disparition de la cellule : le temps
  *  d'aller du dernier mot jusqu'aux boutons sans que tout s'efface en chemin.
  *

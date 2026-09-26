@@ -33,7 +33,7 @@ import {
 } from '@/app/lib/extractionOeuvre'
 import { verrouillerLeDefilement } from '@/app/lib/verrouDefilement'
 import { rendreIntituleDeSommaire } from './appelNote'
-import { SERIF, SANS } from '@/app/lib/polices'
+import { SERIF } from '@/app/lib/polices'
 import { ENCRE_TITRE_CARTE, GRAISSE_TITRE, TITRE_CARTE } from '@/app/lib/hierarchieTitres'
 import IconeCroix from '@/app/components/IconeCroix'
 

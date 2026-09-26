@@ -1,5 +1,5 @@
 import { Fragment } from 'react'
-import { STYLE_ROMAIN, STYLE_ORDINAL, sieclesEnHtml } from '@/app/lib/siecles'
+import { STYLE_ROMAIN, STYLE_ORDINAL } from '@/app/lib/siecles'
 import { normaliserEspaces } from '@/app/lib/typographie'
 import { hrefSur } from '@/app/lib/liensSurs'
 
@@ -89,11 +89,6 @@ export function rendreTexteEnrichi(
   }
   if (dernierIndex < texte.length) { const key = k++; noeuds.push(<Fragment key={key}>{tf(texte.slice(dernierIndex), `t${key}`)}</Fragment>) }
   return noeuds
-}
-
-/** Conservé pour ses appelants ; la règle vit dans app/lib/siecles.tsx. */
-export function formaterSieclesHTML(html: string): string {
-  return sieclesEnHtml(html)
 }
 
 export function texteSansEnrichissement(texte: string): string {

@@ -7,7 +7,7 @@
 // soit on rattache le bon verset (le lien passe alors en « douteux » et rejoint le flux
 // de vérification normal), soit on écarte le lien s'il n'est pas biblique (agraphon…).
 
-import React, { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { supabase } from '@/app/lib/supabase'
 import { ABREV_FR, LIVRES } from '@/app/lib/bible'
 import { ajouterNoteNonBiblique } from '@/app/actions/verifications'

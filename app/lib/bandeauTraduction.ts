@@ -29,7 +29,6 @@ export const VOILE_BANDEAU =
  *  `#f7f4ef` EST la valeur claire de `--cs-fond`. */
 export const ENCRE_SUR_PHOTO = '#f7f4ef'
 export const META_SUR_PHOTO = 'rgba(247,244,239,0.82)'
-export const MENTION_SUR_PHOTO = 'rgba(247,244,239,0.58)'
 export const CHEVRON_SUR_PHOTO = 'rgba(247,244,239,0.7)'
 
 /** ⚠️ UNE seule ombre, courte et portée. Les trois couches de halo noir qui la

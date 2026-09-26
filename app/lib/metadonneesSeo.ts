@@ -263,11 +263,6 @@ export function languesOrdonnees(langues: readonly string[]): string[] {
   return [...autres, ...francais]
 }
 
-/** « latin et français ». */
-export function libelleLanguesOeuvre(langues: readonly string[]): string {
-  return enumererNoms(languesOrdonnees(langues))
-}
-
 export type EtatOeuvre = {
   auteur?: string | null
   /** Langues des textes RÉELLEMENT publics de l'œuvre. */

@@ -14,7 +14,7 @@ import { identiteEdition } from './versionTextuelle'
 import { libelleTrad } from '@/app/lib/traducteurs'
 import { ENCRE_TITRE, GRAISSE_TITRE } from '@/app/lib/hierarchieTitres'
 import { SERIF } from '@/app/lib/polices'
-export { enumererNoms, libelleTrad } from '@/app/lib/traducteurs'
+export { libelleTrad } from '@/app/lib/traducteurs'
 
 /** Affichage d'un éditeur : « / » pour les co-éditeurs (jamais le « ; » brut du catalogue),
  *  et surtout, quand la maison est répertoriée dans la table `editeurs`, on affiche son NOM

@@ -57,11 +57,6 @@ export function cheminPortrait(ref: string): { seau: string; fichier: string } |
     : { seau: SEAU_TRADUCTIONS, fichier: `${identifiant}-encart.jpg` }
 }
 
-/** Le nom de fichier d'un encart de traduction, tel qu'il paraît dans le seau. */
-export function estEncartTraduction(nom: string): boolean {
-  return /^TR[0-9A-Za-z_-]+-encart\.jpg$/i.test(nom)
-}
-
 /** L'identifiant d'une traduction, tiré du nom de son encart. */
 export function traductionDeLEncart(nom: string): string | null {
   const m = nom.match(/^(TR[0-9A-Za-z_-]+)-encart\.jpg$/i)

@@ -8,7 +8,6 @@
 
 import { supabase } from './supabase'
 import { formaterPlageCanonique, parsePointCanonique } from './referencesBibliques'
-import { estOeuvrePubliee } from './oeuvresPublication'
 import { analyserRequetePericope, correspondanceVisible, premierePhraseNotice } from './pericopesRecherche'
 
 export type PericopeUsageRecherche =
@@ -202,114 +201,6 @@ export async function chargerTextePericope(
       texte: (r[tradCode] as string | null) ?? null,
     }))
 }
-
-// ── Références patristiques visant le texte d'une péricope ───────────────────
-// Via `liens_bibliques` (une ligne par lien, indexée sur `canon_id`) : on relève les
-// segments qui renvoient à un verset de la plage OU au(x) chapitre(s) concerné(s),
-// puis on les résout en œuvre + auteur. Groupé par œuvre.
-export type ReferencePatristique = {
-  id_oeuvre: string
-  oeuvre_titre: string
-  auteur_nom: string
-  natures: number[]     // types de lien présents (1 citation … 4 écho)
-  nbSegments: number
-}
-
-export async function chargerReferencesPatristiquesPericope(
-  livre: string,
-  canonDebut: string,
-  canonFin: string | null,
-  signal?: AbortSignal,
-): Promise<ReferencePatristique[]> {
-  const d = parsePointCanonique(canonDebut)
-  const f = canonFin ? parsePointCanonique(canonFin) : d
-  if (!d || d.chapitre == null) return []
-  const c1 = d.chapitre
-  const c2 = f?.chapitre ?? c1
-  const v1 = d.verset
-  const v2 = f?.verset
-  const chapitres: number[] = []
-  for (let c = c1; c <= c2; c++) chapitres.push(c)
-
-  const COLS = 'segment_id, type, canon_id'
-  const withSignal = <T extends { abortSignal: (s: AbortSignal) => T }>(q: T) => (signal ? q.abortSignal(signal) : q)
-  // Liens au niveau du verset, un appel par chapitre, filtrés par les colonnes
-  // engendrées `canon_livre` + `canon_chapitre` (⛔ jamais `like` sur `canon_id`,
-  // qui n'est pas leakproof sous la RLS : voir `segmentsLiesAuChapitre`,
-  // app/lib/liens.ts), plus les liens rattachés au chapitre entier (canon_id nul,
-  // livre+chapitre posés).
-  const requetesVerset = chapitres.map(c =>
-    withSignal(supabase.from('liens_bibliques').select(COLS).eq('canon_livre', livre).eq('canon_chapitre', c)))
-  const requeteChapitre = withSignal(
-    supabase.from('liens_bibliques').select(COLS).is('canon_id', null).eq('livre', livre).in('chapitre', chapitres))
-  const resultats = await Promise.all([...requetesVerset, requeteChapitre])
-
-  const typesParSegment = new Map<number, Set<number>>()
-  const ajouter = (segId: number, type: number) => {
-    if (!typesParSegment.has(segId)) typesParSegment.set(segId, new Set())
-    typesParSegment.get(segId)!.add(type)
-  }
-  resultats.forEach((r, idx) => {
-    if (r.error) throw r.error
-    for (const l of (r.data ?? []) as { segment_id: number; type: number; canon_id: string | null }[]) {
-      if (idx < requetesVerset.length) {
-        // Lien au verset : ne garder que les versets DANS la plage.
-        const p = parsePointCanonique(l.canon_id)
-        if (!p || p.verset == null) continue
-        if (v1 != null && p.chapitre === c1 && p.verset < v1) continue
-        if (v2 != null && p.chapitre === c2 && p.verset > v2) continue
-      }
-      ajouter(l.segment_id, l.type)
-    }
-  })
-
-  const segIds = [...typesParSegment.keys()]
-  if (!segIds.length) return []
-
-  const segOeuvre = new Map<number, string>()
-  for (let i = 0; i < segIds.length; i += 500) {
-    const { data } = await supabase.from('segments').select('id, id_oeuvre').in('id', segIds.slice(i, i + 500))
-    for (const s of (data ?? []) as { id: number; id_oeuvre: string }[]) segOeuvre.set(s.id, s.id_oeuvre)
-  }
-  const oeuvreIds = [...new Set(segOeuvre.values())]
-  const oeuvreInfo = new Map<string, { titre: string; id_auteur: string | null; acces_public: boolean | null }>()
-  for (let i = 0; i < oeuvreIds.length; i += 300) {
-    const { data } = await supabase.from('oeuvres').select('id_oeuvre, titre, id_auteur, acces_public').in('id_oeuvre', oeuvreIds.slice(i, i + 300))
-    for (const o of (data ?? []) as { id_oeuvre: string; titre: string | null; id_auteur: string | null; acces_public: boolean | null }[]) {
-      oeuvreInfo.set(o.id_oeuvre, { titre: o.titre || o.id_oeuvre, id_auteur: o.id_auteur, acces_public: o.acces_public })
-    }
-  }
-  const auteurIds = [...new Set([...oeuvreInfo.values()].map(o => o.id_auteur).filter((x): x is string => !!x))]
-  const auteurNom = new Map<string, string>()
-  if (auteurIds.length) {
-    const { data } = await supabase.from('auteurs').select('id_auteur, nom').in('id_auteur', auteurIds)
-    for (const a of (data ?? []) as { id_auteur: string; nom: string }[]) auteurNom.set(a.id_auteur, a.nom)
-  }
-
-  const parOeuvre = new Map<string, ReferencePatristique & { natSet: Set<number> }>()
-  for (const [segId, types] of typesParSegment) {
-    const idO = segOeuvre.get(segId)
-    if (!idO) continue
-    const info = oeuvreInfo.get(idO)
-    if (!info || !estOeuvrePubliee(info)) continue
-    let ref = parOeuvre.get(idO)
-    if (!ref) {
-      ref = { id_oeuvre: idO, oeuvre_titre: info.titre, auteur_nom: info.id_auteur ? (auteurNom.get(info.id_auteur) || '') : '', natures: [], natSet: new Set(), nbSegments: 0 }
-      parOeuvre.set(idO, ref)
-    }
-    ref.nbSegments++
-    for (const t of types) ref.natSet.add(t)
-  }
-  return [...parOeuvre.values()]
-    .map(r => ({ id_oeuvre: r.id_oeuvre, oeuvre_titre: r.oeuvre_titre, auteur_nom: r.auteur_nom, nbSegments: r.nbSegments, natures: [...r.natSet].sort((a, b) => a - b) }))
-    // Les œuvres qui reviennent le plus sur le passage d'abord, puis par ordre alphabétique.
-    // Plafond de sécurité pour les passages très commentés (p. ex. Genèse 1).
-    .sort((a, b) => b.nbSegments - a.nbSegments || (a.auteur_nom || a.oeuvre_titre).localeCompare(b.auteur_nom || b.oeuvre_titre, 'fr'))
-    .slice(0, 50)
-}
-
-// Libellé court d'une nature de lien patristique.
-export const NATURE_LIEN_LABEL: Record<number, string> = { 1: 'Citation', 2: 'Reprise', 3: 'Doctrine', 4: 'Écho' }
 
 const LIB_CATEGORIE: Record<string, string> = {
   recit: 'Récit',

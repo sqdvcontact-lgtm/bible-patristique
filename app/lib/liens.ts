@@ -15,14 +15,6 @@ import { supabase } from '@/app/lib/supabase'
 
 export type TypeLien = 1 | 2 | 3 | 4
 
-/** Les quatre types de la charte §9.1 à §9.4, inchangés. */
-export const TYPES_LIEN: Record<TypeLien, { cle: string; libelle: string; description: string }> = {
-  1: { cle: 'citation',   libelle: 'Citation',   description: 'Citation exacte de l’Écriture' },
-  2: { cle: 'fondu',      libelle: 'Reprise',    description: 'Texte biblique fondu dans le discours de l’auteur' },
-  3: { cle: 'doctrinal',  libelle: 'Doctrine',   description: 'Commentaire doctrinal du passage' },
-  4: { cle: 'thematique', libelle: 'Écho',       description: 'Écho thématique' },
-}
-
 export type Fiabilite = 'à constituer' | 'douteux' | 'probable' | 'vérifié'
 
 export type Lien = {

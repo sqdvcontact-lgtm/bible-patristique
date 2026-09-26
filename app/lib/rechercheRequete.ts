@@ -35,7 +35,6 @@ import { ecrirePlageVersets } from './bibleNavigation'
  *    aimait, aimé). ⚠️ Le marquage se fait alors sur les RACINES que la base rend
  *    (`lexemesRecherche`), non sur les termes tapés. */
 export type ModeRecherche = 'prefixe' | 'exact' | 'famille'
-export const MODES_RECHERCHE: readonly ModeRecherche[] = ['prefixe', 'exact', 'famille']
 
 export function modeDepuisParametre(v: string | null | undefined): ModeRecherche {
   return v === 'exact' || v === 'famille' ? v : 'prefixe'

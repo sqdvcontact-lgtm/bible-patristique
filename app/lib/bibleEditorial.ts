@@ -2,21 +2,7 @@ import type { SupabaseClient } from '@supabase/supabase-js'
 
 import { FILTRE_BIBLE_PUBLIABLE } from './etatsPublication'
 
-type BibleSourceRow = { id: string }
 type BibleBookDivisionRow = { proposed_book_code: string | null }
-
-export async function sourcesEditorialesPubliees(
-  client: SupabaseClient,
-  translationId: string,
-): Promise<string[]> {
-  const { data, error } = await client
-    .from('bible_text_sources')
-    .select('id')
-    .eq('trad_id', translationId)
-    .eq('status', 'published')
-  if (error) throw new Error(`Sources éditoriales illisibles : ${error.message}`)
-  return ((data ?? []) as BibleSourceRow[]).map((row) => row.id)
-}
 
 export async function livresDisponiblesEditoriaux(
   client: SupabaseClient,

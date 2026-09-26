@@ -98,17 +98,6 @@ export function ancresChaine(
   return [...par.entries()].map(([rubrique, ancres]) => ({ rubrique, ancres }))
 }
 
-/** Quelle page on regarde, d'après le chemin.
- *
- *  ⛔ Ne pas se contenter d'un `startsWith` : « /compte » est le préfixe des deux
- *  autres, et l'onglet resterait allumé sur les trois. */
-export function pageCourante(chemin: string): PageEspace {
-  if (chemin.startsWith('/compte/parcours')) return 'parcours'
-  if (chemin.startsWith('/compte/chaine')) return 'chaine'
-  if (chemin.startsWith('/compte/prelevements')) return 'citations'
-  return 'compte'
-}
-
 /** Le sommaire de « Mes prélèvements » : les livres ou les auteurs qu'on a retenus, selon
  *  le corpus qu'on regarde. ⚠️ Les groupes sont ceux de l'onglet COURANT, et ils sont
  *  repliables : sauter à l'un d'eux le DÉPLIE, sans quoi l'ancre mènerait à un titre

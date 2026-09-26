@@ -21,7 +21,6 @@
  * (le serveur la reçoit toute faite, le client la rattache après coup), et l'apparat, dont
  * seul le serveur tire les notices bibliographiques.
  */
-import { ABREV_FR } from '@/app/lib/bible'
 import { nomLivreReference } from '@/app/lib/referencesBibliques'
 import { mesureAlinea, marqueStrophe } from '@/app/lib/compositionVers'
 import { numeroVersetLisible } from '@/app/lib/compositionVersets'

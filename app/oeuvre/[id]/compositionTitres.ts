@@ -67,12 +67,6 @@ export const COLONNE_COMPOSEE: Partial<Record<ChampOeuvre, ChampOeuvre>> = {
   trad_auteur: 'trad_auteur_affichage',
 }
 
-/** Les colonnes composées, pour les interfaces qui doivent les reconnaître. */
-export const COLONNES_COMPOSEES: ChampOeuvre[] = [
-  'titre_affichage', 'sous_titre_affichage', 'titre_original_affichage',
-  'trad_auteur_affichage', 'provenance_affichage', 'auteur_affichage',
-]
-
 const AIDE_COMPOSEE = 'La composition du seul frontispice, sauts de ligne compris. Renseignée, c’est elle qui paraît ici, à la place du champ de catalogue.'
 
 const LIBELLE_CATALOGUE: Partial<Record<ChampOeuvre, string>> = {

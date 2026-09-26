@@ -3,7 +3,7 @@ import { describe, expect, it, vi } from 'vitest'
 import PageTitre from './PageTitre'
 import type { VersionTextuelle } from './oeuvreTypes'
 
-vi.mock('@/app/lib/editeurs', () => ({ resoudreEditeur: () => null, indexEditeursNavigateur: () => null }))
+vi.mock('@/app/lib/editeurs', () => ({ indexEditeursNavigateur: () => null }))
 
 const ceriziers: VersionTextuelle = {
   idTexte: 'texte-prive',

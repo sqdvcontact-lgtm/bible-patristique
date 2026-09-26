@@ -1,9 +1,6 @@
 'use client'
 
-import React from 'react'
 import { supabase as supabaseNavigateur } from '@/app/lib/supabase'
-import type { SegInfo } from './adminTypes'
-import { Siecle, siecleEnTexte } from '@/app/lib/siecles'
 
 export const supabase = supabaseNavigateur
 
@@ -13,44 +10,11 @@ export async function headersAdmin(init?: HeadersInit): Promise<HeadersInit> {
   return token ? { ...(init ?? {}), Authorization: `Bearer ${token}` } : (init ?? {})
 }
 
-// Les deux fonctions viennent de app/lib/siecles.tsx : elles dupliquaient la
-// table des chiffres romains, et `SiecleDisplay` posait `small-caps` sur un
-// « IV » déjà capital — c'est-à-dire rien du tout.
-export function formatSiecle(n: number | null | undefined): string {
-  return n ? siecleEnTexte(n) : ''
-}
-
-export function SiecleDisplay({ n }: { n: number | null | undefined }) {
-  if (!n) return null
-  return <Siecle n={n} />
-}
-
 export function dateFormat(s: string) {
   return new Date(s).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' })
 }
-export function Carte({ children }: { children: React.ReactNode }) {
-  return <div style={{ background: 'var(--cs-surface)', border: '1px solid var(--cs-bord-clair)', borderRadius: '8px', padding: '16px 20px' }}>{children}</div>
-}
-export function ContexteSegment({ segId, segMap }: { segId: number | null; segMap: Record<number, SegInfo> }) {
-  if (!segId || !segMap[segId]) return null
-  const s = segMap[segId]
-  return (
-    <p style={{ fontSize: '0.78125rem', color: 'var(--cs-texte-doux)', fontStyle: 'italic', margin: '4px 0 8px', lineHeight: 1.4 }}>
-      Segment §{s.numero} — <a href={`/oeuvre/${s.id_oeuvre}?texte=${encodeURIComponent(s.id_texte)}&segment=${segId}#segment-${segId}`} target="_blank" rel="noopener noreferrer" style={{ color: 'var(--cs-texte-doux)', textDecoration: 'underline' }}>{s.texte.slice(0, 80)}…</a>
-    </p>
-  )
-}
 
 // ── Parser CSV ────────────────────────────────────────────────────────────────
-export function ContexteVerset({ versetId, versetMap }: { versetId: string | null | undefined; versetMap: Record<string, string> }) {
-  if (!versetId) return null
-  const ref = versetMap[versetId] ?? versetId
-  return (
-    <p style={{ fontSize: '0.78125rem', color: 'var(--cs-texte-doux)', fontStyle: 'italic', margin: '4px 0 8px', lineHeight: 1.4 }}>
-      Verset biblique — <a href={`/?verset=${encodeURIComponent(versetId)}`} target="_blank" rel="noopener noreferrer" style={{ color: 'var(--cs-texte-doux)', textDecoration: 'underline' }}>{ref}</a>
-    </p>
-  )
-}
 
 export function parseCSV(texte: string): Record<string, string>[] {
   const lignes = texte.split(/\r?\n/)

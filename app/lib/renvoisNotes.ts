@@ -23,8 +23,6 @@ import { deTitre } from '@/app/lib/intituleNiveau1'
  *  garde une mention dynamique et le renvoi se pose sous le bloc. */
 export type ModeRenvoi = 'note_preview' | 'inline_mention'
 
-export const MODES_RENVOI: readonly ModeRenvoi[] = ['note_preview', 'inline_mention']
-
 export function lireModeRenvoi(valeur: unknown): ModeRenvoi {
   return valeur === 'inline_mention' ? 'inline_mention' : 'note_preview'
 }

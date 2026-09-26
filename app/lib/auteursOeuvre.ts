@@ -91,16 +91,6 @@ export async function chargerOeuvresDAuteurs(
   return [...new Set((data as { id_oeuvre: string }[]).map(l => l.id_oeuvre))]
 }
 
-/** Les identifiants d'œuvres d'un auteur, co-signatures comprises. */
-export async function chargerOeuvresDAuteur(
-  client: Pick<SupabaseClient, 'from'>,
-  idAuteur: string,
-): Promise<string[]> {
-  const { data, error } = await client.from('v_oeuvres_auteurs').select('id_oeuvre').eq('id_auteur', idAuteur)
-  if (error || !data) return []
-  return (data as { id_oeuvre: string }[]).map(l => l.id_oeuvre)
-}
-
 /** Répartit des œuvres sous chaque auteur qui les signe. Une œuvre à deux
  *  auteurs se retrouve dans les deux listes — c'est le but : elle paraît une
  *  fois sous le nom de chacun. */

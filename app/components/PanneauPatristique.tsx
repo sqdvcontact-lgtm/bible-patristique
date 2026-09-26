@@ -4,7 +4,6 @@ import { CLASSE_ACTIONS_CARTE_VOLET, CLASSE_CARTE_VOLET, CORPS_CARTE_VOLET, FEUI
 import { Z_TIROIR, Z_TIROIR_VOILE } from '@/app/lib/empilement'
 import { useState, useEffect, useId, useMemo, useRef, useCallback } from 'react'
 import { supabase } from "@/app/lib/supabase"
-import { texteSansEnrichissement } from '@/app/oeuvre/[id]/texteEnrichi'
 // ⛔ Le texte d'un extrait se rend par le MOTEUR de la page de lecture, et nulle part
 // ailleurs : le volet en portait une copie, qui avait pris du retard sur les conventions
 // du corpus et ne savait ni projeter une ancre positionnelle, ni lire une note
@@ -52,7 +51,6 @@ import EtatVideVolet, { MentionVide } from '@/app/components/EtatVideVolet'
 import { useFermerAEchap } from '@/app/lib/useFermerAEchap'
 import { useFenetreModale } from '@/app/lib/useFenetreModale'
 import { adresseRetourBible } from '@/app/lib/retourLecture'
-import { SANS } from '@/app/lib/polices'
 import { STYLE_POSITION_PAGE } from '@/app/lib/hierarchieTitres'
 import { POINTS_DE_RUPTURE } from '@/app/lib/pointsDeRupture'
 

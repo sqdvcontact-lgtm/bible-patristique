@@ -32,8 +32,6 @@ export const POINTS_DE_RUPTURE = {
   moyen: 1023,
 } as const
 
-export type PointDeRupture = keyof typeof POINTS_DE_RUPTURE
-
 /**
  * L'INDICE DU SERVEUR : la requête vient-elle d'un téléphone ? Sert la valeur
  * initiale de `useEstMobile`, pour que le HTML servi ait déjà la mise en page d'un

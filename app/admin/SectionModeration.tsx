@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState } from 'react'
+import { useState } from 'react'
 import { dateFormat, refFrVer } from './adminShared'
 import { rendreTexteEnrichi } from '@/app/oeuvre/[id]/texteEnrichi'
 import type { Commentaire, CommentairePublication, Signalement, SegInfo, CommentaireParent } from './adminTypes'

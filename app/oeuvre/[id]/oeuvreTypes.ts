@@ -151,7 +151,6 @@ export type GroupeData = {
   section?: SectionApparat
 }
 export type TocEntry = { niv1: string; niv2: string; anchor: string }
-export type Commentaire = { id: number; texte: string; valide: boolean; created_at: string }
 // Le titre seul ne suffit pas à nommer une œuvre : deux éditions d'un même texte le
 // partagent, normalisé, et « Du même auteur » en donnait alors deux lignes identiques.
 // Les champs d'édition suivent donc le titre partout où la liste doit départager.

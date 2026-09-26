@@ -8,33 +8,12 @@
 // barres du site (charte § 36.2) : on prend le modèle, on ne le redessine pas.
 
 import React, { useEffect, useState } from 'react'
-import { ENCRE_TITRE, GRAISSE_TITRE, INTERLIGNE_TITRE_PAGE, TITRE_PAGE } from '@/app/lib/hierarchieTitres'
-import { SERIF, SANS } from '@/app/lib/polices'
+import { SANS } from '@/app/lib/polices'
 
 // Le champ et son étiquette prennent la composition partagée (app/lib/compositionChamp.ts).
-export { STYLE_CHAMP as inputStyle, STYLE_ETIQUETTE_CHAMP as labelStyle } from '@/app/lib/compositionChamp'
+export { STYLE_CHAMP as inputStyle } from '@/app/lib/compositionChamp'
 
 export type Statut = { ok: boolean; msg: string } | null
-
-/** Le titre d'une rubrique, avec la phrase qui dit ce qu'on y règle.
- *
- *  ⚠️ La phrase n'est pas un ornement : la colonne porte déjà une glose, mais elle
- *  s'efface sous 60rem (voir EspaceCompte.tsx). Sur un téléphone, c'est ici, et ici
- *  seulement, que le lecteur apprend ce que la rubrique contient. */
-export function EnTeteRubrique({ titre, children }: { titre: string; children?: React.ReactNode }) {
-  return (
-    <header style={{ marginBottom: '20px' }}>
-      <h1 style={{ fontFamily: SERIF, fontSize: TITRE_PAGE, fontWeight: GRAISSE_TITRE, color: ENCRE_TITRE, margin: '0 0 6px', lineHeight: INTERLIGNE_TITRE_PAGE }}>
-        {titre}
-      </h1>
-      {children && (
-        <p style={{ fontSize: '0.78125rem', color: 'var(--cs-texte-doux)', margin: 0, lineHeight: 1.6, maxWidth: '34rem' }}>
-          {children}
-        </p>
-      )}
-    </header>
-  )
-}
 
 /** Une carte de la rubrique. `titre` en petites capitales, comme partout ailleurs. */
 export function Carte({ titre, danger, children }: { titre?: string; danger?: boolean; children: React.ReactNode }) {

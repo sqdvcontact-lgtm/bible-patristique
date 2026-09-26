@@ -4,7 +4,6 @@ import { useEffect, useState } from 'react'
 import { supabase } from '@/app/lib/supabase'
 import {
   construireIndexEditeurs,
-  resoudreNomEditeur,
   type IndexEditeurs,
 } from '@/app/lib/editeursNormalisation'
 
@@ -36,12 +35,6 @@ export function chargerEditeurs(): Promise<void> {
     })()
   }
   return enCours
-}
-
-// Résolution synchrone depuis le cache : nom complet si connu, sinon null (cache non chargé
-// ou éditeur non répertorié).
-export function resoudreEditeur(brut: string): string | null {
-  return resoudreNomEditeur(brut, cache)
 }
 
 // Hook : déclenche le chargement une fois et provoque un re-rendu quand le cache est prêt,
