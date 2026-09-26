@@ -161,5 +161,14 @@ export async function proxy(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ['/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|webp|ico|txt|xml)$).*)'],
+  // ⛔ L'exclusion ne vise que les fichiers statiques RÉELS, par leur chemin (audit du
+  // 2026-09-25, E11). Elle excluait tout chemin finissant par une extension d'image ou
+  // de texte : une route dynamique dont le dernier segment est choisi par le visiteur
+  // (« /oeuvre/x.png ») échappait ainsi au verrou, et seule la RLS tenait derrière.
+  // Les fichiers : `public/` (racine, `fonts/`, `icons/`, `ornements/`) et les routes de
+  // métadonnées d'`app/` (icônes, robots, plan du site). ⚠️ Un fichier ajouté à la
+  // racine de `public/` s'inscrit ICI, sans quoi un visiteur sans session serait
+  // renvoyé vers /chantier au lieu de le recevoir. `/.well-known` passe par le proxy,
+  // qui le laisse libre (`LIBRES`).
+  matcher: ['/((?!_next/static/|_next/image|favicon\\.ico$|icon\\.svg$|apple-icon\\.png$|robots\\.txt$|sitemap\\.xml$|corpus-scriptura\\.ico$|license\\.xml$|llms\\.txt$|logo-corpus-scriptura(?:-mono)?\\.svg$|fonts/|icons/|ornements/).*)'],
 }

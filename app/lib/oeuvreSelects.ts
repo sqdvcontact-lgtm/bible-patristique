@@ -283,3 +283,32 @@ export function limiterRequeteSegmentsALaSurface<T>(requete: T, surface: Surface
   const q = requete as unknown as RequeteSurface
   return q.or(surface === 'corps' ? FILTRE_CORPS_POSTGREST : FILTRE_APPARAT_POSTGREST) as unknown as T
 }
+
+// ── LES COLONNES D'UNE ŒUVRE ─────────────────────────────────────────────────────
+// ⛔ Jamais `select('*')` sur `oeuvres` depuis une page (audit du 2026-09-25, E5 et
+// E8). Une étoile sert au lecteur TOUTE colonne qu'on ajoutera demain, carnet d'atelier
+// compris ; et le jour où le rôle `anon` recevra des droits COLONNE PAR COLONNE, une
+// seule colonne refusée fait échouer la requête entière, donc répondre 404 sur chaque
+// œuvre. On ne lit que ce qui sert, et une colonne nouvelle s'ajoute ICI, à la main.
+// ⚠️ `trad_date` est lue par la page mais n'existe pas en base : elle n'est pas
+// demandée, et vaut `undefined` comme avant.
+
+/** Ce que la page de lecture lit d'une œuvre (`app/oeuvre/[id]/page.tsx`, métadonnées comprises). */
+export const COLONNES_OEUVRE_LECTURE = [
+  'id_oeuvre', 'titre', 'titre_affichage', 'sous_titre', 'sous_titre_affichage',
+  'titre_original', 'titre_original_affichage', 'auteur_affichage',
+  'trad_auteur', 'trad_auteur_affichage', 'provenance_affichage',
+  'commentaire_traduction', 'note_editoriale_complete', 'note_editoriale_complement',
+  'note_editoriale_titre', 'bibliographie_selective',
+  'editeur', 'collection', 'ville', 'date_publication', 'date_mise_en_ligne',
+  'date_composition', 'langue_originale', 'genres', 'url_source', 'nb_signes',
+  'acces_public', 'lecture_texte_entier', 'titres_composes', 'fleuron',
+  'profondeur_sommaire', 'niveaux_sommaire', 'niveaux_corps', 'texte_sommaire', 'texte_corps',
+  'afficher_numeros',
+].join(',')
+
+/** Ce que l'extraction en document Word lit d'une œuvre (`app/api/oeuvre/[id]/extraction`). */
+export const COLONNES_OEUVRE_EXTRACTION = [
+  'id_oeuvre', 'titre', 'sous_titre', 'titre_original', 'langue_originale', 'acces_public',
+  'trad_auteur', 'editeur', 'collection', 'ville', 'date_publication',
+].join(',')

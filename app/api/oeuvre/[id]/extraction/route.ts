@@ -17,7 +17,8 @@ import { creerSupabaseServeur } from '@/app/lib/supabaseServeur'
 import { estOeuvrePubliee } from '@/app/lib/oeuvresPublication'
 import { estAdmin as verifierEstAdmin } from '@/app/lib/verifAdmin'
 import { chargerAuteursDOeuvre, libelleAuteurs } from '@/app/lib/auteursOeuvre'
-import { SELECT_SEGMENT, limiterRequeteSegmentsALaSurface, segmentsDeLaSurface, type SurfaceOeuvre } from '@/app/lib/oeuvreSelects'
+import { COLONNES_OEUVRE_EXTRACTION, SELECT_SEGMENT, limiterRequeteSegmentsALaSurface, segmentsDeLaSurface, type SurfaceOeuvre } from '@/app/lib/oeuvreSelects'
+import { ligneDeJournal } from '@/app/lib/lectureRefusee'
 import { chargerToutesPagesSupabase } from '@/app/lib/paginationSupabase'
 import { chargerNotesStructurees } from '@/app/lib/notesStructureesChargement'
 import { estNoteApparatCritique, texteApparatAffiche } from '@/app/lib/apparatCritique'
@@ -54,6 +55,9 @@ export const runtime = 'nodejs'
 export const maxDuration = 60
 
 const ADRESSE_SITE = 'https://corpus-scriptura.fr'
+
+// Typée `string` : un gabarit composé donnerait au typage de supabase-js une chaîne qu'il ne sait pas analyser.
+const SELECT_OEUVRE_EXTRACTION: string = `${COLONNES_OEUVRE_EXTRACTION}, auteurs!oeuvres_id_auteur_fkey(nom)`
 
 type LigneSegment = Record<string, unknown>
 
@@ -146,7 +150,7 @@ export async function GET(requete: NextRequest, contexte: { params: Promise<{ id
 
   const [estAdmin, oeuvreLue, textesLus, alignementsLus, auteursOeuvre, indexEditeurs] = await Promise.all([
     verifierEstAdmin(),
-    supabase.from('oeuvres').select('*, auteurs!oeuvres_id_auteur_fkey(nom)').eq('id_oeuvre', id).maybeSingle(),
+    supabase.from('oeuvres').select(SELECT_OEUVRE_EXTRACTION).eq('id_oeuvre', id).maybeSingle(),
     supabase.from('oeuvre_textes')
       .select('id_texte,titre_version,langue,traducteur,edition_label,annee_edition,is_default,is_public,statut')
       .eq('id_oeuvre', id).order('annee_edition', { ascending: true, nullsFirst: true }),
@@ -157,6 +161,10 @@ export async function GET(requete: NextRequest, contexte: { params: Promise<{ id
     chargerIndexEditeurs(supabase),
   ])
 
+  // Une lecture refusée par la base répond 404 comme une œuvre absente : seul le journal
+  // les distingue (`lectureRefusee.ts`).
+  const ligneOeuvre = ligneDeJournal(`extraction de l’œuvre ${id}`, oeuvreLue.error)
+  if (ligneOeuvre) console.error(ligneOeuvre)
   const oeuvre = oeuvreLue.data as Record<string, unknown> | null
   // ⛔ Une œuvre retenue ne s'extrait pas plus qu'elle ne se lit : même garde, même mot.
   if (!oeuvre || (!estAdmin && !estOeuvrePubliee(oeuvre as { acces_public?: boolean | null }))) {

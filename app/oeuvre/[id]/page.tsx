@@ -1,5 +1,6 @@
 import {
   AUCUN_ECHO,
+  COLONNES_OEUVRE_LECTURE,
   estSegmentDeLApparat,
   limiterRequeteAuxLiminairesSansNiveau,
   limiterRequeteSegmentsALaSurface,
@@ -7,6 +8,7 @@ import {
   segmentsDeLaSurface,
   SELECT_SEGMENT,
 } from '@/app/lib/oeuvreSelects'
+import { ligneDeJournal } from '@/app/lib/lectureRefusee'
 import { hydraterLiensHerites } from '@/app/lib/liens'
 import { INTITULE_CARTE_LIMINAIRES, NIV1_LIMINAIRES, niveau1DuSegment } from '@/app/lib/intituleNiveau1'
 import { codesTraductionsLecture } from '@/app/lib/traductions'
@@ -60,6 +62,12 @@ import { cache } from 'react'
 // `anon` et ne recevait plus ni segments ni versets.
 type Client = Awaited<ReturnType<typeof creerSupabaseServeur>>
 
+// Typée `string` : un gabarit composé donnerait au typage de supabase-js une chaîne qu'il ne sait pas analyser.
+const SELECT_OEUVRE_PAGE: string = `${COLONNES_OEUVRE_LECTURE}, auteurs!oeuvres_id_auteur_fkey(id_auteur, nom, nom_original)`
+// La forme que `select('*')` rendait, colonnes libres : la page lit ses champs un à un.
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type LigneOeuvrePage = Record<string, any>
+
 /**
  * Les trois lectures que `generateMetadata` et la page font TOUTES DEUX : l'œuvre, ses
  * textes, ses auteurs. Le routeur exécute les deux dans la MÊME requête HTTP, et le client
@@ -73,10 +81,11 @@ type Client = Awaited<ReturnType<typeof creerSupabaseServeur>>
  * les textes publics, la page les veut tous. Deux requêtes qui ne diffèrent que par un
  * filtre ne se partagent pas ; deux vues d'une même liste, si.
  */
+
 const chargerOeuvreEtTextes = cache(async (id: string) => {
   const supabase = await creerSupabaseServeur()
   const [oeuvreResult, textesResult, auteursOeuvre] = await Promise.all([
-    supabase.from('oeuvres').select('*, auteurs!oeuvres_id_auteur_fkey(id_auteur, nom, nom_original)').eq('id_oeuvre', id).single(),
+    supabase.from('oeuvres').select(SELECT_OEUVRE_PAGE).eq('id_oeuvre', id).single<LigneOeuvrePage>(),
     supabase.from('oeuvre_textes')
             // ⛔ LE JSONB NE PART PAS ENTIER, ON EN PROJETTE LE SEUL CHAMP QUE LE SITE LIT.
       // `oeuvre_textes.metadata` est le carnet de l'atelier : compteurs de contrôle
@@ -90,6 +99,13 @@ const chargerOeuvreEtTextes = cache(async (id: string) => {
       .order('annee_edition', { ascending: true, nullsFirst: true }),
     chargerAuteursDOeuvre(supabase, id),
   ])
+  // ⚠️ Journalisé ICI, une seule fois pour la page et ses métadonnées : une lecture
+  // refusée par la base (droits, délai) répond 404 comme une œuvre absente, et seul le
+  // journal les distingue (`lectureRefusee.ts`).
+  const ligneOeuvre = ligneDeJournal(`œuvre ${id}`, oeuvreResult.error)
+  if (ligneOeuvre) console.error(ligneOeuvre)
+  const ligneTextes = ligneDeJournal(`textes de l’œuvre ${id}`, textesResult.error)
+  if (ligneTextes) console.error(ligneTextes)
   return { oeuvreResult, textesResult, auteursOeuvre }
 })
 
