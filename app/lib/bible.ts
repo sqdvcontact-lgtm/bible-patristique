@@ -155,3 +155,12 @@ export const ABREV_FR: Record<string, string> = {
   '1JN':'1Jn','2JN':'2Jn','3JN':'3Jn',
   JUD:'Jude',REV:'Ap',
 }
+
+// ⚠️ La table garde la forme COLLÉE (« 1Jn ») : c'est la clé de `prelevements.ref_livre_abr`,
+// que les pages relisent et filtrent. Le lecteur, lui, voit la forme espacée (« 1 Jn »).
+export function espacerAbrev(abr: string): string {
+  return abr.replace(/^(\d)(\p{L})/u, '$1 $2')
+}
+export function abrevLisible(code: string): string {
+  return espacerAbrev(ABREV_FR[code] ?? code)
+}

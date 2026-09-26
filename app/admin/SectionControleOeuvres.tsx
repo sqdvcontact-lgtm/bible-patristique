@@ -2,7 +2,7 @@
 
 import React from 'react'
 import { supabase } from '@/app/lib/supabase'
-import { ABREV_FR } from '@/app/lib/bible'
+import { abrevLisible } from '@/app/lib/bible'
 import IconeCrayon from '@/app/components/IconeCrayon'
 import { hydraterLiensHerites } from '@/app/lib/liens'
 import ModalLienBiblique, { type ChampLienBiblique, type VersetLienBiblique } from '@/app/components/ModalLienBiblique'
@@ -280,7 +280,7 @@ function refBibliqueFr(ref: string, fallback = ref) {
   const code = match[1].toUpperCase()
   const chapitre = String(Number(match[2]))
   const verset = match[3] ? String(Number(match[3])) : ''
-  const abr = ABREV_FR[code] ?? code
+  const abr = abrevLisible(code)
   return verset ? `${abr} ${chapitre}, ${verset}` : `${abr} ${chapitre}`
 }
 

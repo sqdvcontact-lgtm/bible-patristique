@@ -1,5 +1,5 @@
 'use client'
-import { ABREV_FR, estLivreNonCanonique } from '@/app/lib/bible'
+import { ABREV_FR, abrevLisible, estLivreNonCanonique } from '@/app/lib/bible'
 import MarqueNonCanonique from '@/app/components/MarqueNonCanonique'
 
 import { Fragment, useState, useEffect, useMemo, useRef } from 'react'
@@ -240,7 +240,7 @@ function refFrBible(ref: string): string {
   const p = ref.trim().split(' ')
   if (p.length < 2) return ref
   const cv = p[1].split(':')
-  const abr = ABREV_FR[p[0]] ?? p[0]
+  const abr = abrevLisible(p[0])
   return cv[1] ? `${abr} ${cv[0]}, ${cv[1]}` : `${abr} ${cv[0]}`
 }
 
@@ -894,7 +894,7 @@ export default function TexteBible({
           (app/lib/visiteBibleClassique.ts). L'étape parle des DEUX choses que ce bloc
           porte — le passage ouvert et le menu des bibles —, et il n'en existe pas de
           plus petit qui les tienne toutes deux. */}
-      <div data-visite="entete-lecture" style={{ borderBottom: '1px solid var(--cs-bord)', background: 'var(--cs-fond)', padding: '14px 32px 10px' }}>
+      <div data-visite="entete-lecture" style={{ borderBottom: '1px solid var(--cs-bord)', background: 'var(--cs-fond)', padding: mobile ? '8px 16px 7px' : '14px 32px 10px' }}>
 
         {/* Titre + navigation chapitres. Calé sur LE MÊME gabarit que les versets
             (bloc de texte de 500 px + colonne d'actions de 38 px) : le titre est centré
@@ -1203,12 +1203,12 @@ export default function TexteBible({
                       )}
                       <BoutonCopie citation={citationBiblique(
                         texteDuVerset(v),
-                        `${ABREV_FR[livreActif] || nomLivre} ${chapitreActif}, ${v.verset}`,
+                        `${ABREV_FR[livreActif] ? abrevLisible(livreActif) : nomLivre} ${chapitreActif}, ${v.verset}`,
                       )} numero={v.verset} />
                       {!polyglotteTropEtroite && (() => { const p = placeCanoniqueDuVerset(v, livreActif, chapitreActif); return <BoutonPolyglotte href={urlPolyglotte(p.livre, p.chapitre, p.verset)} /> })()}
                       {typeof v._facsDebut899 === 'string' && (
                         <BoutonFacsimile
-                          reference={`${ABREV_FR[livreActif] || nomLivre} ${chapitreActif}, ${v.verset}`}
+                          reference={`${ABREV_FR[livreActif] ? abrevLisible(livreActif) : nomLivre} ${chapitreActif}, ${v.verset}`}
                           debut={v._facsDebut899}
                           fin={typeof v._facsFin899 === 'string' ? v._facsFin899 : null}
                         />
@@ -1313,8 +1313,9 @@ export default function TexteBible({
 
           {/* Sous le dernier verset, le chapitre précédent et le suivant, nommés : qui a lu
               jusqu'au bout n'a plus à remonter chercher la flèche (audit du 2026-09-21).
-              ⚠️ Pas sous une mention d'absence : il n'y a rien eu à lire. */}
-          {!texteAbsent && surAxeTexte(
+              ⚠️ Pas sous une mention d'absence : il n'y a rien eu à lire.
+          ⚠️ Pas sur mobile : le bandeau du bas, toujours visible, change déjà de chapitre. */}
+          {!texteAbsent && !mobile && surAxeTexte(
             <NavigationBasChapitre precedent={voisins.precedent} suivant={voisins.suivant} position={voisins.position} onAller={naviguer} />,
           )}
           </>)}
@@ -1356,7 +1357,7 @@ export default function TexteBible({
           verset={editionCible}
           traduction={traduction}
           traductionLabel={traductionLabel}
-          refCourt={`${ABREV_FR[livreActif] || livreActif} ${chapitreActif}, ${editionCible.verset}`}
+          refCourt={`${abrevLisible(livreActif)} ${chapitreActif}, ${editionCible.verset}`}
           valeurActuelle={String(overrides[editionCible.id_verset]?.[traduction] ?? editionCible[traduction] ?? '')}
           onClose={() => setEditionCible(null)}
           onEnregistre={(nouvelleValeur) => {

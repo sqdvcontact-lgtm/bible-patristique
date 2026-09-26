@@ -71,7 +71,7 @@ export function refFrVer(ref: string): string {
   const p = ref.trim().split(' ')
   if (p.length < 2) return ref
   const cv = p[1].split(':')
-  const abr = ABREV_FR_VER[p[0]] ?? p[0]
+  const abr = (ABREV_FR_VER[p[0]] ?? p[0]).replace(/^(\d)(\p{L})/u, '$1 $2')
   return cv[1] ? `${abr} ${cv[0]}, ${cv[1]}` : `${abr} ${cv[0]}`
 }
 

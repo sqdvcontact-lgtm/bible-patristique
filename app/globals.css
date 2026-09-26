@@ -4045,14 +4045,24 @@ html[data-lasso-geste] * {
    ligne, pour que le doigt puisse le grossir avec la case. */
 .cs-case-chapitre { font-size: 0.6875rem; }
 
-/* Au doigt, la case devient une cible : 2,625 rem, à peu près 42 px, et un écart
-   qui garde la grille aérée. L'axe est la capacité du pointeur, jamais la largeur. */
+/* Au doigt, la case devient une cible : 2,125 rem, à peu près 34 px (42 px faisaient
+   des pavés, 2026-09-26), et un écart qui garde la grille lisible. L'axe est la
+   capacité du pointeur, jamais la largeur. */
 @media (hover: none) {
   .cs-volet-echelle {
-    --volet-case: 2.625rem;
-    --volet-case-ecart: 0.375rem;
+    --volet-case: 2.125rem;
+    --volet-case-ecart: 0.3125rem;
   }
-  .cs-case-chapitre { font-size: 0.8125rem; }
+  .cs-case-chapitre { font-size: 0.75rem; }
+}
+
+/* Volet des Pères, au doigt : la barre d'onglets et « Filtres » se tassent (relevé de
+   l'auteur, 2026-09-26 : trois rangées d'onglets empilées sous la barre du haut).
+   ⚠️ `!important` pour les deux derniers : leur mesure est en style EN LIGNE. */
+@media (hover: none) {
+  .cs-onglets--volet .cs-onglet { min-height: 2.25rem; }
+  .cs-filtres-rangee { padding-top: 5px !important; }
+  .cs-filtres-bouton { padding-top: 3px !important; padding-bottom: 3px !important; }
 }
 
 /* ── La recherche d'un livre, dans le volet de lecture ────────────────────────
@@ -5303,6 +5313,28 @@ main.lecture-entree [data-cs-bloc],
    ⛔ Le complément vit APRÈS le texte dans le document (ordre de lecture, clavier,
    téléphone). Une RÉSERVE vide flotte donc en tête, à la hauteur du complément, que
    CorpsFiche mesure et reporte avant la peinture ; le complément se pose par-dessus.
+/* Sur téléphone, la même fenêtre condensée (relevé de l'auteur, 2026-09-26 : « réduire
+   considérablement, rester fidèle à l'esprit »). Mêmes pièces, mêmes teintes ; les
+   blancs, le titre, la citation et le champ se resserrent. Calée en HAUT de l'écran :
+   le champ prend le foyer à l'ouverture, et le clavier monte sur la moitié basse.
+   ⚠️ Après la règle au doigt ci-dessus, qu'elle corrige : même poids, l'ordre décide. */
+@media (max-width: 640px) {
+  .cs-signalement-calque { align-items: flex-start; padding: 8px; }
+  .cs-signalement-boite { border-radius: 10px; }
+  .cs-signalement-tete { padding: 8px 6px 7px 14px; gap: 8px; }
+  .cs-signalement-titre { font-size: 1.0625rem; }
+  .cs-signalement-corps { padding: 10px 14px 12px; }
+  .cs-signalement-objet { margin-bottom: 10px; }
+  .cs-signalement-rubrique { margin-bottom: 4px; }
+  .cs-signalement-objet-titre { margin-bottom: 4px; font-size: 0.75rem; }
+  .cs-signalement-cite { max-height: 4.5rem; padding: 5px 9px 5px 10px; font-size: 0.75rem; line-height: 1.45; }
+  .cs-signalement-niveaux { gap: 5px; margin-bottom: 10px; }
+  .cs-signalement-niveau, .cs-signalement-bouton { min-height: 1.875rem; }
+  .cs-signalement-champ { height: 5.25rem; padding: 0.375rem 0.625rem; }
+  .cs-signalement-pied { margin-top: 8px; }
+  .cs-signalement-merci { gap: 6px; padding: 18px 16px 20px; }
+}
+
    ⚠️ Les largeurs sont celles de l'ancienne grille — 1,35fr et 1fr, gouttière de 26 px,
    filet et rembourrage de 24 px — : le texte garde sa mesure au pixel près.
    ⛔ Tout ce qui fait CONTEXTE (flex, grille, flow-root) se range entier à côté d'un

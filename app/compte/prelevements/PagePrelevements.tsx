@@ -16,6 +16,7 @@ import { segmentsReferenceEdition, type EditionServie } from '@/app/lib/referenc
 import { noticeEnSyntaxe, type GroupeExtrait, type SectionExtraite } from '@/app/lib/extractionCitations'
 import { MotAttente } from '@/app/lib/attenteEnCreux'
 import Link from "next/link";
+import { espacerAbrev } from "@/app/lib/bible";
 import { supabase } from "@/app/lib/supabase";
 import { useEspace } from "@/app/compte/EspaceCompte";
 import { BandeauLecteur, SommaireEspace } from "@/app/compte/piecesEspace";
@@ -171,7 +172,7 @@ function agglomererBibliques(sorted: Prelevement[]): GroupeBiblique[] {
 }
 
 function refBiblique(g: GroupeBiblique): string {
-  const base = `${g.ref_livre_abr} ${g.ref_chapitre}, ${g.verset_debut}`;
+  const base = `${espacerAbrev(g.ref_livre_abr)} ${g.ref_chapitre}, ${g.verset_debut}`;
   return g.verset_debut === g.verset_fin ? base : `${base}–${g.verset_fin}`;
 }
 

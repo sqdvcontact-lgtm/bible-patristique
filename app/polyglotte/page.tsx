@@ -54,7 +54,7 @@ import { CLE_VISITE_POLYGLOTTE, VISITE_POLYGLOTTE } from "@/app/lib/visitePolygl
 import { type SceneVisite } from "@/app/lib/visiteGuidee";
 import { offrirLaVisite } from "@/app/lib/demandeDeVisite";
 import { useAffichageAdmin } from "@/app/lib/contexteAffichageAdmin";
-import { ABREV_FR } from "@/app/lib/bible";
+import { ABREV_FR, abrevLisible, espacerAbrev } from "@/app/lib/bible";
 import { rendreTexteEnrichi, texteSansEnrichissement } from "@/app/oeuvre/[id]/texteEnrichi";
 import ModalSignalement from "@/app/components/ModalSignalement";
 import BoutonCopierTexte from "@/app/components/BoutonCopierTexte";
@@ -2718,7 +2718,7 @@ export default function PolyglottePage() {
     if (!passages.length || chFiltre == null) return;
     await copierCitation(citationBiblique(
       texteDesVersets(passages.map(p => ({ numero: p.numero, texte: p.texte }))),
-      `${abrLasso} ${chFiltre}, ${referenceDesVersets(passages.map(p => p.numero))}`,
+      `${espacerAbrev(abrLasso)} ${chFiltre}, ${referenceDesVersets(passages.map(p => p.numero))}`,
     ));
   };
 
@@ -3255,7 +3255,7 @@ export default function PolyglottePage() {
                   // numérotation d'origine, et l'on n'y prélève pas.
                   const actionsSurnum: ActionsDeCellule | null = r && sc.trad && sc.etat === "stable" ? {
                     cle: `surnum|${cle}|${sc.trad.trad_id}`,
-                    refLisible: `${ABREV_FR[g.livre] ?? g.livre} ${g.ch}, ${g.v}${r.estGlose899 ? ', glose' : ''}`,
+                    refLisible: `${abrevLisible(g.livre)} ${g.ch}, ${g.v}${r.estGlose899 ? ', glose' : ''}`,
                     texte: r.texte ?? "",
                     citer: null,
                   } : null;
@@ -3367,7 +3367,7 @@ export default function PolyglottePage() {
                 // Référence canonique lisible, partagée par les actions de chaque cellule
                 // (chaque cellule cite et signale SA propre traduction).
                 const abr = ABREV_FR[l.code] ?? l.code;
-                const refLisible = `${abr} ${r.ch_canon}, ${r.v_canon}`;
+                const refLisible = `${espacerAbrev(abr)} ${r.ch_canon}, ${r.v_canon}`;
                 // Le crayon de l'administrateur ouvre la fenêtre de correction d'un verset d'origine.
                 const editerVerset = (ligne: V2Row) => {
                   setCibleEdition({ id: ligne.id, texte: ligne.texte ?? "", reference: `${l.nom_fr} ${ligne.ch_orig}, ${ligne.v_orig}` });

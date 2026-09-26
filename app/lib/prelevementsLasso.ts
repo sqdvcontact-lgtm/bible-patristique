@@ -15,6 +15,7 @@
 // édition, qui portent le même numéro (voir `prelevementsBibliques.ts`).
 
 import { supabase } from './supabase'
+import { espacerAbrev } from './bible'
 import { citationBiblique, copierCitation } from './citation'
 import { referenceDesVersets, texteDesVersets } from './selectionPassages'
 import { cleVersetPreleve, prelevementDuVerset, type PrelevementsDuChapitre } from './prelevementsBibliques'
@@ -101,7 +102,7 @@ export function citationDuLasso(
 ) {
   return citationBiblique(
     texteDesVersets(passages.map((p) => ({ numero: p.numero, texte: p.texte }))),
-    `${livreAbrege || nomLivre} ${chapitre}, ${referenceDesVersets(passages.map((p) => p.numero))}`,
+    `${livreAbrege ? espacerAbrev(livreAbrege) : nomLivre} ${chapitre}, ${referenceDesVersets(passages.map((p) => p.numero))}`,
   )
 }
 

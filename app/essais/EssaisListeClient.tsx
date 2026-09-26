@@ -16,7 +16,7 @@ import { rendreTexteEnrichi } from '@/app/oeuvre/[id]/texteEnrichi'
 import { couvertureDe } from '@/app/lib/couverturesEssai'
 import { categoriePrincipale, FleuronGenre } from '@/app/lib/fleuronsCouverture'
 import { normaliserSaisie } from '@/app/lib/typographie'
-import { ABREV_FR, LIVRES } from '@/app/lib/bible'
+import { abrevLisible, LIVRES } from '@/app/lib/bible'
 import MarqueMecene from '@/app/components/MarqueMecene'
 import { OPTION_VOLET } from '@/app/lib/stylesVoletLecture'
 import { PisteInterrupteur } from '@/app/compte/champsCompte'
@@ -1107,7 +1107,7 @@ function OngletSuggestion({ connecte }: { connecte: boolean | null }) {
               «&#8201;{rendreTexteEnrichi(verset.texte)}&#8201;»
             </p>
             <p style={{ fontSize: '0.75rem', color: 'var(--cs-texte-gris)', margin: 0 }}>
-              {ABREV_FR[verset.livre] ?? verset.livre} {verset.chapitre},{verset.verset}
+              {abrevLisible(verset.livre)} {verset.chapitre}, {verset.verset}
             </p>
           </div>
 

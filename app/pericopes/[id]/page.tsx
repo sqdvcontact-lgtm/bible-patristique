@@ -39,7 +39,7 @@ import {
 import { hoteDeLAdresse } from '@/app/lib/sourceNumerique'
 import PanneauPatristique from '@/app/components/PanneauPatristique'
 import ActionsVerset from '@/app/components/ActionsVerset'
-import { ABREV_FR } from '@/app/lib/bible'
+import { ABREV_FR, espacerAbrev } from '@/app/lib/bible'
 import { ENCRE_TITRE, GRAISSE_TITRE, INTERLIGNE_TITRE_PAGE, STYLE_RUBRIQUE, TITRE_PAGE } from '@/app/lib/hierarchieTitres'
 import {
   libelleCategoriePericope,
@@ -152,7 +152,7 @@ function BlocVersets({ vs, ctx }: { vs: VersetPericope[]; ctx: CtxActions }) {
         const cle = `${base}@${ctx.trad}`
         const actions = (
           <ActionsVerset
-            idVerset={v.id_verset} refAffichee={`${abr} ${v.chapitre}, ${v.verset}`}
+            idVerset={v.id_verset} refAffichee={`${espacerAbrev(abr)} ${v.chapitre}, ${v.verset}`}
             nomLivre={nomLivreReference(ctx.livre)} refLivreAbr={abr}
             chapitre={v.chapitre} verset={v.verset} texte={String(v.texte)}
             tradLabel={ctx.tradLabel} trad={ctx.trad} userId={ctx.userId}

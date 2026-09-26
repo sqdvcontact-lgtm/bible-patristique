@@ -1232,6 +1232,7 @@ export default function PanneauPatristique({
       unite: (n: number) => pluriel(n, 'annotation', 'annotations'),
     }] : []),
   ]
+  const rangeeOnglets = !(mobile && ONGLETS.length === 1)
   const SOUS_ONGLETS: [SousOnglet, string, number, (n: number) => string][] = [
     ['citations', 'Citations', comptesSousOnglets.citations, n => pluriel(n, 'citation', 'citations')],
     ['doctrine', 'Commentaires', comptesSousOnglets.doctrine, n => pluriel(n, 'commentaire', 'commentaires')],
@@ -1477,6 +1478,10 @@ export default function PanneauPatristique({
               d'onglets). Le COMPTE de chaque onglet reste sous son libellé, dans la ligne
               que le modèle lui donne (`sous`), à l'encre de son onglet. La circulation aux
               flèches et `aria-controls` vivent désormais dans le modèle. */}
+          {/* ⚠️ Sur mobile, un onglet seul (« Pères de l’Église ») ne se montre pas : la barre
+              du haut dit déjà « Pères » (relevé de l'auteur, 2026-09-26). La rangée revient
+              dès qu'un verset ouvre la Discussion ou les Notes. */}
+          {rangeeOnglets && (
           <div style={{ position:'relative', flexShrink:0, display:'flex', alignItems:'stretch' }}>
             {/* ⛔ Un réglage de disposition MOBILE ne décide jamais d'un contrôle de BUREAU. */}
             {peutSeReduire && (
@@ -1506,6 +1511,7 @@ export default function PanneauPatristique({
               idOnglet={idOnglet}
             />
           </div>
+          )}
 
           {/* Contenu (la discussion et les notes défilent en interne, pour épingler la
               saisie ou les filtres en tête du volet). */}
@@ -1518,7 +1524,7 @@ export default function PanneauPatristique({
               seule gouttière suffit à ce que la page ne bouge jamais. ⛔ Rien au doigt :
               une barre superposée n'y prend aucune place, et la gouttière y serait un
               blanc perdu sur une colonne déjà étroite. */}
-          <div id={idPanneau} role="tabpanel" aria-labelledby={idOnglet(ongletAffiche)} ref={refDefilement}
+          <div id={idPanneau} role={rangeeOnglets ? 'tabpanel' : undefined} aria-labelledby={rangeeOnglets ? idOnglet(ongletAffiche) : undefined} ref={refDefilement}
             style={(ongletAffiche === 'commentaires' && verset) || ongletAffiche === 'notes'
             ? { flex:1, minHeight:0, overflow:'hidden', padding:'0 12px', display:'flex', flexDirection:'column' }
             : { overflowY:'auto', flex:1, padding:'0 12px', display:'flex', flexDirection:'column',
@@ -1545,11 +1551,14 @@ export default function PanneauPatristique({
                         style={{
                           flex: 1, background: 'none', border: 'none',
                           borderBottom: actif ? '2px solid var(--cs-vert)' : '2px solid transparent',
-                          padding: '5px 2px 4px', cursor: 'pointer',
+                          padding: mobile ? '4px 2px 3px' : '5px 2px 4px', cursor: 'pointer',
                           color: actif ? 'var(--cs-vert)' : 'var(--cs-texte-gris)',
                           fontSize: '0.6875rem', fontWeight: actif ? 600 : 400,
                           letterSpacing: '0.04em', lineHeight: 1.2,
-                          display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '1px',
+                          // Sur mobile, le compte suit le libellé sur la même ligne : une rangée
+                          // de moins en hauteur (2026-09-26).
+                          display: 'flex', flexDirection: mobile ? 'row' : 'column', alignItems: 'center',
+                          justifyContent: 'center', gap: mobile ? '4px' : '1px',
                         }}>
                         <span>{label}</span>
                         <LigneCompte enAttente={enAttente} compte={nb} videDit="∅" unite={unite}

@@ -15,7 +15,7 @@ import { chargerDensiteChapitre, libelleDensiteVerset, type DensiteVerset } from
 /** ⚠️ Posée AU MODULE : une table neuve à chaque rendu donnerait une prop neuve à la
  *  colonne du texte, et la ferait rendre pour rien tant que la densité n’est pas là. */
 const DENSITES_VIDES: ReadonlyMap<string, DensiteVerset> = new Map()
-import { ABREV_FR } from '@/app/lib/bible'
+import { abrevLisible } from '@/app/lib/bible'
 import { formaterPlageCanonique, nomLivreReference, parsePointCanonique } from '@/app/lib/referencesBibliques'
 import { HAUTEUR_SOUS_NAVBAR, BANDEAU_NAV_MOBILE, HAUTEUR_NAVBAR } from '@/app/lib/mesures'
 import { GOUTTIERE_ACTIONS_VERSET } from '@/app/lib/compositionBible'
@@ -1335,7 +1335,7 @@ function PageBible({ livres, versets, traductions, livreActif, chapitreActif, no
             onClick={() => { setDemandeLivreCourant(n => n + 1); changerOnglet('livres') }}
             aria-label={`Ouvrir la liste des livres (${nomLivre}, chapitre ${chapitreActif})`}
             style={{ fontFamily: SERIF, display: 'inline-flex', alignItems: 'baseline', gap: '8px', fontSize: '0.875rem', background: 'none', border: 'none', padding: 0, margin: 0, cursor: 'pointer', color: 'inherit' }}>
-            <span style={{ fontWeight: 500, color: 'var(--cs-encre)' }}>{ABREV_FR[livreActif] ?? livreActif}</span>
+            <span style={{ fontWeight: 500, color: 'var(--cs-encre)' }}>{abrevLisible(livreActif)}</span>
             {/* Le fleuron prend le rang d'ORNEMENT de la palette (`--cs-texte-faible`, qui
                 se retourne avec le Cuir), et se tait au lecteur d'écran. */}
             <span aria-hidden="true" style={{ color: 'var(--cs-texte-faible)' }}>❧</span>

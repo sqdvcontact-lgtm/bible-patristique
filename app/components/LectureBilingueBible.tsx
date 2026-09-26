@@ -34,7 +34,7 @@ import {
   type ContexteDuLasso, type PassageDuLasso,
 } from '@/app/lib/prelevementsLasso'
 import { texteLisibleDeLaBible } from '@/app/lib/texteLisible899'
-import { ABREV_FR, estLivreNonCanonique } from '@/app/lib/bible'
+import { ABREV_FR, espacerAbrev, estLivreNonCanonique } from '@/app/lib/bible'
 import MarqueNonCanonique from './MarqueNonCanonique'
 import { UNITE_VERSETS } from '@/app/lib/selectionPassages'
 import { colonnesTouchees } from '@/app/lib/lasso'
@@ -394,7 +394,7 @@ export default function LectureBilingueBible({
   const passageSignale = signalement === null ? null : cellulesDuLasso.get(signalement) ?? null
   const referenceSignalee = passageSignale === null
     ? ''
-    : `${abreviationLivre} ${chapitreActif}, ${passageSignale.numero}`
+    : `${espacerAbrev(abreviationLivre)} ${chapitreActif}, ${passageSignale.numero}`
 
   const envoyerSignalement = async (msg: string, importance?: string) => {
     if (!passageSignale) return
@@ -441,7 +441,7 @@ export default function LectureBilingueBible({
           droite la gouttière d'actions de 38 px : centrer ici sur toute la largeur
           décalait « Genèse ❧ Chapitre N » de 19 px au changement de lecture.
           Même gabarit, mêmes teintes, mêmes survols : seul le CORPS devient double. */}
-      <div style={{ borderBottom: '1px solid var(--cs-bord)', background: 'var(--cs-fond)', padding: '14px 32px 10px' }}>
+      <div style={{ borderBottom: '1px solid var(--cs-bord)', background: 'var(--cs-fond)', padding: mobile ? '8px 16px 7px' : '14px 32px 10px' }}>
         <style>{`
           .nav-chap-arrow:hover { color: var(--cs-mention) !important; }
         `}</style>
@@ -525,9 +525,12 @@ export default function LectureBilingueBible({
           <BibleBilingue {...contenu} mobile={mobile || colonnesEtroites} copierCellule={copierCellule} etatPrelevement={etatPrelevement} basculerPrelevement={basculerPrelevement} signalerCellule={signalerCellule} margeActions={margeActions} />
           {/* Sous le dernier verset, les chapitres voisins, nommés (audit du 2026-09-21).
               ⚠️ Dans la PREMIÈRE colonne de la grille : la seconde est la gouttière. */}
-          <div style={mobile ? undefined : { gridColumn: 1 }}>
+          {/* ⚠️ Pas sur mobile : le bandeau du bas, toujours visible, change déjà de chapitre. */}
+          {!mobile && (
+          <div style={{ gridColumn: 1 }}>
             <NavigationBasChapitre precedent={voisins.precedent} suivant={voisins.suivant} position={voisins.position} onAller={naviguer} />
           </div>
+          )}
         </div>
       </div>
       {/* ⛔ Le blanc d'où le lasso naît est le rembourrage du défileur et la gouttière

@@ -1,7 +1,7 @@
 'use client'
 import { HAUTEUR_NAVBAR, HAUTEUR_SOUS_NAVBAR } from '@/app/lib/mesures'
 import { Z_MODALE } from '@/app/lib/empilement'
-import { ABREV_FR, LIVRES } from '@/app/lib/bible'
+import { abrevLisible, LIVRES } from '@/app/lib/bible'
 
 import { Fragment, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useEstMobile } from '@/app/lib/useEstMobile'
@@ -1560,7 +1560,7 @@ export default function RechercheClient() {
                         {/* La marge porte le SIGLE DU LIVRE et la référence, comme la
                             Polyglotte ; le nom entier reste en « title ». */}
                         <span className="res-ref res-ref--sigles" title={`${NOMS_LIVRES[v.livre] ?? v.livre} ${v.chapitre}, ${v.verset}`}>
-                          <span className="res-livre">{ABREV_FR[v.livre] ?? v.livre}</span> {v.chapitre}, {v.verset}
+                          <span className="res-livre">{abrevLisible(v.livre)}</span> {v.chapitre}, {v.verset}
                         </span>
                         <span className={`res-cell${!displayLeMot && contientDans.length ? ' res-cell--absent' : ''}`}>
                           <span className="sigles">
@@ -1694,7 +1694,7 @@ export default function RechercheClient() {
                                     « title », comme partout où le site abrège. */}
                                 <div className="poly-marge-ref" style={{ color:'var(--cs-vert)' }}
                                   title={`${NOMS_LIVRES[v.livre] ?? v.livre} ${v.chapitre}, ${v.verset}`}>
-                                  <span><span className="poly-livre-sigle">{ABREV_FR[v.livre] ?? v.livre}</span> {v.chapitre}, {v.verset}</span>
+                                  <span><span className="poly-livre-sigle">{abrevLisible(v.livre)}</span> {v.chapitre}, {v.verset}</span>
                                 </div>
                                 {/* Une colonne par traduction */}
                                 {colAffichees.map((code, i) => {

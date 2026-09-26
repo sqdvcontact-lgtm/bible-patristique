@@ -5,7 +5,7 @@ import { Z_MODALE } from '@/app/lib/empilement'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useFenetreModale } from '@/app/lib/useFenetreModale'
 import { MotAttente } from '@/app/lib/attenteEnCreux'
-import { ABREV_FR, LIVRES } from '@/app/lib/bible'
+import { abrevLisible, LIVRES } from '@/app/lib/bible'
 import { supabase } from '@/app/lib/supabase'
 import { rendreTexteEnrichi } from '@/app/oeuvre/[id]/texteEnrichi'
 import { useEstMobile } from '@/app/lib/useEstMobile'
@@ -45,7 +45,7 @@ export const TYPES_LIEN: { champ: ChampLienBiblique; label: string; aide: string
 ]
 
 function labelVerset(v: LigneVerset | VersetLienBiblique) {
-  return `${ABREV_FR[v.livre] ?? v.livre} ${v.chapitre}, ${v.verset}`
+  return `${abrevLisible(v.livre)} ${v.chapitre}, ${v.verset}`
 }
 
 function normaliserLigne(v: LigneVerset): VersetLienBiblique {

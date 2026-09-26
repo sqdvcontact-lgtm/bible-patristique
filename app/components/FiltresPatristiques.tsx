@@ -349,10 +349,10 @@ export default function FiltresPatristiques(p: PanneauFiltresProps) {
 
   return (
     <>
-      <div style={{ display: 'flex', alignItems: 'center', padding: '8px 0 0' }}>
+      <div className="cs-filtres-rangee" style={{ display: 'flex', alignItems: 'center', padding: '8px 0 0' }}>
         {/* ⛔ LE BOUTON DIT CE QU'IL COMPTE (audit d'accessibilité, 2026-09-22) : la pastille
             portait un chiffre nu, que rien ne rattachait au mot « Filtres ». */}
-        <button onClick={p.basculerOuvert} aria-expanded={p.ouvert}
+        <button className="cs-filtres-bouton" onClick={p.basculerOuvert} aria-expanded={p.ouvert}
           aria-label={p.nombreActifs > 0 ? `Filtres, ${p.nombreActifs} ${p.nombreActifs > 1 ? 'actifs' : 'actif'}` : 'Filtres'}
           style={{
           position: 'relative',
