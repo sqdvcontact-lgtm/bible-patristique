@@ -2767,7 +2767,12 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
   // dépourvue d'alignement, où le mode restait pourtant allumé, sans seconde colonne.
   const cibleBilingueTexte = paireTextuelleInterne ? (paireDeLecture.traductionBilingue?.idTexte ?? null) : null
   if (aOriginalQuelconque && cibleFrOeuvre) {
-    const surFr = !couranteEstOriginale && (versionOriginale ? true : idOeuvre === editionFrRef?.id_oeuvre)
+    // Quand deux textes vivent sous la même œuvre, c'est l'ID DU TEXTE qui dit ce
+    // qu'on lit. Sur le latin ancien d'Irénée, comparer seulement l'œuvre cochait à
+    // la fois « Français » et « Latin » puisque les deux partagent `idOeuvre`.
+    const surFr = paireTextuelleInterne
+      ? versionTraduite?.idTexte === idTexte
+      : !couranteEstOriginale && idOeuvre === editionFrRef?.id_oeuvre
     modesLecture.push({ cle: 'fr', label: labelTraductionMenu, cibleOeuvre: cibleFrOeuvre, cibleTexte: cibleFrTexte, cibleMt: 'fr',
       actif: surFr && modeTexteEffectif === 'fr' })
     // ⛔ Le mode ne s'offre que si quelque chose peut réellement paraître en regard :
