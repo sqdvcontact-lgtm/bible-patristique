@@ -10,9 +10,6 @@ import { describe, expect, it } from 'vitest'
 
 const RACINE = join(import.meta.dirname, '..')
 
-// Exemption unique : /quiz est neutralisée en production (elle renvoie un 404) et sa
-// version vivante évolue sur la branche de travail Holy Guessr.
-const EXEMPTES = ['quiz']
 
 function pagesDuSite(dossier: string, chemins: string[] = []): string[] {
   for (const entree of readdirSync(dossier)) {
@@ -28,7 +25,6 @@ describe('titres de page', () => {
   it('ne nomme jamais le site deux fois', () => {
     const fautives: string[] = []
     for (const chemin of pagesDuSite(RACINE)) {
-      if (EXEMPTES.some(e => chemin.includes(join('app', e)))) continue
       const source = readFileSync(chemin, 'utf8')
       for (const ligne of source.split('\n')) {
         if (!/\btitle\s*:/.test(ligne)) continue

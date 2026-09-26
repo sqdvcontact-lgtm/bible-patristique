@@ -127,6 +127,8 @@ const RUBRIQUES: Record<string, string> = {
   traductions: 'traductions',
   statistiques: 'statistiques',
   populaires: 'statistiques',
+  // ⚠️ Gardé pour l’HISTORIQUE : le quiz a été retiré le 26 septembre 2026, mais les
+  // vues d’avant portent encore son adresse.
   quiz: 'quiz',
   profil: 'profils',
   compte: 'compte',

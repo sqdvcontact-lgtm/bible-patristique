@@ -1,7 +1,7 @@
 export type Commentaire = { id: number; texte: string; auteur_nom: string; auteur_mail: string; valide: boolean; created_at: string; id_segment: number | null; id_verset: string | null; user_id?: string | null; demande_validation?: boolean; certifie?: boolean; reponse_a?: number | null }
 // Message auquel un commentaire répond — pour l'afficher en contexte dans la modération.
 export type CommentaireParent = { auteur_nom: string; texte: string }
-export type Signalement  = { id: number | string; message: string; traite: boolean; created_at: string; id_segment: number | null; id_verset?: string | null; user_id?: string | null; source?: 'signalements' | 'quiz_signalements'; importance?: number | string | null; url_source?: string | null }
+export type Signalement  = { id: number | string; message: string; traite: boolean; created_at: string; id_segment: number | null; id_verset?: string | null; user_id?: string | null; source?: 'signalements'; importance?: number | string | null; url_source?: string | null }
 export type SegInfo      = { texte: string; numero: number; id_oeuvre: string; id_texte: string }
 export type Oeuvre = {
   id_oeuvre: string

@@ -49,10 +49,6 @@ async function actionSupprimerCommentaireEssai(id: number) {
 async function actionMarquerTraite(id: number | string) {
   'use server'
   if (!(await estAdmin())) return
-  if (String(id).startsWith('quiz_')) {
-    await supabaseAdmin.from('quiz_signalements').update({ traite: true }).eq('id', String(id).replace(/^quiz_/, ''))
-    return
-  }
   // ⚠️ `decision` compte : c'est ELLE, et non `traite`, qui déclenche les dix points du
   // lecteur (trigger `points_signalements`). Elle n'était écrite nulle part, si bien que
   // seul le point du dépôt était jamais accordé (corrigé le 2026-09-07). On remercie
@@ -68,20 +64,12 @@ async function actionMarquerTraite(id: number | string) {
 async function actionMarquerTraiteSilencieux(id: number | string) {
   'use server'
   if (!(await estAdmin())) return
-  if (String(id).startsWith('quiz_')) {
-    await supabaseAdmin.from('quiz_signalements').update({ traite: true }).eq('id', String(id).replace(/^quiz_/, ''))
-    return
-  }
   // « Traité » sans remercier : on ne pose pas de message_admin destiné à l'utilisateur.
   await supabaseAdmin.from('signalements').update({ traite: true }).eq('id', id)
 }
 async function actionSupprimerSignalement(id: number | string) {
   'use server'
   if (!(await estAdmin())) return
-  if (String(id).startsWith('quiz_')) {
-    await supabaseAdmin.from('quiz_signalements').delete().eq('id', String(id).replace(/^quiz_/, ''))
-    return
-  }
   await supabaseAdmin.from('signalements').delete().eq('id', id)
 }
 async function actionCertifierCommentaire(id: number) {
@@ -109,7 +97,6 @@ async function actionRetirerDemandeCertification(id: number) {
 // ⚠️ Ce que les requetes de cette page DEMANDENT, et rien de plus : ces types suivent
 // les `select` ci-dessous, non les tables. Une colonne retiree d'un `select` casse
 // alors ici, a la compilation, au lieu de rendre `undefined` chez l'administrateur.
-type LigneQuizSignalement = { id: number; raison: string | null; commentaire: string | null; created_at: string; id_verset: string | null; user_id: string | null }
 type LigneSegmentCtx = { id: number; segment_texte: string | null; segment_numero: number | null; id_oeuvre: string | null; id_texte: string | null }
 type LigneVersetCtx = { id_verset: string; ref: string | null; TR0001: string | null }
 type LigneProfilPseudo = { id: string; pseudo: string | null }
@@ -196,7 +183,6 @@ export default async function AdminPage() {
     // ⛔ Un commentaire que son auteur a supprimé (texte vidé par la base) ne se modère plus.
     supabaseAdmin.from('commentaires').select('id, texte, auteur_nom, auteur_mail, valide, created_at, id_segment, id_verset, user_id, reponse_a').eq('valide', false).eq('supprime', false).or('demande_validation.is.null,demande_validation.eq.false').order('created_at', { ascending: false }),
     supabaseAdmin.from('signalements').select('id, message, traite, created_at, id_segment, id_verset, user_id, importance, url_source').eq('traite', false).order('created_at', { ascending: false }),
-    supabaseAdmin.from('quiz_signalements').select('id, raison, commentaire, created_at, id_verset, user_id').eq('traite', false).order('created_at', { ascending: false }).limit(200),
     supabaseAdmin.from('commentaires').select('id, texte, auteur_nom, auteur_mail, valide, created_at, id_segment, id_verset, user_id, demande_validation, certifie, reponse_a').eq('demande_validation', true).eq('supprime', false).order('created_at', { ascending: false }),
     supabaseAdmin.from('essais').select('id, titre, sous_titre, resume, categories, statut, created_at, updated_at, publie_at, user_id, anonyme').eq('statut', 'en_attente').order('created_at', { ascending: false }),
     supabaseAdmin.from('essais').select('id, titre, sous_titre, contenu, created_at, updated_at, publie_at, user_id, afficher_nom_reel, anonyme, statut, nb_vues').eq('statut', 'publie').order('publie_at', { ascending: false, nullsFirst: false }),
@@ -214,7 +200,6 @@ export default async function AdminPage() {
   const [
     { data: commentaires },
     signResult,
-    quizResult,
     { data: demandesCertification },
     { data: essaisEnAttenteRaw },
     { data: essaisPubliesRaw },
@@ -233,17 +218,7 @@ export default async function AdminPage() {
     const fallback = await supabaseAdmin.from('signalements').select('id, message, traite, created_at, id_segment, user_id').eq('traite', false).order('created_at', { ascending: false })
     signalements = (fallback.data ?? []).map(s => ({ ...s, id_verset: null, importance: null, url_source: null }))
   }
-  const quizMapped = ((quizResult.data ?? []) as LigneQuizSignalement[]).map(s => ({
-    id: `quiz_${s.id}`,
-    message: [s.raison, s.commentaire].filter(Boolean).join(' — '),
-    traite: false,
-    created_at: s.created_at,
-    id_segment: null,
-    id_verset: s.id_verset ?? null,
-    user_id: s.user_id ?? null,
-    source: 'quiz_signalements' as const,
-  }))
-  const tousSignalements = [...(signalements ?? []).map(s => ({ ...s, source: 'signalements' as const })), ...quizMapped]
+  const tousSignalements = (signalements ?? []).map(s => ({ ...s, source: 'signalements' as const }))
     .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
 
   // Calcul des IDs dépendants
@@ -306,7 +281,7 @@ export default async function AdminPage() {
   // Un chargement a-t-il VRAIMENT échoué ? On écarte deux cas connus et non
   // « rechargeables » : le fallback des signalements (index 1, colonne id_verset
   // parfois absente, déjà rattrapé) et une table structurellement absente
-  // (PGRST205 — p. ex. quiz_signalements, dont le code gère déjà l'absence).
+  // (PGRST205).
   const erreurReelle = (r: unknown) => {
     const e = (r as { error?: { code?: string } }).error
     return Boolean(e) && e?.code !== 'PGRST205'

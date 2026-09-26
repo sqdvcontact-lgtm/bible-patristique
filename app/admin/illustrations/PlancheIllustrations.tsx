@@ -98,9 +98,6 @@ type ClePanneau = 'ornements' | 'familles'
 type CleVue = 'planche' | 'contexte'
 
 const ORDRE_FONCTIONS = Object.keys(FONCTIONS) as CleFonction[]
-/** Repliés d'entrée : ils ne participent pas au jugement d'harmonie, et les
- *  tuiles du jeu pèsent à elles seules neuf mégaoctets. */
-const REPLIES_AU_DEPART: CleFonction[] = ['jeu']
 
 export default function PlancheIllustrations({ familles }: {
   familles: EchantillonFamille[]
@@ -110,7 +107,7 @@ export default function PlancheIllustrations({ familles }: {
   const [fond, setFond] = useState<CleFond>('papier')
   const [servi, setServi] = useState(true)
   const [taille, setTaille] = useState(2)
-  const [replies, setReplies] = useState<CleFonction[]>(REPLIES_AU_DEPART)
+  const [replies, setReplies] = useState<CleFonction[]>([])
   const [agrandie, setAgrandie] = useState<Illustration | null>(null)
   const [poids, setPoids] = useState<Poids>({})
 

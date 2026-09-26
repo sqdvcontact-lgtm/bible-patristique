@@ -46,7 +46,6 @@ const PAGES_NOMMEES: Record<string, string> = {
   '/notifications': 'Notifications',
   '/messagerie': 'Messagerie',
   '/bienvenue': 'Bienvenue',
-  '/quiz': 'Quiz',
   '/manuscrits': 'Manuscrits',
   '/manuscrits/bible-899': 'Bible 899',
 }

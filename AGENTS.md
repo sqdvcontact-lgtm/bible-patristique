@@ -157,7 +157,7 @@ Pour toute prose destinée au site (cartes, chapeaux, messages, mentions) : **ne
 `app/layout.tsx` pose `template: "%s · Corpus Scriptura"`. **Une page ne nomme donc jamais le site dans son propre `title`** : elle écrit `title: 'Statistiques'`, et le gabarit fait le reste. Une page qui doit porter un titre entier (l’accueil, la lecture biblique, la page d’œuvre, les pages légales) déclare `title: { absolute: … }`, qui neutralise le gabarit.
 
 - ⚠️ Onze pages écrivaient « — Corpus Scriptura » en plus du gabarit, d’où « Statistiques — Corpus Scriptura · Corpus Scriptura » dans l’onglet, dans les partages et dans les résultats de recherche (relevé le 2026-08-19). Le séparateur du site est le point médian `·`.
-- Le test `app/lib/titresPages.test.ts` parcourt les `page.tsx` et refuse tout titre qui nomme le site sans `absolute`. Seule `/quiz` en est exemptée (route neutralisée, version vivante sur la branche Holy Guessr).
+- Le test `app/lib/titresPages.test.ts` parcourt les `page.tsx` et refuse tout titre qui nomme le site sans `absolute`. Aucune page n'en est exemptée depuis le retrait du quiz (2026-09-26).
 
 # Métadonnées — on n'annonce QUE ce que la page porte (2026-08-24)
 
@@ -308,11 +308,11 @@ Le JavaScript est irréprochable : les **onze** appels à `useEstMobile` passent
 | **700** | ce qui DISPARAÎT sur un téléphone : photo de la carte d'auteur, portrait latéral d'une traduction, justification d'une colonne étroite |
 | **760** | grilles de principes, à une colonne (les volets de l'accueil sont passés à 900 le 2026-08-27) |
 | **820** | la Polyglotte bascule sur « écran large requis » |
-| **880** | le quiz (route neutralisée en production) |
+| **880** | le quiz (retiré le 2026-09-26) |
 | **900** | **le seuil de la charte**, celui du hook `useEstMobile` |
 | **980** | tableaux d'administration larges, sommaire de l'œuvre |
 
-⚠️ **Deux de ces seuils ne sont PAS à aligner sur 900, et c'est délibéré.** Le **820** de la Polyglotte décide qui reçoit l'outil et qui reçoit le message « écran large requis » : le hausser à 900 retirerait un outil qui fonctionne aux tablettes de 820 à 900 px. Tidier le code n'est pas une raison de retirer une fonction. Le **880** du quiz vit sur une route neutralisée, dont la version vivante est sur la branche Holy Guessr : on n'y touche pas.
+⚠️ **Le 820 n'est PAS à aligner sur 900, et c'est délibéré.** Le **820** de la Polyglotte décide qui reçoit l'outil et qui reçoit le message « écran large requis » : le hausser à 900 retirerait un outil qui fonctionne aux tablettes de 820 à 900 px. Tidier le code n'est pas une raison de retirer une fonction.
 
 **Règle** : avant d'écrire une média-query, prendre un seuil de ce tableau. En inventer un douzième demande une raison qu'on écrit dans le commentaire.
 - **Test** : le navigateur *intégré* (Browser pane) honore le viewport (`resize_window` → largeur réelle) ; le navigateur *claude-in-chrome* NON (reste à 1920). Les pages derrière le verrou exigent une session (compte invité `ACCES_INVITES`).
@@ -1133,7 +1133,7 @@ Réorganisation de `app/components/Navbar.tsx` et éclatement de l'ancienne page
 
 - **« Aller plus loin » n'est plus une page à onglets.** Chaque ancien onglet est désormais une **page indépendante** ; l'onglet de la navbar déploie au survol (`OngletAllerPlusLoin`, styles `.cs-plus`/`.cs-plus-menu`) la liste `LIENS_ALLER_PLUS_LOIN` : `/traductions` (Les traductions), `/librairies` (Acheter des livres), `/statistiques` (Statistiques), `/pericopes` (Péricopes), `/histoire` (Histoire de l'Église). Le clic sur le libellé ouvre `/traductions`.
   - `/traductions` = `AllerPlusLoinClient.tsx`, réduit à la seule vue « Les traductions » (garde le lien profond `#TR000x`). `/librairies` = page serveur statique. `/statistiques` = `StatistiquesClient.tsx` (versets les plus cités / les plus lus). L'ancienne redirection `/populaires` pointe désormais vers `/statistiques`.
-- **« Quiz biblique » n'a plus d'accès par onglet** (retiré d'« Aller plus loin » ; `QuizBibliqueClient` n'y est plus importé). La page `/quiz` subsiste mais n'est plus liée depuis la navbar.
+- **« Quiz biblique » n'a plus d'accès par onglet** (retiré d'« Aller plus loin » ; `QuizBibliqueClient` n'y est plus importé). La page `/quiz` a subsisté hors de la navbar jusqu'au 2026-09-26, où elle a été **retirée avec le chantier Holy Guessr et la dépendance `pixi.js`** ; les idées du jeu sont gardées au centre de contrôle (`controle_sections`, clé `holy_guessr`).
 - **Onglet « Administration »** (`OngletAdministration`, réservé aux admins : `estAdmin || estAdminEmail`) : au survol, menu listant chaque section d'admin via `LIENS_ADMIN` → `/admin?onglet=<clé>`, puis, après un filet (`.cs-plus-sep`), l'outil **Bible 899** (`/manuscrits/bible-899`). `AdminClient` lit désormais `?onglet=<clé>` pour **toute** section valide (plus seulement `controle-oeuvres`).
 - **Bible 899 ne vit plus que sous Administration** (retiré d'« Aller plus loin »).
 - **Mobile** : le panneau déplié reconstruit ces groupes (helper `lienMobile`, intertitres `styleSectionMobile`) : lecture + Patristique/Publications, puis « Aller plus loin » déplié, puis, pour un admin, « Administration » (sections + Bible 899).
@@ -1631,7 +1631,7 @@ Une maquette a composé chaque surface du site avec les jetons réels. Trois ens
 
 ⛔ **`--cs-danger-fonce` était transposé À L'ENVERS.** Il valait `#c25738`, c'est-à-dire **plus sombre** que `--cs-danger` : la logique du thème clair recopiée sur un sol où elle s'inverse. Le rôle « danger confirmé » y devenait l'encre la plus faible du jeu, **3,96 contre 6,99** au Clair, la plus forte perte du nuancier. Comme l'échelle de texte, la famille du danger s'inverse : le rang fort est le plus lumineux. **Règle générale : une famille transposée se relit dans son nouveau sol, elle ne se recopie pas.**
 
-⛔ **L'exception SVG de la charte a été écrite POUR LE CLAIR, et elle est un trou dans le Cuir.** Les attributs `stroke=`/`fill=` gardent la valeur littérale, à juste titre, une custom property n'y étant pas résolue. Mais un vert d'encre `#2a3d30` posé sur un sol `#1c1813` ne se voit plus : la silhouette d'auteur et la loupe de la bibliothèque **disparaissaient**. Le remède était déjà écrit, il n'était simplement jamais appliqué : **poser `color` sur le `<svg>` et prendre `currentColor` sur les traits**. Fait sur la bibliothèque, les publications, l'histoire, l'admin et les deux marques de la navbar. ⛔ **Tout SVG d'interface se tokenise désormais par `currentColor`** ; la valeur littérale n'est tolérée que dans une illustration, qui porte sa propre palette (le quiz).
+⛔ **L'exception SVG de la charte a été écrite POUR LE CLAIR, et elle est un trou dans le Cuir.** Les attributs `stroke=`/`fill=` gardent la valeur littérale, à juste titre, une custom property n'y étant pas résolue. Mais un vert d'encre `#2a3d30` posé sur un sol `#1c1813` ne se voit plus : la silhouette d'auteur et la loupe de la bibliothèque **disparaissaient**. Le remède était déjà écrit, il n'était simplement jamais appliqué : **poser `color` sur le `<svg>` et prendre `currentColor` sur les traits**. Fait sur la bibliothèque, les publications, l'histoire, l'admin et les deux marques de la navbar. ⛔ **Tout SVG d'interface se tokenise désormais par `currentColor`** ; la valeur littérale n'est tolérée que dans une illustration, qui porte sa propre palette.
 
 ⚠️ **Un jeton recopié EN COMPOSANTES est un jeton en dur.** `rgba(61,107,79,α)` EST `--cs-vert`, et il ne suit aucun thème. La palette porte `--cs-vert-rgb`, `--cs-bord-rgb`, `--cs-danger-rgb` pour cela, et désormais **`--cs-or-rgb`**, qui manquait : cinq encadrements dorés recopiaient donc la teinte à la main, faute d'un nom où se ranger.
 
@@ -1760,7 +1760,7 @@ Le compte de **642** couleurs en dur était trompeur : il additionnait des chose
 - **Le chemin de LECTURE, lui, est sain** : plus aucune teinte illisible dans `TexteBible`, `NavLivres`, `PanneauPatristique`, `PageTitre`, `BibleBilingue`, la page Bible, la page d'œuvre, la péricope ni la Polyglotte. Le reste vit dans l'admin, les écrans d'exception et les pages de service.
 - ✅ **Réglé le 2026-08-23** : le `#575048` d'`OeuvreClient.tsx` a disparu du dépôt, et la copie de `LABEL_VOLET`/`BTN_VOLET` est réunie dans `app/lib/stylesVoletLecture.ts`. Le chemin de lecture ne porte plus aucune teinte en dur illisible au Cuir — vérifié par relevé, contraste calculé contre les deux sols.
 - ⛔ **Le résidu ne se rabat toujours pas, mais il est désormais GELÉ** : `app/lib/couleursEnDurInventaire.ts` en porte l'état (353 teintes, 68 fichiers, au 2026-08-23) et `couleursEnDur.test.ts` refuse tout ajout. La liste ne peut plus que décroître — voir la section « La garde chromatique » plus bas.
-- **Hors périmètre pour toujours** : `EssaiPDF.tsx` (PDFKit ne résout aucune custom property) et `couverturesEssai.ts` (contraste testé). **Hors périmètre par décision** : `app/quiz/`, chantier Holy Guessr, dont les SVG sont une illustration à palette propre et non du chrome.
+- **Hors périmètre pour toujours** : `EssaiPDF.tsx` (PDFKit ne résout aucune custom property) et `couverturesEssai.ts` (contraste testé).
 
 # Perf du chemin de lecture (audit, point 2)
 
@@ -1962,7 +1962,7 @@ remise à zéro des marges, sans quoi les hauteurs de texte ne sont pas celles d
 
 ## Deux gardes voisines doivent s'accorder sur le même chantier
 
-`titresPages.test.ts` exemptait `/quiz` (route neutralisée en production, chantier Holy Guessr non versionné) ; `echelleTypographique.test.ts` ne l'exemptait pas, et tenait donc **tout `npm test` en échec** sur un chantier qui n'est pas en ligne. Une suite durablement rouge cesse d'être un signal. Les trois gardes portent désormais la même exemption. La lever le jour où le quiz rejoindra le site, sa palette et son échelle avec.
+`titresPages.test.ts` exemptait `/quiz` (route neutralisée en production, chantier Holy Guessr non versionné) ; `echelleTypographique.test.ts` ne l'exemptait pas, et tenait donc **tout `npm test` en échec** sur un chantier qui n'est pas en ligne. Une suite durablement rouge cesse d'être un signal. Les trois gardes ont porté la même exemption, levée partout au retrait du quiz (2026-09-26).
 
 ## Une garde doit lire les DEUX formes d'écriture
 
@@ -1988,18 +1988,9 @@ Les trois sont rabattues. Reste **une exception nommée** dans `RAYONS_DESSINES`
 1. **Un `.next` périmé mêlait les types de `dev` et ceux de `build`.** `tsconfig.json` inclut `.next/types/**` ET `.next/dev/types/**` : après une session de développement, les deux déclarent des unions de routes contradictoires, et le contrôle tombe sur `Type 'Route' does not satisfy the constraint 'LayoutRoutes'` en citant une route SUPPRIMÉE (`/essais/mes-ecrits`, retirée le matin même). ⚠️ Le message ne dit jamais « votre cache est vieux ». **`rm -rf .next` avant toute compilation qui suit un `next dev`.**
 2. **`tmp/` était ignoré par git mais pas par TypeScript.** L'`include` porte `**/*.mts`, et un brouillon d'audit posé là faisait échouer le contrôle. `tmp`, `livraisons` et `outils` sont désormais dans l'`exclude`.
 
-⚠️ Reste le troisième blocage, connu : `pixi.js` (voir juste après). Les quatre fichiers Holy Guessr n'étant pas versionnés, **la compilation fidèle à Vercel se fait en les écartant** — c'est exactement ce que voit le serveur :
-
-```
-for f in HolyGuessr.tsx holyGuessrDonnees.ts holyGuessrLivres.ts holyGuessrMoteur.ts; do mv "app/quiz/$f" /ailleurs/; done
-npx next build   # puis on les remet
-```
+Un troisième blocage, `pixi.js` importé par des fichiers Holy Guessr non versionnés, a disparu avec le retrait du quiz (2026-09-26).
 
 ⛔ **Un déploiement échoué laisse le site sur la version précédente sans rien dire** (déjà payé, voir la section sur la base partagée). Un filet local qui ne se lève plus est donc une dette, pas un détail.
-
-## `pixi.js` n'est déclaré nulle part
-
-Les 5 erreurs de `tsc --noEmit` viennent toutes d'`app/quiz/holyGuessrMoteur.ts` : la dépendance n'est ni dans `package.json`, ni installée. Sans conséquence en ligne aujourd'hui — les quatre fichiers Holy Guessr ne sont pas versionnés, donc absents de `master` — mais `npm run build` échoue en local, et il **échouera au déploiement** le jour où ces fichiers seront commités sans que `pixi.js` entre d'abord dans `package.json`. La vérification de `master` étant bloquante sur les types, la poussée serait refusée.
 
 # Favoris — `ref_id` n’est PAS toujours un `id_oeuvre` (2026-08-21)
 
@@ -4530,7 +4521,7 @@ Doctrine : charte `parametres.charte_ia` **§16.11**. Les auteurs sont **à éga
 - **Modèle** : le PREMIER auteur reste `oeuvres.id_auteur` (les ~220 lectures qui s'y appuient sont inchangées), les suivants vivent dans **`oeuvres_auteurs`** (`rang` ≥ 2, PK `(id_oeuvre, id_auteur)`, trigger refusant un auteur déjà premier). La vue **`v_oeuvres_auteurs`** (security_invoker, donc soumise à la RLS de `oeuvres`) réconcilie les deux et **fait seule autorité** : ne jamais refaire cette union à la main.
 - **Côté TS, tout passe par `app/lib/auteursOeuvre.ts`** (pur + testé `auteursOeuvre.test.ts`) : `chargerAuteursParOeuvre`, `chargerAuteursDOeuvre`, `libelleAuteurs` (« A et B », via `enumererNoms`), `separateurAuteurs` (quand chaque nom est rendu séparément, cliquable), `grouperOeuvresParAuteur` (dépose l'œuvre sur CHAQUE étagère). Le repli sur `oeuvres.id_auteur` est volontaire : si les couples ne se chargent pas, une œuvre ne doit pas disparaître de l'étagère.
 - **Surfaces branchées** : bibliothèque (SSR + rechargement client + canal temps réel sur `oeuvres_auteurs`), fiche auteur (`ModaleAuteur`), page de lecture (frontispice, volet, « du même auteur », traductions sœurs, métadonnées SEO), admin (bloc « Auteurs » du formulaire « Modifier l'œuvre » + route `app/api/admin/oeuvre-auteurs`).
-- **Pas encore branchées** (elles montrent le premier auteur seul) : recherche de la navbar, panneau patristique, prélèvements, quiz, page d'accueil, `SelecteurCitation`.
+- **Pas encore branchées** (elles montrent le premier auteur seul) : recherche de la navbar, panneau patristique, prélèvements, page d'accueil, `SelecteurCitation`.
 
 ## ⚠️ Piège majeur : une table de liaison CASSE tous les `select` imbriqués PostgREST
 
@@ -6282,7 +6273,7 @@ curl -s ".../deployments/<id>/statuses" | grep state
 
 La pesée passe maintenant par une requête `HEAD` par fichier, faite au montage de la planche : elle rend l'en-tête sans le corps, donc le poids sans le téléchargement, en local comme en ligne. La définition, elle, se lit sur l'image que la vignette affiche déjà (`naturalWidth`), et l'état reste DANS la vignette : remonté à la planche, chaque image chargée redessinerait les cinquante-sept autres. ⚠️ Un fichier compressible (les cinq SVG du gabarit) rend un `content-length` compressé, donc minoré ; sans conséquence, ce sont des résidus à supprimer.
 
-⚠️ **`public/holy-guessr/` n'est pas versionné**, donc absent d'un `checkout` d'intégration continue alors qu'il est là sur le poste de travail. Le test saute un dossier manquant au lieu de l'exiger : sans quoi il serait vert ici et rouge là-bas, le piège d'outillage le plus coûteux du dépôt.
+⚠️ **Un dossier non versionné** (ce fut `public/holy-guessr/`, retiré le 2026-09-26) est absent d'un `checkout` d'intégration continue alors qu'il est là sur le poste de travail. Le test saute un dossier manquant au lieu de l'exiger : sans quoi il serait vert ici et rouge là-bas, le piège d'outillage le plus coûteux du dépôt.
 
 ### La planche se lit par ONGLETS, et la POSE est machine-lisible (2026-08-30)
 
@@ -8846,8 +8837,8 @@ celui d'où le lecteur a parlé.** La boucle est retirée.
 production, si bien que `aUnCompte` (`contexteCompte.tsx`) tenait le compte de
 démonstration PARTAGÉ pour un compte personnel — tout ce qu'un invité signale, commente
 ou écrit était attribué au pseudo « invite ». La variable est posée ; ⛔ elle ne prend
-effet qu'au prochain déploiement. Et `/quiz` (404) écrit dans `quiz_signalements`,
-table qui n'existe pas : sans effet aujourd'hui, à reprendre avec Holy Guessr.
+effet qu'au prochain déploiement. (`/quiz` écrivait dans `quiz_signalements`, table
+jamais créée : le quiz et sa lecture en modération sont retirés le 2026-09-26.)
 
 # MA CHAÎNE — la troisième page de l'espace du lecteur (2026-09-07)
 

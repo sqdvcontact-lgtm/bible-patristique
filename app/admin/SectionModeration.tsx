@@ -95,7 +95,7 @@ function localiserSignalement(
 // comparait des CHAÎNES : aucun cas ne tombait jamais juste, et TOUS les signalements
 // paraissaient gris et sans étiquette, un « Bloquant » comme un « Mineur » (corrigé le
 // 2026-09-07). On traduit donc le code avant de choisir la teinte, en acceptant les deux
-// écritures : celles du quiz n'en portent aucune, et restent neutres.
+// écritures ; un signalement sans importance reste neutre.
 const NIVEAU_SIGNALEMENT: Record<string, 'mineur' | 'important' | 'bloquant'> = {
   '1': 'mineur', '2': 'important', '3': 'bloquant',
   mineur: 'mineur', important: 'important', bloquant: 'bloquant',
@@ -274,7 +274,6 @@ export default function SectionModeration(props: Props) {
                 <div className="mod-entete">
                   {imp.label && <span className="mod-badge" style={{ background: 'var(--cs-surface)', color: imp.accent, border: `1px solid ${imp.bord}` }}>{imp.label}</span>}
                   <BadgeLieu lieu={loc.lieu} />
-                  {s.source === 'quiz_signalements' && <span className="mod-badge" style={{ background: 'var(--cs-fond-doux)', color: '#6b5fa0' }}>Quiz</span>}
                   {loc.href ? <a className="mod-ref" href={loc.href} target="_blank" rel="noopener noreferrer">{loc.titre}</a> : <span className="mod-ref">{loc.titre}</span>}
                   <span className="mod-date">{dateFormat(s.created_at)}</span>
                 </div>

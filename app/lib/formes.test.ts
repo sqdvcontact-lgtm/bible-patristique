@@ -17,9 +17,6 @@ import { describe, expect, it } from 'vitest'
 const RACINE = join(import.meta.dirname, '..')
 const EXEMPTS = ['EssaiPDF.tsx'] // composé en points par PDFKit, pas par un navigateur
 
-// /quiz est neutralisée en production et son chantier n'est pas versionné : même
-// exemption que dans `echelleTypographique.test.ts` et `titresPages.test.ts`.
-const DOSSIERS_EXEMPTS = ['quiz']
 
 const RAYONS_ADMIS = new Set(['4px', '8px', '12px', '999px', '50%', '0'])
 
@@ -63,7 +60,6 @@ describe('formes', () => {
     for (const chemin of fichiersDeStyle(RACINE)) {
       const relatif = relative(RACINE, chemin)
       if (EXEMPTS.some(e => relatif.endsWith(e))) continue
-      if (DOSSIERS_EXEMPTS.includes(relatif.split(/[\\/]/)[0])) continue
       // Ce fichier CITE les deux motifs : ils s'apparieraient sur eux-mêmes.
       if (relatif.endsWith('formes.test.ts')) continue
       const dessines = RAYONS_DESSINES[relatif.split(/[\\/]/).pop() ?? ''] ?? []

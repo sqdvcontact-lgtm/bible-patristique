@@ -13,13 +13,12 @@ import { ICONES_ONGLET, ILLUSTRATIONS, FONCTIONS } from './inventaire'
 
 const RACINE = path.join(__dirname, '..', '..', '..')
 const PUBLIC = path.join(RACINE, 'public')
-const DOSSIERS_RECENSES = ['ornements', 'icons', 'logo', 'holy-guessr', 'auteurs']
+const DOSSIERS_RECENSES = ['ornements', 'icons', 'logo', 'auteurs']
 const EXTENSIONS = /\.(png|jpe?g|webp|svg|avif|ico)$/i
 
 /** Tous les fichiers image d'un dossier de `public/`, chemins publics compris.
  *
- *  ⚠️ Rend `null` si le dossier MANQUE, et ce n'est pas une précaution de style :
- *  `public/holy-guessr/` n'est pas versionné (chantier Holy Guessr), donc absent
+ *  ⚠️ Rend `null` si le dossier MANQUE : un dossier non versionné serait absent
  *  d'un `checkout` d'intégration continue alors qu'il est bien là sur le poste de
  *  travail. Un test qui l'exigerait serait vert ici et rouge là-bas, ce que la
  *  charte du dépôt consigne déjà comme le piège le plus coûteux de l'outillage. */
@@ -110,17 +109,6 @@ describe('inventaire des illustrations', () => {
   it('dit toujours où poser les yeux en arrivant', () => {
     for (const i of ILLUSTRATIONS) {
       if (i.lieu) expect(i.lieu.repere.trim().length, i.chemin).toBeGreaterThan(15)
-    }
-  })
-
-  // ⛔ `/quiz` renvoie un 404 en production (route neutralisée, chantier Holy
-  // Guessr). Y renvoyer serait promettre une page qui n'existe pas.
-  it('ne renvoie vers aucune route neutralisée', () => {
-    const neutralisees = ['/quiz']
-    for (const i of ILLUSTRATIONS) {
-      if (!i.lieu) continue
-      const route = i.lieu.href.split('?')[0].split('#')[0]
-      expect(neutralisees, `${i.chemin} renvoie vers ${route}`).not.toContain(route)
     }
   })
 

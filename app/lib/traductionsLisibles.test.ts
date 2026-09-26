@@ -28,7 +28,6 @@ import { describe, expect, it } from 'vitest'
 // risque rien : une colonne fausse s'y verrait à la lecture.
 
 const RACINE = join(import.meta.dirname, '..')
-const DOSSIERS_EXEMPTS = ['quiz']
 
 /**
  * Les lectures à colonnes calculées qui ne passent PAS encore par le filtre, chacune
@@ -65,7 +64,6 @@ function fichiersSource(dossier: string, chemins: string[] = []): string[] {
 function surveilles(): { relatif: string; source: string }[] {
   return fichiersSource(RACINE)
     .map(chemin => ({ relatif: relative(RACINE, chemin).split(/[\\/]/).join('/'), chemin }))
-    .filter(({ relatif }) => !DOSSIERS_EXEMPTS.includes(relatif.split('/')[0]))
     .map(({ relatif, chemin }) => ({ relatif, source: readFileSync(chemin, 'utf8') }))
 }
 

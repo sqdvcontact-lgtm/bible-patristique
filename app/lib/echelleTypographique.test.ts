@@ -14,13 +14,6 @@ const RACINE = join(import.meta.dirname, '..')
 // l'échelle de l'écran ne s'y applique pas (voir l'en-tête d'EssaiPDF.tsx).
 const EXEMPTS = [join('essais', '[id]', 'EssaiPDF.tsx')]
 
-// /quiz est neutralisée en production (elle renvoie un 404) et sa version vivante
-// évolue sur le chantier Holy Guessr, dont les fichiers ne sont pas versionnés.
-// Même exemption, et pour la même raison, que `titresPages.test.ts`. Sans elle,
-// la garde tenait tout `npm test` en échec sur un chantier qui n'est pas en ligne :
-// une suite durablement rouge cesse d'être un signal. La lever le jour où le quiz
-// rejoindra le site, sa palette et son échelle avec.
-const DOSSIERS_EXEMPTS = ['quiz']
 
 // ⛔ LA GARDE LIT LA DÉCLARATION ENTIÈRE, NON LA VALEUR QUI SUIT LES DEUX-POINTS.
 //
@@ -82,7 +75,6 @@ describe('échelle typographique', () => {
     for (const chemin of fichiersDeStyle(RACINE)) {
       const relatif = relative(RACINE, chemin)
       if (EXEMPTS.some(e => relatif.endsWith(e) || relatif.split(sep).join(sep) === e)) continue
-      if (DOSSIERS_EXEMPTS.includes(relatif.split(sep)[0])) continue
       const source = sansCommentaires(readFileSync(chemin, 'utf8'))
       for (const declaration of source.matchAll(DECLARATION)) {
         if (EST_COMPOSITION.test(declaration[0])) continue
@@ -106,7 +98,7 @@ describe('échelle typographique', () => {
 // boîte fixe (cercle de moins de 20 px, un pictogramme et non un texte).
 const PLANCHER_REM = 0.6875
 const PLANCHER_CAPITALES_REM = 0.625
-const DOSSIERS_HORS_PLANCHER = ['admin', 'quiz']
+const DOSSIERS_HORS_PLANCHER = ['admin']
 const EST_CAPITALE_ESPACEE = (objet: string) =>
   /uppercase|small-caps|smallCaps|fontVariantCaps/.test(objet) ||
   parseFloat(objet.match(/letter-?[sS]pacing\s*:\s*['"]?(0?\.\d+)em/)?.[1] ?? '0') >= 0.06

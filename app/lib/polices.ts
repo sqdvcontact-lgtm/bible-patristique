@@ -12,8 +12,8 @@
  * ligne prend `fontFamily: SERIF` ; un bloc `<style>` écrit `font-family: ${SERIF}`.
  *
  * ⛔ Hors de ce module : `app/essais/[id]/EssaiPDF.tsx`, que PDFKit compose et qui ne
- * résout aucune variable CSS (il garde ses noms de police littéraux), l'administration
- * et le quiz, chantiers à part.
+ * résout aucune variable CSS (il garde ses noms de police littéraux), et
+ * l'administration, chantier à part.
  *
  * `MONO` reprend le jeton `--font-mono` de `globals.css`, qui n'a pas de famille
  * `next/font` : c'est la pile des systèmes.

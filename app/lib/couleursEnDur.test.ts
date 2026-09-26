@@ -24,7 +24,6 @@ const RACINE = join(import.meta.dirname, '..')
 // dans les deux gammes littérales du site — dont le contraste est éprouvé par sa
 // propre garde ('reliuresHautsFaits.test.ts'). Un jeton y rendrait le calcul impossible.
 const EXEMPTS = ['globals.css', 'EssaiPDF.tsx', 'couverturesEssai.ts', 'couleursEnDurInventaire.ts', 'reliuresHautsFaits.ts']
-const DOSSIERS_EXEMPTS = ['quiz']
 
 // ⚠️ Le `#` ne doit PAS être précédé d'un `&` : `&#8239;`, l'espace fine insécable que
 // la charte pose autour des guillemets, se lisait sinon comme la couleur `#8239`. Vu le
@@ -72,7 +71,6 @@ function fichiersSurveilles(): { relatif: string; source: string }[] {
   for (const chemin of fichiersDeStyle(RACINE)) {
     const relatif = relative(RACINE, chemin).split(/[\\/]/).join('/')
     if (EXEMPTS.some(e => relatif.endsWith(e))) continue
-    if (DOSSIERS_EXEMPTS.includes(relatif.split('/')[0])) continue
     if (/\.test\./.test(relatif)) continue
     sortie.push({ relatif, source: readFileSync(chemin, 'utf8') })
   }

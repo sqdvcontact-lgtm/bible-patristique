@@ -54,10 +54,6 @@ export const FONCTIONS = {
     titre: 'Signer un partenaire',
     propos: 'Logos dessinés pour les librairies recommandées. Chacun est un dessin maison, non le logo officiel de la maison.',
   },
-  'jeu': {
-    titre: 'Décorer le jeu',
-    propos: 'Frise du Holy Guessr. ⚠️ Aucune de ces images ne paraît sur le site : la route /quiz renvoie un 404 en production, le temps que le jeu soit prêt. Elles ne se voient donc qu’ici, et sur le serveur de développement.',
-  },
   'reserve': {
     titre: 'En réserve',
     propos: 'Présentes dans le dépôt, appelées par aucune page. Ce sont des variantes écartées, des dessins mis de côté et des restes d’un ancien mode de service. Elles pèsent pourtant dans le dépôt, et elles pèseront dans le jugement du jour où on les emploiera.',
@@ -793,22 +789,6 @@ export const ILLUSTRATIONS: Illustration[] = [
     source: 'app/librairies/page.tsx',
     traitement: { pose: { largeur: '52px', hauteurMax: '48px', sol: 'surface' } },
   },
-
-  // ── Décorer le jeu ─────────────────────────────────────────────────────────
-  {
-    chemin: '/holy-guessr/matthieu.png',
-    nom: 'Frise de Matthieu, entière',
-    fonction: 'jeu',
-    emploi: 'La frise complète, 30 016 × 640. Conservée telle quelle ; le jeu ne la charge pas, il charge les huit tuiles.',
-    source: 'app/quiz/HolyGuessr.tsx',
-  },
-  ...Array.from({ length: 8 }, (_, i): Illustration => ({
-    chemin: `/holy-guessr/matthieu_tile_${i}.png`,
-    nom: `Frise de Matthieu, tuile ${i + 1}`,
-    fonction: 'jeu',
-    emploi: `Tuile ${i + 1} sur 8 de la frise de Matthieu. Le découpage à 3 752 px vient de la limite de texture WebGL, non d’un choix de composition.`,
-    source: 'app/quiz/HolyGuessr.tsx',
-  })),
 
   {
     chemin: '/ornements/chiffre-cs.png',

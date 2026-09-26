@@ -8,12 +8,12 @@ import { MONO, SANS, SERIF } from './polices'
 // propre `SERIF` ou `SANS`. La garde parcourt `app/` et refuse toute pile écrite en
 // toutes lettres dans un module TypeScript. Les feuilles `.css` ne sont pas visées : elles
 // ne peuvent pas importer un module.
-// Hors garde, et NOMMÉS : l'administration et le quiz (chantiers à part), les tests,
+// Hors garde, et NOMMÉS : l'administration (chantier à part), les tests,
 // `EssaiPDF.tsx` (PDFKit ne résout aucune variable CSS) et le chantier Bible 899 de
 // l'auteur (`ModaleFacsimile899.tsx`, qu'on ne touche pas).
 
 const RACINE = join(import.meta.dirname, '..')
-const DOSSIERS_HORS_GARDE = ['admin', 'quiz']
+const DOSSIERS_HORS_GARDE = ['admin']
 const PILE = /var\(--font-source-(serif|sans)\)/
 
 function modules(dossier: string, chemins: string[] = []): string[] {

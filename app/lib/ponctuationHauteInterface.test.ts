@@ -24,7 +24,6 @@ const RACINE = join(__dirname, '..')
 const HORS_GARDE: { chemin: string; raison: string }[] = [
   { chemin: 'admin/', raison: 'administration : hors du périmètre du chantier' },
   { chemin: 'manuscrits/bible-899/', raison: 'chantier de l’auteur, non touché' },
-  { chemin: 'quiz/', raison: 'route neutralisée, version vivante sur la branche Holy Guessr' },
   { chemin: 'auth/apercu-', raison: 'outils d’atelier non versionnés' },
 ]
 

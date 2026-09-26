@@ -4,9 +4,9 @@ import path from 'node:path'
 import { POINTS_DE_RUPTURE, estTelephone } from './pointsDeRupture'
 
 const RACINE = path.join(__dirname, '..')
-// Hors périmètre : l'administration (tableaux larges, hors du lecteur) et le quiz
-// (route neutralisée, chantier Holy Guessr), comme les autres gardes du dessin.
-const EXCLUS = [path.join(RACINE, 'admin'), path.join(RACINE, 'quiz')]
+// Hors périmètre : l'administration (tableaux larges, hors du lecteur), comme les
+// autres gardes du dessin.
+const EXCLUS = [path.join(RACINE, 'admin')]
 
 function fichiers(dossier: string, acc: string[] = []): string[] {
   for (const e of fs.readdirSync(dossier, { withFileTypes: true })) {
