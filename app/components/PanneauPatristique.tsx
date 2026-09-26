@@ -1499,7 +1499,7 @@ export default function PanneauPatristique({
               </button>
             )}
             <OngletsPage
-              className="cs-onglets--volet"
+              className={mobile ? 'cs-onglets--volet cs-onglets--compte-en-ligne' : 'cs-onglets--volet'}
               style={{ flex: 1, minWidth: 0, paddingLeft: margeOnglets, paddingRight: margeOnglets }}
               intitule="Ce que montre le volet"
               onglets={ONGLETS.map(t => ({

@@ -2978,6 +2978,10 @@ p:has(> .seg-inline > .cs-lettrine) { display: flow-root; }
 /* Un onglet qui porte une ligne SOUS son libellé (le compte du volet des Pères) :
    OngletsPage pose la classe quand la page donne cette ligne. */
 .cs-onglet--sous { flex-direction: column; gap: 2px; }
+/* Au téléphone, le compte SUIT le libellé sur sa ligne (relevé de l'auteur, 2026-09-26 :
+   « Pères de l'Église » et « Discussion » tenaient sur deux lignes). Même règle que les
+   sous-onglets du volet ; le volet pose la classe quand son prop `mobile` est vrai. */
+.cs-onglets--compte-en-ligne .cs-onglet--sous { flex-direction: row; gap: 5px; white-space: nowrap; }
 
 @media (prefers-reduced-motion: reduce) {
   .cs-onglet { transition: none; }

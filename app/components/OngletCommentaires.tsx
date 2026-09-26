@@ -421,10 +421,12 @@ export default function OngletCommentaires({ verset, userId, isAdmin, onCount }:
           </>
         )}
         {erreur && <p role="alert" style={{ ...TEXTE_ERREUR, margin:0 }}>{erreur}</p>}
-        <div style={{ display:'flex', alignItems:'flex-start', justifyContent:'space-between', gap:'8px' }}>
-          <label style={{ display:'flex', alignItems:'flex-start', gap:'7px', fontSize:'0.6875rem', color:'var(--cs-texte-second)', cursor:'pointer', lineHeight:1.3, minHeight:'24px' }}>
+        <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', gap:'8px' }}>
+          {/* Le libellé se centre sur la case (relevé de l'auteur, 2026-09-26) : un seul mot,
+              plus rien à aligner sur la première ligne d'un texte qui s'enroule. */}
+          <label style={{ display:'flex', alignItems:'center', gap:'7px', fontSize:'0.6875rem', color:'var(--cs-texte-second)', cursor:'pointer', lineHeight:1.3, minHeight:'24px' }}>
             <input type="checkbox" checked={demandeValidation} onChange={e => setDemandeValidation(e.target.checked)}
-              style={{ width:'16px', height:'16px', flexShrink:0, accentColor:'var(--cs-vert)', cursor:'pointer', margin:'1px 0 0' }} />
+              style={{ width:'16px', height:'16px', flexShrink:0, accentColor:'var(--cs-vert)', cursor:'pointer', margin:0 }} />
             {/* Le libellé se réduit à un mot (2026-09-26) ; l'infobulle dit le reste. */}
             <span title={'Demander la certification : validé, le commentaire passe en tête.'}>Certification</span>
           </label>
