@@ -357,7 +357,7 @@ export default function OngletCommentaires({ verset, userId, isAdmin, onCount }:
   }
 
   return (
-    <div style={{ display:'flex', flexDirection:'column', height:'100%', minHeight:0, padding:'10px 0' }}>
+    <div style={{ display:'flex', flexDirection:'column', flex:1, height:'100%', minHeight:0, padding:'10px 0' }}>
       <style>{`
         .commentaire-carte {
           transition: opacity var(--cs-duree-moyenne) ease, box-shadow var(--cs-duree-moyenne) ease, margin var(--cs-duree-moyenne) ease;
@@ -425,10 +425,8 @@ export default function OngletCommentaires({ verset, userId, isAdmin, onCount }:
           <label style={{ display:'flex', alignItems:'flex-start', gap:'7px', fontSize:'0.6875rem', color:'var(--cs-texte-second)', cursor:'pointer', lineHeight:1.3, minHeight:'24px' }}>
             <input type="checkbox" checked={demandeValidation} onChange={e => setDemandeValidation(e.target.checked)}
               style={{ width:'16px', height:'16px', flexShrink:0, accentColor:'var(--cs-vert)', cursor:'pointer', margin:'1px 0 0' }} />
-            <span>
-              Demander la certification
-              <span style={{ display:'block', fontSize:'0.6875rem', color:'var(--cs-texte-gris)' }}>Validé, il passe en tête.</span>
-            </span>
+            {/* Le libellé se réduit à un mot (2026-09-26) ; l'infobulle dit le reste. */}
+            <span title={'Demander la certification : validé, le commentaire passe en tête.'}>Certification</span>
           </label>
           <button onClick={envoyer} disabled={envoi}
             className="cs-bouton-plein cs-bouton-plein--compact" style={{ flexShrink:0 }}>

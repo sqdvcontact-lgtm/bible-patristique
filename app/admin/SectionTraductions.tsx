@@ -358,7 +358,8 @@ function EditeurRichText({ valeur, onChange }: { valeur: string; onChange: (v: s
   const petitesCapitalesDirect = () => {
     ref.current?.focus()
     const selection = window.getSelection()?.toString() || ''
-    document.execCommand('insertHTML', false, `<span style="font-variant:small-caps">${selection || 'texte'}</span>`)
+    if (!selection) return
+    document.execCommand('insertHTML', false, `<span style="font-variant:small-caps">${selection}</span>`)
     onChange(ref.current?.innerHTML ?? '')
   }
 

@@ -119,7 +119,7 @@ export default function ModaleEditionAdmin({ cible, idOeuvre, onClose, onEnregis
     const ta = taRef.current
     if (!ta) return
     const d = ta.selectionStart, f = ta.selectionEnd
-    const selection = valeur.slice(d, f) || 'texte'
+    const selection = valeur.slice(d, f)
     const nouveau = valeur.slice(0, d) + avant + selection + apres + valeur.slice(f)
     setValeur(nouveau)
     setTimeout(() => { ta.focus(); ta.setSelectionRange(d + avant.length, d + avant.length + selection.length) }, 0)

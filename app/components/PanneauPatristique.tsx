@@ -1233,6 +1233,12 @@ export default function PanneauPatristique({
     }] : []),
   ]
   const rangeeOnglets = !(mobile && ONGLETS.length === 1)
+  // ⛔ SUR TÉLÉPHONE, LA ZONE DE RÉDACTION D'UN COMMENTAIRE SE TIENT EN BAS DE L'ÉCRAN
+  // (2026-09-26). Le volet empilé suit sinon la page, et la saisie tombait sous la
+  // liste, n'importe où. Sous l'onglet de la discussion, il prend donc la hauteur de
+  // l'écran (et non plus un plancher) : la liste défile en dedans, la saisie reste au
+  // pied, au-dessus du bandeau de chapitre, comme au bureau.
+  const discussionEpinglee = mobile && presentation === 'inline' && sousBarres && ongletAffiche === 'commentaires' && !!verset
   const SOUS_ONGLETS: [SousOnglet, string, number, (n: number) => string][] = [
     ['citations', 'Citations', comptesSousOnglets.citations, n => pluriel(n, 'citation', 'citations')],
     ['doctrine', 'Commentaires', comptesSousOnglets.doctrine, n => pluriel(n, 'commentaire', 'commentaires')],
@@ -1449,7 +1455,7 @@ export default function PanneauPatristique({
     <aside ref={refPanel} id={idVolet} data-visite="peres" role={tiroirOuvert ? 'dialog' : undefined} aria-modal={tiroirOuvert || undefined} aria-label="Pères de l’Église"
       style={mobile
       ? (presentation === 'inline'
-        ? { width:'100%', background:'var(--cs-surface)', display:'flex', flexDirection:'column', ...(sousBarres ? { paddingTop:'2.875rem', minHeight:`calc(100dvh - ${HAUTEUR_NAVBAR})`, paddingBottom:BANDEAU_NAV_MOBILE } : {}) }
+        ? { width:'100%', background:'var(--cs-surface)', display:'flex', flexDirection:'column', ...(sousBarres ? { paddingTop:'2.875rem', [discussionEpinglee ? 'height' : 'minHeight']:`calc(100dvh - ${HAUTEUR_NAVBAR})`, paddingBottom:BANDEAU_NAV_MOBILE } : {}) }
         : { position:'fixed', bottom:BANDEAU_NAV_MOBILE, left:0, right:0, zIndex: Z_TIROIR, background:'var(--cs-surface)', borderTop:'1px solid var(--cs-bord)', display:'flex', flexDirection:'column', maxHeight:`calc(100dvh - ${HAUTEUR_NAVBAR} - 2.5rem - ${BANDEAU_NAV_MOBILE})`, minHeight:0, boxShadow:'var(--cs-ombre-modale-haut)' })
       : { width: panelWidth == null ? 'clamp(260px, 20vw, 460px)' : panelWidth + 'px', flexShrink:0, background:'var(--cs-surface)', borderLeft:'1px solid var(--cs-bord)', display:'flex', flexDirection:'column', height:'100%', minHeight:0, position:'relative' }}>
       {/* Tag de filtre : un fantôme en gras (::after) fige la largeur. */}

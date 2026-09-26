@@ -492,7 +492,7 @@ export default function OngletCommentaires({ segActif, estAdmin }: { segActif: n
             <label style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.6875rem', color: 'var(--cs-texte-second)', cursor: 'pointer', lineHeight: 1, height: '16px', marginTop: '6px' }}>
               <input type="checkbox" checked={demandeValidation} onChange={e => setDemandeValidation(e.target.checked)}
                 style={{ width: '12px', height: '12px', flexShrink: 0, accentColor: 'var(--cs-vert)', cursor: 'pointer', margin: 0 }} />
-              <span title="La certification met le commentaire en avant après validation et le fait remonter dans la liste.">Demander la certification</span>
+              <span title={'Demander la certification : validé, le commentaire passe en tête.'}>Certification</span>
             </label>
             <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '6px', gap: '8px', alignItems: 'center' }}>
               {statut === 'err' && motifErreur && <span role="alert" style={{ fontSize: '0.6875rem', color: 'var(--cs-danger)' }}>{motifErreur}</span>}

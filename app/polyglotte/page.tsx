@@ -714,7 +714,7 @@ function ModaleEditionVerset({ reference, valeurInitiale, statut, onEnregistrer,
   const outil: React.CSSProperties = { fontSize: '0.6875rem', padding: "4px 9px", borderRadius: 4, border: "1px solid var(--cs-bord)", background: "var(--cs-surface)", color: "var(--cs-texte-fort)", cursor: "pointer", fontFamily: "inherit", lineHeight: 1 };
   const entourer = (avant: string, apres: string = avant) => {
     const el = ta.current; if (!el) return;
-    const d = el.selectionStart, f = el.selectionEnd, sel = valeur.slice(d, f) || "texte";
+    const d = el.selectionStart, f = el.selectionEnd, sel = valeur.slice(d, f);
     setValeur(valeur.slice(0, d) + avant + sel + apres + valeur.slice(f));
     setTimeout(() => { el.focus(); el.setSelectionRange(d + avant.length, d + avant.length + sel.length); }, 0);
   };

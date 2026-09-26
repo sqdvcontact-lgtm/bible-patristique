@@ -96,8 +96,11 @@ export default function ModaleEditionVerset({ verset, traduction, traductionLabe
   const inserer = (t: string) => { edRef.current?.focus(); document.execCommand('insertText', false, t); sync() }
   const entourer = (avant: string, apres: string = avant) => {
     edRef.current?.focus()
-    const texte = window.getSelection()?.toString() || 'texte'
+    // ⛔ Aucun texte de remplissage : sans sélection, le curseur se pose entre les deux.
+    const sel = window.getSelection()
+    const texte = sel?.toString() ?? ''
     document.execCommand('insertText', false, `${avant}${texte}${apres}`)
+    if (!texte) for (let i = 0; i < apres.length; i++) sel?.modify('move', 'backward', 'character')
     sync()
   }
   // Petites capitales : span dédié inséré autour de la sélection (pas de commande native).
@@ -105,7 +108,8 @@ export default function ModaleEditionVerset({ verset, traduction, traductionLabe
     const el = edRef.current; if (!el) return; el.focus()
     const sel = window.getSelection(); if (!sel || sel.rangeCount === 0) return
     const range = sel.getRangeAt(0)
-    const texte = sel.toString() || 'texte'
+    const texte = sel.toString()
+    if (!texte) return
     range.deleteContents()
     const span = document.createElement('span')
     span.style.fontVariant = 'small-caps'; span.style.letterSpacing = '0.04em'; span.textContent = texte

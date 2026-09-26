@@ -147,11 +147,14 @@ export default function EditeurCommentaire({ value, onChange, placeholder = 'Vot
     majActifs()
   }
 
+  // ⛔ Aucun texte de remplissage (2026-09-26) : sans sélection, les guillemets
+  // s'ouvrent vides et le curseur se pose entre les deux.
   const entourerTexte = (avant: string, apres: string) => {
     ref.current?.focus()
     const selection = window.getSelection()
-    const texte = selection?.toString() || 'texte'
+    const texte = selection?.toString() ?? ''
     document.execCommand('insertText', false, `${avant}${texte}${apres}`)
+    if (!texte) for (let i = 0; i < apres.length; i++) selection?.modify('move', 'backward', 'character')
     synchroniser()
   }
 
@@ -173,7 +176,10 @@ export default function EditeurCommentaire({ value, onChange, placeholder = 'Vot
         ;(parent as HTMLElement).normalize()
       }
     } else {
-      const texte = sel.toString() || 'texte'
+      // ⛔ Rien de sélectionné, rien à mettre en petites capitales (2026-09-26) :
+      // on ne pose plus le mot « texte » à la place du lecteur.
+      const texte = sel.toString()
+      if (!texte) return
       range.deleteContents()
       const span = document.createElement('span')
       span.style.fontVariant = 'small-caps'
