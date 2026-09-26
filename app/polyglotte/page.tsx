@@ -2922,14 +2922,14 @@ export default function PolyglottePage() {
           <br /><br />
           <strong>Ouvrez-la sur un écran plus large.</strong>
         </p>
-        {/* Le renvoi vers la Bible classique, qui se lit au téléphone (audit du 2026-09-23). */}
-        {livreChoisi && (
-          <p style={{ fontSize: '0.875rem', lineHeight: 1.6, margin: "18px 0 0" }}>
-            <a className="cs-lien-phrase" href={`/?livre=${livreChoisi}&chapitre=${chapitreChoisi ?? 1}`}>
-              Lire {nomLivreReference(livreChoisi)} {chapitreChoisi ?? 1} dans la Bible classique
-            </a>
-          </p>
-        )}
+        {/* Le renvoi vers la Bible classique, qui se lit au téléphone (audit du 2026-09-23) :
+            un bouton qui ne dit que le nom de la page (2026-09-26). Il ouvre le chapitre en
+            cours quand il y en a un. */}
+        <p style={{ margin: "22px 0 0" }}>
+          <a className="cs-bouton-plein" href={livreChoisi ? `/?livre=${livreChoisi}&chapitre=${chapitreChoisi ?? 1}` : "/?livre=GEN&chapitre=1"}>
+            Ouvrir la Bible classique
+          </a>
+        </p>
         {/* Un fleuron du registre ferme le message (21 septembre 2026 : l'ordinateur ardent a
             cédé sa place). Voir `FleuronDiscret`, qui dit quel fleuron ferme quel vide. */}
         <div style={{ display: "flex", justifyContent: "center", marginTop: "34px" }}><FleuronDiscret vide="polyglotte" /></div>

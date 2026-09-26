@@ -10,8 +10,10 @@ import { useFavoris } from '@/app/lib/useFavoris'
 import { refFavoriOriginal } from '@/app/lib/refsFavoris'
 import EtoileFavori from '@/app/components/EtoileFavori'
 import { useEstMobile } from '@/app/lib/useEstMobile'
+import { POINTS_DE_RUPTURE } from '@/app/lib/pointsDeRupture'
 import IconeChevron from '@/app/components/IconeChevron'
 import OngletsPage from '@/app/components/OngletsPage'
+import BarreOngletsMobile, { HAUTEUR_BARRE_ONGLETS_MOBILE } from '@/app/components/BarreOngletsMobile'
 import IconeSignalement from '@/app/components/IconeSignalement'
 import { estOeuvrePubliee } from '@/app/lib/oeuvresPublication'
 import { serieDeLAuteur } from '@/app/lib/langueBude'
@@ -190,6 +192,9 @@ function PanneauAuteur({ auteur, recherche, favorisOeuvres, toggleFavoriOeuvre, 
   // La liste est pilotée par des styles INLINE : une média-query ne peut pas les
   // surcharger, d'où la détection en JS (patron de la charte, § Responsive).
   const estMobile = useEstMobile()
+  // Sous 640 px la photo tombe et la carte épouse son contenu (globals.css) : c'est là
+  // qu'elle se CONDENSE (2026-09-26) — rembourrage, blancs et notice resserrés.
+  const telephone = useEstMobile(POINTS_DE_RUPTURE.telephone)
   const q = sansAccents(recherche.trim())
   const oeuvresTriees = useMemo(
     () => [...auteur.oeuvres].sort((a, b) => comparerTitres(a.titre, b.titre)),
@@ -278,7 +283,7 @@ function PanneauAuteur({ auteur, recherche, favorisOeuvres, toggleFavoriOeuvre, 
           </div>
         )}
 
-        <div style={{ flex: 1, padding: compact ? '6px 12px' : '16px 18px 14px', display: 'flex', flexDirection: 'column', gap: compact ? '2px' : '6px' }}>
+        <div style={{ flex: 1, padding: compact ? '6px 12px' : telephone ? '10px 14px 9px' : '16px 18px 14px', display: 'flex', flexDirection: 'column', gap: compact ? '2px' : telephone ? '4px' : '6px' }}>
           <div>
             {/* LE NOM OUVRE LA FICHE, ET RIEN NE L'ACCOMPAGNE (décision de l'auteur,
                 2026-09-16 : « ne pas afficher de petite flèche à côté du nom de l'auteur
@@ -316,7 +321,7 @@ function PanneauAuteur({ auteur, recherche, favorisOeuvres, toggleFavoriOeuvre, 
                   COUPE (collé au texte, en remplacement de la ponctuation finale). La
                   biographie (italique) et la note théologique (romain) s'écoulent d'un
                   seul tenant. */}
-              <div ref={proseRef} style={{ display: '-webkit-box', WebkitLineClamp: lignesNotice, WebkitBoxOrient: 'vertical', overflow: 'hidden', fontSize: '0.75rem', lineHeight: 1.5, color: 'var(--cs-texte)', fontFamily: SERIF }}>
+              <div ref={proseRef} style={{ display: '-webkit-box', WebkitLineClamp: telephone ? Math.min(lignesNotice, 2) : lignesNotice, WebkitBoxOrient: 'vertical', overflow: 'hidden', fontSize: '0.75rem', lineHeight: telephone ? 1.42 : 1.5, color: 'var(--cs-texte)', fontFamily: SERIF }}>
                 {(auteur.note_biographique || auteur.note) && (
                   <span className="cs-notice-italique" style={{ fontStyle: 'italic' }}>{rendreEnrichi(auteur.note_biographique || auteur.note)}</span>
                 )}
@@ -331,7 +336,7 @@ function PanneauAuteur({ auteur, recherche, favorisOeuvres, toggleFavoriOeuvre, 
               auteur » a été retiré : le nom de l'auteur y mène déjà, et la notice
               tronquée s'achève sur des points de suspension qui disent assez qu'elle se
               poursuit ailleurs. */}
-          <div style={{ marginTop: 'auto', paddingTop: compact ? '2px' : '6px', display: 'flex', alignItems: 'baseline', gap: '10px' }}>
+          <div style={{ marginTop: 'auto', paddingTop: compact || telephone ? '2px' : '6px', display: 'flex', alignItems: 'baseline', gap: '10px' }}>
             <button onClick={() => setOuvert(!ouvert)}
               style={{ fontSize: '0.6875rem', color: 'var(--cs-vert)', background: 'none', border: 'none', cursor: 'pointer', padding: 0, display: 'inline-flex', alignItems: 'baseline', gap: '4px', lineHeight: 1 }}>
               <span style={{ display: 'inline-flex', alignSelf: 'center' }}><IconeChevron dir={listeOuverte ? 'up' : 'down'} taille="0.5625rem" strokeWidth={1.5} /></span>
@@ -2095,31 +2100,49 @@ export default function BibliothequeClient({ auteurs: auteursInitiaux, erreurCha
           La bibliothèque n’a pas pu être chargée entièrement. Rechargez la page pour réessayer.
         </div>
       )}
-      <div className="bib-page" style={{ maxWidth: '56.25rem', margin: '0 auto', padding: '22px 32px 40px' }}>
+      <div className="bib-page" style={{ maxWidth: '56.25rem', margin: '0 auto', padding: estMobile ? `calc(${HAUTEUR_BARRE_ONGLETS_MOBILE} + 14px) 32px 40px` : '22px 32px 40px' }}>
 
         {/* En-tête : titre, onglets et recherche, avec une même respiration verticale (≈14 px)
-            entre chaque strate pour former un bloc au rythme régulier. */}
-        <div style={{ textAlign: 'center', marginBottom: '14px' }}>
-          <h1 style={{ fontFamily: SERIF, fontSize: TITRE_PAGE, fontWeight: GRAISSE_TITRE, color: ENCRE_TITRE, margin: 0, lineHeight: INTERLIGNE_TITRE_PAGE }}>
-            Patristique
-          </h1>
-        </div>
+            entre chaque strate pour former un bloc au rythme régulier.
+            Sur téléphone (2026-09-26), ni titre ni barre centrée : la barre d'onglets de la
+            Bible classique, fixée sous la navigation, et « Catalogue » tout court. */}
+        {!estMobile && (
+          <div style={{ textAlign: 'center', marginBottom: '14px' }}>
+            <h1 style={{ fontFamily: SERIF, fontSize: TITRE_PAGE, fontWeight: GRAISSE_TITRE, color: ENCRE_TITRE, margin: 0, lineHeight: INTERLIGNE_TITRE_PAGE }}>
+              Patristique
+            </h1>
+          </div>
+        )}
 
         {/* Onglets — modèle commun du site, cf. `.cs-onglets` dans globals.css. */}
         {/* Repère de la visite : l'enveloppe, non la barre — le modèle commun des
             onglets ne porte pas d'attribut de données, et l'envelopper ne coûte rien. */}
-        <div data-visite="bib-onglets">
-        <OngletsPage
-          intitule="Sections de la bibliothèque"
-          actif={onglet}
-          choisir={setOnglet}
-          style={{ marginBottom: '14px' }}
-          onglets={[
-            { cle: 'bibliotheque' as Onglet, libelle: 'Auteurs' },
-            { cle: 'favoris' as Onglet, libelle: 'Favoris' },
-            { cle: 'catalogue' as Onglet, libelle: 'Catalogue des traductions' },
-          ]}
-        />
+        <div data-visite={estMobile ? undefined : 'bib-onglets'}>
+        {estMobile ? (
+          <BarreOngletsMobile
+            visite="bib-onglets"
+            intitule="Sections de la bibliothèque"
+            actif={onglet}
+            choisir={setOnglet}
+            onglets={[
+              { cle: 'bibliotheque' as Onglet, libelle: 'Auteurs' },
+              { cle: 'favoris' as Onglet, libelle: 'Favoris' },
+              { cle: 'catalogue' as Onglet, libelle: 'Catalogue' },
+            ]}
+          />
+        ) : (
+          <OngletsPage
+            intitule="Sections de la bibliothèque"
+            actif={onglet}
+            choisir={setOnglet}
+            style={{ marginBottom: '14px' }}
+            onglets={[
+              { cle: 'bibliotheque' as Onglet, libelle: 'Auteurs' },
+              { cle: 'favoris' as Onglet, libelle: 'Favoris' },
+              { cle: 'catalogue' as Onglet, libelle: 'Catalogue des traductions' },
+            ]}
+          />
+        )}
         </div>
 
         {/* Contenu onglet Bibliothèque */}
@@ -2245,7 +2268,7 @@ export default function BibliothequeClient({ auteurs: auteursInitiaux, erreurCha
                 </p>
               ) : (
                 <>
-                  <div ref={listeAuteursRef} style={{ display: 'flex', flexDirection: 'column', gap: '16px', scrollMarginTop: `calc(${HAUTEUR_NAVBAR} + 12px)` }}>
+                  <div ref={listeAuteursRef} style={{ display: 'flex', flexDirection: 'column', gap: estMobile ? '10px' : '16px', scrollMarginTop: `calc(${HAUTEUR_NAVBAR} + 12px)` }}>
                     {auteursPage.map((auteur, rang) => (
                       <PanneauAuteur key={auteur.id_auteur} auteur={auteur} recherche={recherche} favorisOeuvres={favorisOeuvres} toggleFavoriOeuvre={toggleFavoriOeuvre} onOuvrirAuteur={setAuteurModal} originaux={originaux}
                         // ⚠️ La visite ne déplie que la PREMIÈRE carte : c'est la seule qu'elle cerne.

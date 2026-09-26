@@ -1,12 +1,13 @@
 'use client'
 
 import { useCallback, useEffect, useLayoutEffect, useMemo, useState, useRef, type KeyboardEvent as ReactKeyboardEvent } from 'react'
-import { Z_BANDEAU_LECTURE, Z_ONGLETS_LECTURE } from '@/app/lib/empilement'
+import { Z_BANDEAU_LECTURE } from '@/app/lib/empilement'
 import { MarqueAttente, ProvisionAttente, useAvantDeNaviguer, useEnAttente, useNaviguer, usePrecharger } from '@/app/lib/attenteNavigation'
 import { ATTRIBUT_BARRE_LECTURE, ecartRepere, repriseEnCours, sommetDeLecture } from '@/app/lib/defilementLecture'
 import { DUREE_ENTREE_MS, DUREE_OUVERTURE_MS, SELECTEUR_BLOCS_BIBLE, elementEnTete, ordonnerBlocsVisibles } from '@/app/lib/passageTexte'
 import { lirePositionBible, lireRepere, PARAMETRE_REPERE, retenirPositionBible, versetDeReprise } from '@/app/lib/repriseLecture'
 import NavLivres, { type PieceSommaireBible } from './NavLivres'
+import { STYLE_BARRE_ONGLETS_MOBILE, styleOngletMobile } from './BarreOngletsMobile'
 import TexteBible, { texteAbsentDuChapitre, type BiblePorteuse, type EtatRechercheBibles } from './TexteBible'
 import PanneauPatristique from './PanneauPatristique'
 import { supabase } from '@/app/lib/supabase'
@@ -17,7 +18,7 @@ import { chargerDensiteChapitre, libelleDensiteVerset, type DensiteVerset } from
 const DENSITES_VIDES: ReadonlyMap<string, DensiteVerset> = new Map()
 import { abrevLisible } from '@/app/lib/bible'
 import { formaterPlageCanonique, nomLivreReference, parsePointCanonique } from '@/app/lib/referencesBibliques'
-import { HAUTEUR_SOUS_NAVBAR, BANDEAU_NAV_MOBILE, HAUTEUR_NAVBAR } from '@/app/lib/mesures'
+import { HAUTEUR_SOUS_NAVBAR, BANDEAU_NAV_MOBILE } from '@/app/lib/mesures'
 import { GOUTTIERE_ACTIONS_VERSET } from '@/app/lib/compositionBible'
 import { useEstMobile } from '@/app/lib/useEstMobile'
 import { selectableReadingModes, type TranslationReadingCapabilities } from '@/app/lib/bibleReadingModes'
@@ -1170,7 +1171,7 @@ function PageBible({ livres, versets, traductions, livreActif, chapitreActif, no
       {/* Onglets mobiles, fixés sous la navbar : Livres / Texte / Pères. Une vraie liste
           d'onglets (`tablist`), qui nomme les panneaux qu'elle commande. */}
       {mobile && (
-        <div ref={barreOngletsRef} role="tablist" aria-label="Parties de la page" {...{ [ATTRIBUT_BARRE_LECTURE]: '' }} style={{ position: 'fixed', top: HAUTEUR_NAVBAR, left: 0, right: 0, zIndex: Z_ONGLETS_LECTURE, height: '2.875rem', display: 'flex', alignItems: 'stretch', background: 'var(--cs-fond-clair)', borderBottom: '1px solid var(--cs-bord)', boxShadow: 'var(--cs-ombre-posee)' }}>
+        <div ref={barreOngletsRef} role="tablist" aria-label="Parties de la page" {...{ [ATTRIBUT_BARRE_LECTURE]: '' }} style={STYLE_BARRE_ONGLETS_MOBILE}>
           {ONGLETS_MOBILE.map((o, rang) => {
             const actif = voletMobile === o.cle
             return (
@@ -1178,7 +1179,7 @@ function PageBible({ livres, versets, traductions, livreActif, chapitreActif, no
                 aria-selected={actif} aria-controls={idPanneau(o.cle)} tabIndex={actif ? 0 : -1}
                 onClick={() => changerOnglet(o.cle)} onKeyDown={e => surToucheOnglet(e, rang)}
                 aria-label={o.dire} title={o.dire}
-                style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.375rem', background: actif ? 'rgba(var(--cs-vert-rgb),0.05)' : 'none', border: 'none', borderBottom: actif ? '2px solid var(--cs-vert-aplat)' : '2px solid transparent', cursor: 'pointer', color: actif ? 'var(--cs-encre)' : 'var(--cs-texte-gris)', fontSize: '0.6875rem', letterSpacing: '0.08em', textTransform: 'uppercase', fontWeight: actif ? 600 : 500, transition: 'color var(--cs-duree-courte), background var(--cs-duree-courte)' }}>
+                style={styleOngletMobile(actif)}>
                 {o.label}
                 {/* ⚠️ Le chiffre ne prend ni l'espacement des capitales ni la graisse de
                     l'onglet actif : c'est un nombre, pas un mot du libellé. Il garde sa
