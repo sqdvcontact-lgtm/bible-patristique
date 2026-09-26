@@ -11319,6 +11319,12 @@ Six demandes de l'auteur sur la page de lecture d'une œuvre, servies le 15 sept
 - ⛔ **AU-DELÀ DE `ID_SEGMENT_MAX` (2^31 − 1), L'ONGLET NE PROMET RIEN** : il dit « Les commentaires ne sont pas encore ouverts sur ce texte. » au lieu d'offrir un formulaire voué à l'échec. La borne est exportée par `OngletCommentaires`, et le compte des commentaires de `OeuvreClient` la lit aussi (il se taisait déjà au-delà : « LE VOLET D’UNE ŒUVRE SUR TÉLÉPHONE », 2026-09-09). Le 15 septembre 2026, 2 573 segments la dépassent, dont 2 569 au-delà de 2^53 : 2 236 dans les *Catéchèses baptismales*, 170 dans les *Catéchèses mystagogiques*, 86 dans l'*Homélie sur le paralytique*, 53 dans l'*Homélie sur la Présentation au Temple*, 28 dans la *Lettre à l’empereur Constance*. ⚠️ Le remède est dans la donnée, côté GPT : `commentaires.id_segment` est un `integer` quand `segments.id` est un `bigint`, et un identifiant au-delà de 2^53 s'arrondit dans le navigateur (« Une page de lecture ne tombe pas sur une couche SECONDAIRE », 2026-09-05). Une cible par `(id_texte, segment_key)` n'aurait aucun des deux défauts.
 - ⚠️ Le formulaire prend un blanc de 12 px sous le bouton « Soumettre », qui touchait le bord bas de la fenêtre.
 
+## Trois décisions de l'audit de lecture (2026-09-26)
+
+- ⛔ **La comparaison des traductions est retirée** de la page d'une œuvre (`ComparaisonTraductions`, `?compare=` et leurs tests n'existent plus) : la lecture en regard d'un texte et de son original reste le seul mode à deux colonnes.
+- ⛔ **Le bas d'une division suit le modèle de la Bible** (`NavigationBasChapitre`, `voisinsDeLecture.ts`) : la dernière page mène à la division suivante, la première à la précédente, la barre n'est grisée qu'aux bornes de l'œuvre, et une division d'une seule page dit sa place parmi les divisions.
+- ⛔ **Aucune date de traduction n'est affichée** (`trad_date` n'existe pas en base) : refusée par l'auteur le 2026-09-26.
+
 # ⛔ LES FENÊTRES « À PROPOS » — un seul modèle, `app/components/FicheModele.tsx` (2026-09-15)
 
 Doctrine : charte `parametres.charte_ia`, **§ 38.33**. Demande de l’auteur : uniformiser les fenêtres d’auteur, de traduction et d’édition, laisser le texte reprendre la place que la colonne de droite laisse, rendre sur la page « Les traductions » les données de la fenêtre, porter les ouvrages cités dans la fiche d’une édition, et replier une longue liste au-delà de dix. Règles de code :
