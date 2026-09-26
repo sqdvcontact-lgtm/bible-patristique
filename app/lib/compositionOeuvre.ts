@@ -133,6 +133,14 @@ function placeDansSonBloc(dedans: boolean, suiviDuMeme: boolean): 'suite' | 'fin
  *  l’interligne ») : c’est l’interligne du gris par défaut du corps. */
 export const INTERLIGNE_LECTURE = 1.55
 
+/** L’interligne d’une colonne ORIGINALE lue EN REGARD du français, sur la page d’une œuvre
+ *  comme sur la page Bible. ⛔ Il est plus serré que celui du gris (demande de l’auteur,
+ *  2026-09-26 : le latin « doit lui aussi respecter, à peu près, les mêmes règles :
+ *  interligne plus faible ») : descendue d’un rang et composée en sans, la colonne
+ *  paraissait plus aérée que le français qu’elle accompagne. Elle en prend l’espace et la
+ *  chasse par les jetons, et cet interligne en propre. Charte § 3.11.8. */
+export const INTERLIGNE_ORIGINAL_EN_REGARD = 1.45
+
 /** Le corps de la LETTRINE, en em du texte. Le préfixe s’y rapporte : posé DANS le
  *  flottant, son `font-size` se compte en em de la lettrine, et `1 / 3.4` lui rend
  *  exactement le corps du texte courant. */
@@ -501,7 +509,7 @@ export function styleColonneOriginale(
   if (vers) return commun as CSSProperties
   return {
     ...commun,
-    lineHeight: argument ? 1.6 : seul ? INTERLIGNE_LECTURE : 1.58,
+    lineHeight: argument ? 1.6 : seul ? INTERLIGNE_LECTURE : INTERLIGNE_ORIGINAL_EN_REGARD,
     textAlign: 'justify',
     textJustify: 'inter-word',
     hyphens: 'auto',

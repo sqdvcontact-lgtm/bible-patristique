@@ -74,9 +74,10 @@ import {
   type NoteBilingue,
 } from '@/app/lib/bibleEditionBilingue'
 import {
-  CESURE_VERSET, CORPS_GLOSE, CORPS_LECTURE_BIBLE, ESPACE_MOT_ORIGINAL, CHASSE_VERSET, ESPACE_MOT_VERSET, INTERLIGNE_LECTURE_BIBLE, LIBELLE_GLOSE, RAPPORT_ORIGINAL_EN_REGARD,
+  CESURE_VERSET, CORPS_GLOSE, CORPS_LECTURE_BIBLE, CHASSE_VERSET, ESPACE_MOT_VERSET, INTERLIGNE_LECTURE_BIBLE, LIBELLE_GLOSE, RAPPORT_ORIGINAL_EN_REGARD,
   STYLE_SIGNET_VERSET, STYLE_VERSET_VIDE,
 } from '@/app/lib/compositionBible'
+import { INTERLIGNE_ORIGINAL_EN_REGARD } from '@/app/lib/compositionOeuvre'
 import AppelNoteBiblique from './NoteBibliqueFenetre'
 import { rendreTexteAvecAppels, repartirAppels } from '@/app/lib/ancresAppelsBible'
 import { separateurAppels, styleSeparateurAppels } from '@/app/lib/appelsDeNote'
@@ -133,13 +134,23 @@ const STYLE_VERSET = {
 
 // L’encre de la colonne originale des œuvres, reprise telle quelle pour que
 // les deux lectures en regard du site se ressemblent.
+// ⛔ LE GRIS DU FRANÇAIS, À UN INTERLIGNE PRÈS (demande de l'auteur, 2026-09-26) : l'espace
+// et la chasse viennent des jetons, par `STYLE_VERSET` (le grec a les siens sous
+// `:lang(grc)`) ; l'interligne est celui de la colonne originale d'une œuvre, plus serré.
 const STYLE_VERSET_ORIGINAL = {
   ...STYLE_VERSET,
   fontFamily: SANS,
   fontSize: `calc(${CORPS_LECTURE_BIBLE} * ${RAPPORT_ORIGINAL_EN_REGARD})`,
+  lineHeight: INTERLIGNE_ORIGINAL_EN_REGARD,
   color: 'var(--cs-original)',
-  wordSpacing: ESPACE_MOT_ORIGINAL,
 }
+
+// ⛔ UNE LANGUE QU'AUCUNE CÉSURE NE SYLLABE SE FERRE (charte § 3.11.5). L'ancien français du
+// témoin de 1260 était justifié sans pouvoir être coupé : rien ne bornait les blancs, et
+// ses lignes s'ouvraient de lézardes (« Ardez   les   bois   o   feu »). Le français est
+// césuré par le navigateur, le latin et le grec par le site (`cesurerSelonLangue`).
+const LANGUES_CESURABLES = new Set(['fr', 'la', 'grc'])
+const STYLE_FER = { textAlign: 'left' as const, hyphens: 'manual' as const }
 
 // ⛔ UNE GLOSE — italique, un point sous le texte de SA colonne (décision de l'auteur,
 // 2026-09-11). Les corps viennent de `compositionBible.ts`, que la lecture simple lit
@@ -888,9 +899,12 @@ export default function BibleBilingue({
                         {reference}
                         <p
                           onCopy={copieSansCesures}
-                          style={cellule.glose
-                            ? (original ? STYLE_GLOSE_ORIGINAL : STYLE_GLOSE)
-                            : (original ? STYLE_VERSET_ORIGINAL : STYLE_VERSET)}
+                          style={{
+                            ...(cellule.glose
+                              ? (original ? STYLE_GLOSE_ORIGINAL : STYLE_GLOSE)
+                              : (original ? STYLE_VERSET_ORIGINAL : STYLE_VERSET)),
+                            ...(temoin899 || !LANGUES_CESURABLES.has(langue ?? '') ? STYLE_FER : null),
+                          }}
                         >
                           {temoin899
                             ? rendreMarqueurs899(cellule.texte)

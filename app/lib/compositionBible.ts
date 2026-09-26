@@ -113,15 +113,14 @@ export const INTERLIGNE_LECTURE_BIBLE = 'var(--cs-lecture-interligne, 1.55)'
  * la justification lui ajoute (l'espace MAXIMALE). ⚠️ Aucune propriété CSS ne borne
  * l'étirement d'une ligne justifiée : c'est une césure plus serrée (deux lettres de part
  * et d'autre) qui en tient le plafond, en laissant moins de long mot à rejeter.
- * ⛔ La colonne originale en regard (sans) ne descend pas sous −0,03 em : c'est le quart
- * de cadratin, et sous le quart les mots se soudent (charte § 3.11).
+ * ⚠️ La colonne originale en regard (sans) lit les MÊMES jetons depuis le 2026-09-26 : elle
+ * gardait −0,03 em, le plancher du sans, et son gris tranchait sur celui du français.
  */
 /** ⛔ Depuis le 2026-09-24, le GRIS du site (charte § 3.11.8) : l'espace et la chasse du
  *  verset sont les jetons `--cs-corps-espace-mot` et `--cs-corps-chasse`, et son
  *  interligne `--cs-corps-interligne`, par `--cs-lecture-interligne`. */
 export const ESPACE_MOT_VERSET = 'var(--cs-corps-espace-mot, -0.045em)'
 export const CHASSE_VERSET = 'var(--cs-corps-chasse, 0)'
-export const ESPACE_MOT_ORIGINAL = '-0.03em'
 export const CESURE_VERSET = '5 2 2'
 /** Le numéro en gouttière vaut 0,714 du verset : ses 0,625 rem pour les 0,875 d’hier. */
 export const RAPPORT_NUMERO_VERSET = 0.714
