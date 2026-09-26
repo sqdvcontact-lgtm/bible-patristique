@@ -32,7 +32,7 @@ import { variantesFrontispice, variantesIntertitre, titreComposeDe, cleTitreComp
 import type { BlocOriginal } from './bilingueAlignement'
 import { repartirGroupes, chargerProjectionBilingue, chargerPlaceEnRegard, fondreOriginaux, fusionnerBlocsDeVers, originalEnRegard, bornesDesGroupes, partiesNonAlignees, LIBELLE_NON_ALIGNE, type BlocEnRegard } from './bilingueAlignement'
 import { choisirPaireDeLecture, estVersionEnLangueOriginale, modeDeLectureEffectif } from './paireDeLecture'
-import { ALIGNEMENT_ACTIONS, BoutonVolet, MenuVolet, STYLE_RANGEE_TETE_VOLET, TitreVolet, useRangeeCondensee, type ActionVolet } from './TeteVolet'
+import { BoutonVolet, TitreVolet, type ActionVolet } from './TeteVolet'
 import { construireNavigationApparat } from './apparatNavigation'
 import { chargerProfondeurPresente } from './niveauxPresents'
 // ⛔ LE PIPELINE DES SEGMENTS, celui-là même que le rendu serveur emploie. Cinq de ses
@@ -1022,25 +1022,6 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
     liste.push({ cle: 'extraction', libelle: 'Extraire en document Word', icone: ICONE_EXTRACTION, onChoisir: () => setExtractionOuverte(true) })
     return liste
   }, [estAdmin])
-  // ── LA RANGÉE MONTRE TOUT, ET NE CÈDE QUE QUAND LA PLACE MANQUE ───────────
-  // Rectification de l'auteur, 2026-09-10 au soir, contre la forme posée le matin :
-  // « je t'ai demandé de regrouper partager, extraire, etc., sous un bouton ⋮ ; cela ne
-  // doit être le cas que quand on manque de place à l'écran ; sur grand écran, pas la
-  // peine de cacher les icônes ». Les trois actions étaient rangées sous le ⋮ EN TOUTES
-  // CIRCONSTANCES, et seule l'étoile en sortait à l'aise : c'était l'inverse du besoin.
-  // ⛔ Deux formes, et deux seulement : la rangée ENTIÈRE en icônes, ou le ⋮ et rien
-  // d'autre. Un repli par crans — une icône qui cède après l'autre — a été écarté :
-  // c'est le parti que la barre de navigation a défait le 2026-09-10 au matin, parce
-  // qu'une rangée qui n'a pas la même forme selon la largeur ne s'apprend jamais.
-  // ⛔ La condition se MESURE (voir `useRangeeCondensee`) : elle dépend du nom qu'on
-  // lit autant que de la largeur du volet, et un seuil posé se tromperait sur les deux
-  // bouts — à 1920 px, « Eusèbe de Césarée » porte la rangée entière quand « Grégoire
-  // de Nazianze », plus long de dix-neuf pixels, la condense. Relevé sur les quinze
-  // auteurs publiés et neuf écrans (`tmp/mesure-tete-rangee-entiere.mjs`).
-  // ⚠️ CE QUI COMPTE EST LE NOMBRE DE CIBLES, chevron compris : l'administrateur en a
-  // une de plus, et un téléphone n'a pas de chevron — c'est la barre qui y ferme.
-  const ciblesDepliees = actionsDuVolet.length + (favorisPret ? 1 : 0) + (mobile ? 0 : 1)
-  const { condense: teteCondensee, refRangee, refNoms } = useRangeeCondensee(ciblesDepliees)
   const [configEnvoi, setConfigEnvoi] = useState(false)
   // ⛔ L'enregistrement échouait SANS UN MOT : `if (reponses.some(r => !r.ok)) return`
   // remettait simplement le bouton en place. Six appels partent en parallèle ; si un
@@ -3639,63 +3620,13 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
               soit le huitième de la hauteur offerte, avant même la première rubrique.
               ⛔ Rien n’en est retranché : ce sont les blancs qui se referment. */}
           <div data-visite="oeuvre-tete" style={{ padding: mobile ? '9px 14px 8px' : '14px 16px 12px', borderBottom: '1px solid var(--cs-bord)', flexShrink: 0 }}>
-            <div ref={refRangee} style={STYLE_RANGEE_TETE_VOLET}>
-              {/* ⚠️ `refNoms` cerne CE QUI DEMANDE LA PLACE dans la rangée : le TITRE
-                  depuis le 2026-09-10, le nom de l'auteur avant lui. La mesure de
-                  `useRangeeCondensee` n'a pas bougé — elle lit les boutons qu'il porte —
-                  et la règle non plus : le texte ne se coupe pas, c'est la rangée qui
-                  cède sous le ⋮ quand la place manque.
-                  ⚠️ Le titre COMPOSÉ (`titre_affichage`) ne vaut que pour la page de
-                  titre. Ici comme dans la bibliothèque ou le fil d'Ariane, c'est le titre
-                  de catalogue qui nomme l'œuvre. */}
-              <span ref={refNoms} style={{ minWidth: 0, flex: '1 1 auto' }}>
-                <TitreVolet onOuvrir={() => setInfoEditionOuverte(true)} inactif={!ficheEditionDisponible}
-                  titre="À propos de cette édition">{rendreTexteEnrichi(titreAffiche)}</TitreVolet>
-              </span>
-              {/* ⛔ LES ICÔNES TANT QU'IL Y A LA PLACE, LE ⋮ QUAND IL N'Y EN A PLUS
-                  (rectification de l'auteur, 2026-09-10 au soir : « sur grand écran, pas
-                  la peine de cacher les icônes »). Ce qui coûte la largeur est le NOMBRE
-                  de cibles — le plancher de 24 px est celui de WCAG et la rangée y était
-                  déjà, si bien qu'on ne peut rien reprendre sur la taille — et c'est donc
-                  la rangée ENTIÈRE qui cède, d'un coup, quand la place manque.
-                  ⛔ ET LES SYMBOLES ONT LA PRIORITÉ SUR LE TITRE (décision de l'auteur,
-                  2026-09-15) : le titre leur cède la largeur en s'enroulant, et la rangée
-                  ne se condense que lorsqu'il n'a plus sa largeur minimale — son plus long
-                  mot, et jamais moins de 5,5 rem (`useRangeeCondensee`).
-                  ⛔ Le chevron ne descend jamais sous le ⋮ : il est le contrôle du volet
-                  lui-même, et l'on ne referme pas un panneau en ouvrant d'abord un menu qui
-                  vit dedans.
-                  ⚠️ LA RANGÉE ACCOMPAGNE LA PREMIÈRE LIGNE DU TITRE (`ALIGNEMENT_ACTIONS`) :
-                  icônes et chevron partagent le même axe, celui de cette ligne.
-                  ⚠️ L'ÉTOILE reste `EtoileFavori`, le composant partagé, et non un bouton
-                  refait ici : elle porte son état, son libellé inverse et la passe du
-                  DOIGT. Les autres se dérivent de la MÊME liste que le menu.
-                  ⚠️ La MESURE suit la police racine (globals.css, « LA RANGÉE D'ACTIONS ») :
-                  elle était en pixels quand tout autour d'elle est en rem, et gardait donc
-                  ses 129 px de 1280 à 2560. */}
-              <div className="cs-tete-volet-actions" style={{ marginTop: ALIGNEMENT_ACTIONS }}>
-                {teteCondensee
-                  ? <MenuVolet titre="Autres actions" actions={actionsTeteVolet} />
-                  : actionsTeteVolet.map(action => action.cle === 'favori' ? (
-                    <EtoileFavori key={action.cle} actif={favoriPose} onToggle={action.onChoisir} size={13}
-                      title={action.libelle} />
-                  ) : (
-                    <BoutonVolet key={action.cle} titre={action.libelle}
-                      onClick={e => action.onChoisir(e.currentTarget.getBoundingClientRect())}>
-                      {action.icone}
-                    </BoutonVolet>
-                  ))}
-                {/* ⛔ ELLE NE PARAÎT PLUS SUR TÉLÉPHONE : elle y regardait à GAUCHE,
-                    c’est-à-dire vers le rail du BUREAU, qui n’existe pas là. C’est la
-                    barre « Sommaire » qui ferme, et elle reste posée pour cela. */}
-                {!mobile && (
-                  <BoutonVolet titre="Réduire le volet" repli refBouton={refChevronGauche}
-                    aria-expanded={true} aria-controls={idVoletGauche} onClick={() => setNavOuverte(false)}>
-                    <IconeChevron dir="left" taille="0.875rem" strokeWidth={1.5} />
-                  </BoutonVolet>
-                )}
-              </div>
-            </div>
+            {/* ⛔ LE TITRE PREND TOUTE LA LARGEUR DE LA TÊTE (2026-09-26) : les actions de
+                l'œuvre ont quitté sa rangée pour le pied du volet, où elles ont une place
+                fixe. ⚠️ Le titre COMPOSÉ (`titre_affichage`) ne vaut que pour la page de
+                titre : ici comme dans la bibliothèque, c'est le titre de catalogue qui
+                nomme l'œuvre. */}
+            <TitreVolet onOuvrir={() => setInfoEditionOuverte(true)} inactif={!ficheEditionDisponible}
+              titre="À propos de cette édition">{rendreTexteEnrichi(titreAffiche)}</TitreVolet>
             {/* ⛔ LE LIEN « À PROPOS DE CETTE ÉDITION » A DISPARU DU CHAPEAU (2026-09-10,
                 demande de l'auteur). Il vivait ici depuis le 2026-09-03, sous le titre,
                 pour dire la fiche ; c'est le TITRE lui-même qui l'ouvre désormais, et une
@@ -4087,6 +4018,41 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
             </nav>
             )}
           </div>
+          </div>
+          {/* ⛔ LES ACTIONS DE L'ŒUVRE ONT UNE PLACE FIXE, AU PIED DU VOLET (demande de
+              l'auteur, 2026-09-26). Elles vivaient en tête, à côté du titre, où elles lui
+              disputaient la largeur et changeaient de forme selon la place (les icônes, ou
+              le ⋮). Au pied, elles sont toujours entières et toujours au même endroit, et le
+              titre reprend toute la largeur. Le pied est HORS de l'enveloppe qui défile :
+              il ne part pas avec le sommaire. Sur téléphone, le tiroir défile lui-même, et
+              le pied s'y colle en bas.
+              ⚠️ Le chevron se tient au bout, du côté du texte ; les autres actions au fer à
+              gauche. */}
+          <div data-visite="oeuvre-actions" style={{
+            display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px',
+            padding: mobile ? '6px 14px' : '6px 10px 6px 14px', borderTop: '1px solid var(--cs-bord)',
+            background: 'var(--cs-fond-clair)', flexShrink: 0,
+            ...(mobile ? { position: 'sticky', bottom: 0 } : {}),
+          }}>
+            <div className="cs-tete-volet-actions">
+              {actionsTeteVolet.map(action => action.cle === 'favori' ? (
+                <EtoileFavori key={action.cle} actif={favoriPose} onToggle={action.onChoisir} size={13}
+                  title={action.libelle} />
+              ) : (
+                <BoutonVolet key={action.cle} titre={action.libelle}
+                  onClick={e => action.onChoisir(e.currentTarget.getBoundingClientRect())}>
+                  {action.icone}
+                </BoutonVolet>
+              ))}
+            </div>
+            {/* ⛔ PAS DE CHEVRON SUR TÉLÉPHONE : c'est la barre « Sommaire » qui ferme le
+                tiroir, et elle reste posée pour cela. */}
+            {!mobile && (
+              <BoutonVolet titre="Réduire le volet" repli refBouton={refChevronGauche}
+                aria-expanded={true} aria-controls={idVoletGauche} onClick={() => setNavOuverte(false)}>
+                <IconeChevron dir="left" taille="0.875rem" strokeWidth={1.5} />
+              </BoutonVolet>
+            )}
           </div>
         </aside>
         </>

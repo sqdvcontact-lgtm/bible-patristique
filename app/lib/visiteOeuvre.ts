@@ -64,7 +64,6 @@ export const VISITE_OEUVRE: Visite = {
       texte: [
         'Le titre ouvre la fiche de l’édition suivie : ce qu’est l’œuvre, et sur quel texte elle est établie.',
         'Sous lui, le nom de l’auteur ouvre sa fiche, avec sa notice, sa chronologie et ses œuvres.',
-        'L’étoile ajoute l’œuvre à vos favoris. Les commandes voisines la partagent ou l’extraient au format Word.',
       ],
       cote: 'droite',
     },
@@ -101,6 +100,17 @@ export const VISITE_OEUVRE: Visite = {
       texte: [
         'Le sommaire reprend les divisions de l’œuvre telles que les donne l’édition.',
         'Un clic ouvre directement la section choisie.',
+      ],
+      cote: 'droite',
+    },
+    {
+      cle: 'actions',
+      // ⚠️ AJOUTÉ LE 2026-09-26 : les actions ont quitté la tête du volet pour son pied.
+      sujet: ['[data-visite="oeuvre-actions"]'],
+      titre: 'Actions',
+      texte: [
+        'Au pied du volet, l’étoile ajoute l’œuvre à vos favoris.',
+        'Les commandes voisines la partagent ou l’extraient au format Word. La flèche replie le volet.',
       ],
       cote: 'droite',
     },
