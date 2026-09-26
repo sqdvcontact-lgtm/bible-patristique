@@ -20,10 +20,12 @@ import { TEXTE_ERREUR } from '@/app/lib/texteErreur'
  *
  * Le bouton pèse quatre-vingts lignes : il entre dans le bundle de la page, et plus aucun
  * morceau ne part au premier clic. ⚠️ La FENÊTRE, elle, en fait trois cent quarante et
- * n'est utile qu'à l'administrateur : elle reste chargée à la demande, mais derrière un
- * geste EXPLICITE et rare, où un rechargement se comprend au lieu de surprendre.
+ * n'est utile qu'à l'administrateur : elle reste chargée à la demande, derrière un geste
+ * EXPLICITE et rare. ⛔ Et avec `loading` : sans lui, son premier affichage suspendait
+ * jusqu'à l'écran d'attente de la route, et la page entière remontait en haut
+ * (app/lib/dynamicAvecSuspense.test.ts).
  */
-const ModalLienBiblique = dynamic(() => import('@/app/components/ModalLienBiblique'))
+const ModalLienBiblique = dynamic(() => import('@/app/components/ModalLienBiblique'), { loading: () => null })
 
 export default function AssocierVerset({ segId, onAssocie }: {
   segId: number

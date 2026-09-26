@@ -150,7 +150,7 @@ import {
 import { chargerFaitsDesBibles, chargerTextesParCanon } from '@/app/lib/bibleVersetsParCanon'
 // ⛔ L'inventaire des notes est chargé à la DEMANDE : il n'entre dans le paquet que
 // lorsqu'un administrateur ouvre son onglet, et jamais dans celui d'un lecteur.
-const OngletNotes = dynamic(() => import('./OngletNotes'))
+const OngletNotes = dynamic(() => import('./OngletNotes'), { loading: () => null })
 // ⚠️ Le type seul : il s'efface à la compilation et ne ramène donc pas le composant
 // dans le paquet que le chargement à la demande vient d'en sortir.
 import type { SourceInventaire } from './OngletNotes'
@@ -333,9 +333,9 @@ function chargerCodesTraductions(): PromiseLike<string[]> {
 // ⚠️ SANS `ssr: false`, et c'est délibéré : le chunk CLIENT se sépare, mais le rendu
 // serveur ne bouge pas d'un caractère. `ssr: false` retarderait à l'hydratation ce que
 // l'administrateur voit aujourd'hui dès le premier écran.
-const ModaleEditionAdmin = dynamic(() => import('./ModaleEditionAdmin'))
-const MenuExtraction = dynamic(() => import('./MenuExtraction'))
-const BullePartage = dynamic(() => import('@/app/components/BullePartage'))
+const ModaleEditionAdmin = dynamic(() => import('./ModaleEditionAdmin'), { loading: () => null })
+const MenuExtraction = dynamic(() => import('./MenuExtraction'), { loading: () => null })
+const BullePartage = dynamic(() => import('@/app/components/BullePartage'), { loading: () => null })
 
 // ── Proposition de lien biblique (non-admin) ──────────────────────────────────
 // Le lecteur dispose des DEUX moyens, et non plus du seul texte libre : il choisit ses

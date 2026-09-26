@@ -56,10 +56,10 @@ import { POINTS_DE_RUPTURE } from '@/app/lib/pointsDeRupture'
 
 // ⛔ L'inventaire des notes d'une bible ne se charge qu'avec son onglet : il ne sert qu'à
 // l'administrateur, et le lecteur n'a pas à en payer le poids.
-const OngletNotesBible = dynamic(() => import('@/app/components/OngletNotesBible'))
-const OngletSemantique = dynamic(() => import('@/app/components/OngletSemantique'))
+const OngletNotesBible = dynamic(() => import('@/app/components/OngletNotesBible'), { loading: () => null })
+const OngletSemantique = dynamic(() => import('@/app/components/OngletSemantique'), { loading: () => null })
 // La discussion des lecteurs ne se charge qu'au clic sur son onglet, comme `OngletNotesBible`.
-const OngletCommentaires = dynamic(() => import('@/app/components/OngletCommentaires'))
+const OngletCommentaires = dynamic(() => import('@/app/components/OngletCommentaires'), { loading: () => null })
 
 /** Ce que le rail et la barre mobile écrivent quand le volet est fermé : l'ACTION,
  *  jamais le contenu. Le volet s'appelle « Pères de l’Église » : « Ouvrir les Pères » dit
