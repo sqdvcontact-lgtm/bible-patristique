@@ -110,7 +110,7 @@ export const VISITE_OEUVRE: Visite = {
       titre: 'Actions',
       texte: [
         'Au pied du volet, l’étoile ajoute l’œuvre à vos favoris.',
-        'Les commandes voisines la partagent ou l’extraient au format Word. La flèche replie le volet.',
+        'Les commandes voisines la partagent ou l’extraient au format Word.',
       ],
       cote: 'droite',
     },

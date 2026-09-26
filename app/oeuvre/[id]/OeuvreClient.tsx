@@ -32,7 +32,7 @@ import { variantesFrontispice, variantesIntertitre, titreComposeDe, cleTitreComp
 import type { BlocOriginal } from './bilingueAlignement'
 import { repartirGroupes, chargerProjectionBilingue, chargerPlaceEnRegard, fondreOriginaux, fusionnerBlocsDeVers, originalEnRegard, bornesDesGroupes, partiesNonAlignees, LIBELLE_NON_ALIGNE, type BlocEnRegard } from './bilingueAlignement'
 import { choisirPaireDeLecture, estVersionEnLangueOriginale, modeDeLectureEffectif } from './paireDeLecture'
-import { BoutonVolet, TitreVolet, type ActionVolet } from './TeteVolet'
+import { ALIGNEMENT_ACTIONS, BoutonVolet, STYLE_RANGEE_TETE_VOLET, TitreVolet, type ActionVolet } from './TeteVolet'
 import { construireNavigationApparat } from './apparatNavigation'
 import { chargerProfondeurPresente } from './niveauxPresents'
 // ⛔ LE PIPELINE DES SEGMENTS, celui-là même que le rendu serveur emploie. Cinq de ses
@@ -3625,8 +3625,25 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
                 fixe. ⚠️ Le titre COMPOSÉ (`titre_affichage`) ne vaut que pour la page de
                 titre : ici comme dans la bibliothèque, c'est le titre de catalogue qui
                 nomme l'œuvre. */}
-            <TitreVolet onOuvrir={() => setInfoEditionOuverte(true)} inactif={!ficheEditionDisponible}
-              titre="À propos de cette édition">{rendreTexteEnrichi(titreAffiche)}</TitreVolet>
+            {/* ⛔ LE CHEVRON DE REPLI RESTE DANS LA TÊTE (2026-09-26), au bout de la ligne du
+                titre, côté texte : c'est le pendant exact de celui du volet de droite, posé au
+                bord intérieur de sa première ligne. Il accompagne la PREMIÈRE ligne du titre
+                (`ALIGNEMENT_ACTIONS`). ⛔ Pas de chevron sur téléphone : la barre « Sommaire »
+                ferme le tiroir. */}
+            <div style={STYLE_RANGEE_TETE_VOLET}>
+              <span style={{ minWidth: 0, flex: '1 1 auto' }}>
+                <TitreVolet onOuvrir={() => setInfoEditionOuverte(true)} inactif={!ficheEditionDisponible}
+                  titre="À propos de cette édition">{rendreTexteEnrichi(titreAffiche)}</TitreVolet>
+              </span>
+              {!mobile && (
+                <span style={{ display: 'flex', flexShrink: 0, marginTop: ALIGNEMENT_ACTIONS }}>
+                  <BoutonVolet titre="Réduire le volet" repli refBouton={refChevronGauche}
+                    aria-expanded={true} aria-controls={idVoletGauche} onClick={() => setNavOuverte(false)}>
+                    <IconeChevron dir="left" taille="0.875rem" strokeWidth={1.5} />
+                  </BoutonVolet>
+                </span>
+              )}
+            </div>
             {/* ⛔ LE LIEN « À PROPOS DE CETTE ÉDITION » A DISPARU DU CHAPEAU (2026-09-10,
                 demande de l'auteur). Il vivait ici depuis le 2026-09-03, sous le titre,
                 pour dire la fiche ; c'est le TITRE lui-même qui l'ouvre désormais, et une
@@ -4026,10 +4043,10 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
               titre reprend toute la largeur. Le pied est HORS de l'enveloppe qui défile :
               il ne part pas avec le sommaire. Sur téléphone, le tiroir défile lui-même, et
               le pied s'y colle en bas.
-              ⚠️ Le chevron se tient au bout, du côté du texte ; les autres actions au fer à
-              gauche. */}
+              ⚠️ Le chevron de repli n'y descend pas : il reste en tête, en pendant de celui
+              du volet de droite. */}
           <div data-visite="oeuvre-actions" style={{
-            display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px',
+            display: 'flex', alignItems: 'center', gap: '8px',
             padding: mobile ? '6px 14px' : '6px 10px 6px 14px', borderTop: '1px solid var(--cs-bord)',
             background: 'var(--cs-fond-clair)', flexShrink: 0,
             ...(mobile ? { position: 'sticky', bottom: 0 } : {}),
@@ -4045,14 +4062,6 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
                 </BoutonVolet>
               ))}
             </div>
-            {/* ⛔ PAS DE CHEVRON SUR TÉLÉPHONE : c'est la barre « Sommaire » qui ferme le
-                tiroir, et elle reste posée pour cela. */}
-            {!mobile && (
-              <BoutonVolet titre="Réduire le volet" repli refBouton={refChevronGauche}
-                aria-expanded={true} aria-controls={idVoletGauche} onClick={() => setNavOuverte(false)}>
-                <IconeChevron dir="left" taille="0.875rem" strokeWidth={1.5} />
-              </BoutonVolet>
-            )}
           </div>
         </aside>
         </>
